@@ -3,428 +3,396 @@
 import { useState } from 'react'
 import type { MatchResult, UserRequirements } from './api/match/route'
 
-const steps = ['Business', 'Kitchen Needs', 'Location & Budget', 'Results']
+type View = 'landing' | 'chat' | 'results'
+
+const businessTypes = [
+  { label: '🏭 Ghost Kitchen', value: 'Ghost Kitchen / Delivery Brand' },
+  { label: '🥐 Bakery', value: 'Bakery / Pastry' },
+  { label: '🚐 Street Food', value: 'Street Food' },
+  { label: '🍱 Meal Prep', value: 'Meal Prep' },
+  { label: '🎪 Events & Pop-ups', value: 'Pop-up / Events' },
+  { label: '🍽 Catering', value: 'Catering Company' },
+  { label: '🏠 Private Dining', value: 'Private Dining' },
+  { label: '📦 Food Producer', value: 'Food Producer / FMCG' },
+]
 
 const cities = ['London', 'Manchester', 'Birmingham', 'Leeds', 'Bristol', 'Edinburgh', 'Glasgow', 'Liverpool', 'Sheffield', 'Newcastle']
 
-const equipmentOptions = ['commercial oven', 'industrial fryer', 'griddle', 'wok burners', 'tandoor', 'pizza oven', 'mixer', 'blast chiller', 'cold room', 'sous vide', 'dishwasher']
+const budgetRanges = [
+  { label: 'Under £500', value: 499, type: 'monthly' as const },
+  { label: '£500 – £1,000', value: 1000, type: 'monthly' as const },
+  { label: '£1,000 – £2,000', value: 2000, type: 'monthly' as const },
+  { label: '£2,000+', value: 5000, type: 'monthly' as const },
+  { label: 'Hourly rate', value: 25, type: 'hourly' as const },
+]
 
-const businessTypes = ['Ghost Kitchen / Delivery Brand', 'Street Food', 'Catering Company', 'Bakery / Pastry', 'Meal Prep', 'Food Producer / FMCG', 'Private Dining', 'Pop-up / Events', 'Other']
-
-type FormData = {
-  businessType: string
-  teamSize: number
-  city: string
-  budget: number
-  budgetType: 'hourly' | 'monthly'
-  equipment: string[]
-  foodTypes: string
-  operatingHours: string[]
-  storage: string[]
-  deliveryPlatforms: string[]
-  halal: boolean
-  organic: boolean
-  vegan: boolean
-}
-
-const defaultForm: FormData = {
-  businessType: '',
-  teamSize: 1,
-  city: 'London',
-  budget: 1000,
-  budgetType: 'monthly',
-  equipment: [],
-  foodTypes: '',
-  operatingHours: [],
-  storage: [],
-  deliveryPlatforms: [],
-  halal: false,
-  organic: false,
-  vegan: false,
-}
-
-function Toggle({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button onClick={() => onChange(!value)}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all"
-      style={{ background: value ? '#1a1a1a' : 'white', color: value ? 'white' : '#6b7280', borderColor: value ? '#1a1a1a' : '#e5e7eb' }}>
-      {value ? '✓ ' : ''}{label}
-    </button>
-  )
-}
-
-function MultiSelect({ options, selected, onChange, label }: { options: string[]; selected: string[]; onChange: (v: string[]) => void; label?: string }) {
-  const toggle = (opt: string) => {
-    onChange(selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt])
-  }
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map(opt => (
-        <button key={opt} onClick={() => toggle(opt)}
-          className="px-3 py-1.5 rounded-full text-xs font-medium border transition-all"
-          style={{ background: selected.includes(opt) ? '#1a1a1a' : 'white', color: selected.includes(opt) ? 'white' : '#6b7280', borderColor: selected.includes(opt) ? '#1a1a1a' : '#e5e7eb' }}>
-          {opt}
-        </button>
-      ))}
-    </div>
-  )
-}
+const equipmentOptions = ['commercial oven', 'industrial fryer', 'griddle', 'wok burners', 'tandoor', 'pizza oven', 'mixer', 'blast chiller', 'cold room', 'sous vide']
 
 export default function Home() {
-  const [step, setStep] = useState(0)
-  const [form, setForm] = useState<FormData>(defaultForm)
+  const [view, setView] = useState<View>('landing')
+  const [businessType, setBusinessType] = useState('')
+  const [city, setCity] = useState('London')
+  const [budget, setBudget] = useState(1000)
+  const [budgetType, setBudgetType] = useState<'monthly' | 'hourly'>('monthly')
+  const [equipment, setEquipment] = useState<string[]>([])
+  const [storage, setStorage] = useState<string[]>([])
+  const [shifts, setShifts] = useState<string[]>([])
+  const [platforms, setPlatforms] = useState<string[]>([])
+  const [halal, setHalal] = useState(false)
   const [results, setResults] = useState<MatchResult[]>([])
   const [loading, setLoading] = useState(false)
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [selected, setSelected] = useState<MatchResult | null>(null)
+  const [chatStep, setChatStep] = useState(1)
 
-  const update = (field: keyof FormData, value: any) => setForm(p => ({ ...p, [field]: value }))
+  const toggleArr = (arr: string[], setArr: (v: string[]) => void, val: string) => {
+    setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val])
+  }
 
   const runMatch = async () => {
     setLoading(true)
-    setStep(3)
+    setView('results')
     try {
       const req: UserRequirements = {
-        businessType: form.businessType,
-        teamSize: form.teamSize,
-        city: form.city,
-        budget: form.budget,
-        budgetType: form.budgetType,
-        equipment: form.equipment,
-        foodTypes: [form.foodTypes],
-        operatingHours: form.operatingHours,
-        storage: form.storage,
-        deliveryPlatforms: form.deliveryPlatforms,
-        halal: form.halal,
-        organic: form.organic,
-        vegan: form.vegan,
+        businessType, teamSize: 3, city, budget, budgetType,
+        equipment, foodTypes: [businessType], operatingHours: shifts,
+        storage, deliveryPlatforms: platforms, halal,
       }
-      const res = await fetch('/api/match', { method: 'POST', body: JSON.stringify(req), headers: { 'Content-Type': 'application/json' } })
+      const res = await fetch('/api/match', {
+        method: 'POST', body: JSON.stringify(req),
+        headers: { 'Content-Type': 'application/json' }
+      })
       const data = await res.json()
-      setResults(data.results || [])
+      const r = data.results || []
+      setResults(r)
+      if (r.length > 0) setSelected(r[0])
     } catch { setResults([]) }
     setLoading(false)
   }
 
-  const accent = '#d4a843'
+  const pill = (label: string, active: boolean, onClick: () => void, small = false) => (
+    <button onClick={onClick}
+      className={`border rounded-full font-medium transition-all duration-150 ${small ? 'text-xs px-3 py-1.5' : 'text-sm px-4 py-2.5'}`}
+      style={{ background: active ? '#111' : 'white', color: active ? 'white' : '#374151', borderColor: active ? '#111' : '#e5e7eb' }}>
+      {label}
+    </button>
+  )
 
-  return (
-    <div className="min-h-screen" style={{ background: '#f8f7f4' }}>
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ background: '#1a1a1a' }}>🔪</div>
+  // ─── LANDING ───
+  if (view === 'landing') return (
+    <div className="min-h-screen bg-white">
+      <nav className="flex items-center justify-between px-12 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
+        <div className="text-sm font-bold tracking-tight">find me a <span className="text-green-600">kitchen</span></div>
+        <div className="flex gap-8">
+          {['Browse', 'List your kitchen', 'How it works'].map(l => (
+            <span key={l} className="text-sm text-gray-500 font-medium cursor-pointer hover:text-gray-900 transition-colors">{l}</span>
+          ))}
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-500 cursor-pointer hover:text-gray-900 transition-colors">Sign in</span>
+          <button onClick={() => setView('chat')}
+            className="bg-gray-900 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-black transition-colors">
+            Find a Kitchen
+          </button>
+        </div>
+      </nav>
+
+      <div className="max-w-3xl mx-auto px-6 pt-16 pb-20 text-center fade-up">
+        <div className="inline-flex items-center gap-2 bg-green-50 text-green-700 text-xs font-semibold px-4 py-2 rounded-full border border-green-200 mb-8">
+          <span className="w-1.5 h-1.5 bg-green-500 rounded-full pulse inline-block" />
+          🇬🇧 AI-powered · 15 cities · 50+ kitchens
+        </div>
+
+        <h1 className="text-6xl font-extrabold tracking-tight leading-tight mb-5" style={{ letterSpacing: '-3px' }}>
+          Find your perfect<br /><span className="text-green-600">kitchen space.</span>
+        </h1>
+        <p className="text-lg text-gray-500 leading-relaxed mb-12 max-w-lg mx-auto">
+          Tell us about your food business. We&apos;ll match you to the ideal kitchen in seconds — no browsing, no guessing.
+        </p>
+
+        {/* Intake widget */}
+        <div className="max-w-xl mx-auto bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden text-left">
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100 bg-white">
+            <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-sm">🔪</div>
             <div>
-              <div className="font-bold text-sm tracking-tight">Find Me a Kitchen</div>
-              <div className="text-xs text-gray-500">AI-powered commercial kitchen matching</div>
+              <div className="text-sm font-bold">Kitchen Finder AI</div>
+              <div className="text-xs text-green-600 font-medium">● Online — ready to match you</div>
             </div>
           </div>
-          <div className="text-xs text-gray-400">🇬🇧 UK Only</div>
+          <div className="px-5 pt-5 pb-2 text-sm font-semibold text-gray-900">What type of food business are you running?</div>
+          <div className="flex flex-wrap gap-2 px-5 pb-5">
+            {businessTypes.map(b => (
+              <button key={b.value} onClick={() => setBusinessType(b.value)}
+                className="border rounded-full text-sm font-medium px-4 py-2 transition-all"
+                style={{ background: businessType === b.value ? '#111' : 'white', color: businessType === b.value ? 'white' : '#374151', borderColor: businessType === b.value ? '#111' : '#e5e7eb' }}>
+                {b.label}
+              </button>
+            ))}
+          </div>
+          <div className="px-5 pb-5">
+            <button onClick={() => { if (businessType) { setChatStep(2); setView('chat') } }}
+              disabled={!businessType}
+              className="w-full bg-gray-900 text-white py-3.5 rounded-xl text-sm font-bold transition-all disabled:opacity-30 hover:bg-black">
+              Continue →
+            </button>
+          </div>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        {step < 3 ? (
-          <>
-            {/* Hero */}
-            {step === 0 && (
-              <div className="text-center mb-12 fade-up">
-                <h1 className="text-4xl font-bold tracking-tight text-gray-900 mb-3">
-                  Find your perfect<br /><span style={{ color: accent }}>commercial kitchen</span>
-                </h1>
-                <p className="text-gray-500 text-lg">Tell us about your business. We'll match you to the right kitchen in seconds.</p>
-              </div>
-            )}
-
-            {/* Progress */}
-            <div className="flex items-center gap-2 mb-10">
-              {steps.slice(0, 3).map((s, i) => (
-                <div key={s} className="flex items-center gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                      style={{ background: i <= step ? '#1a1a1a' : '#e5e7eb', color: i <= step ? 'white' : '#9ca3af' }}>
-                      {i < step ? '✓' : i + 1}
-                    </div>
-                    <span className="text-sm font-medium" style={{ color: i === step ? '#1a1a1a' : '#9ca3af' }}>{s}</span>
-                  </div>
-                  {i < 2 && <div className="flex-1 h-px w-8 bg-gray-200" />}
-                </div>
-              ))}
+        {/* Stats */}
+        <div className="flex justify-center gap-14 mt-16 pt-10 border-t border-gray-100">
+          {[['50+','Kitchens listed'],['15','UK cities'],['2min','Avg to match'],['100%','Free to use']].map(([n, l]) => (
+            <div key={l}>
+              <div className="text-2xl font-extrabold tracking-tight">{n}</div>
+              <div className="text-xs text-gray-400 mt-1">{l}</div>
             </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 
-            {/* Step 0: Business */}
-            {step === 0 && (
-              <div className="fade-up space-y-8">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">What type of food business are you?</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {businessTypes.map(type => (
-                      <button key={type} onClick={() => update('businessType', type)}
-                        className="p-3 rounded-xl border text-sm font-medium text-left transition-all"
-                        style={{ background: form.businessType === type ? '#1a1a1a' : 'white', color: form.businessType === type ? 'white' : '#374151', borderColor: form.businessType === type ? '#1a1a1a' : '#e5e7eb' }}>
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+  // ─── CHAT ───
+  if (view === 'chat') return (
+    <div className="min-h-screen bg-white">
+      <nav className="flex items-center justify-between px-12 py-4 border-b border-gray-100 bg-white/95 backdrop-blur z-50">
+        <div className="text-sm font-bold tracking-tight">find me a <span className="text-green-600">kitchen</span></div>
+        <button onClick={() => setView('landing')} className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← Back</button>
+      </nav>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">Team size (including you)</label>
-                  <div className="flex items-center gap-4">
-                    <input type="range" min={1} max={20} value={form.teamSize} onChange={e => update('teamSize', +e.target.value)} className="flex-1 accent-gray-900" />
-                    <span className="text-2xl font-bold w-12 text-center">{form.teamSize}</span>
-                  </div>
-                </div>
+      <div className="grid grid-cols-2 min-h-[calc(100vh-62px)]" style={{ borderTop: '1px solid #f0f0f0' }}>
+        {/* Left */}
+        <div className="px-14 py-12 flex flex-col">
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+            Step {chatStep === 2 ? '2' : '3'} of 3 — {chatStep === 2 ? 'Location & Budget' : 'Kitchen Needs'}
+          </div>
+          <div className="h-0.5 bg-gray-100 rounded mb-10">
+            <div className="h-full bg-gray-900 rounded transition-all duration-500" style={{ width: chatStep === 2 ? '66%' : '99%' }} />
+          </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Special requirements</label>
-                  <div className="flex gap-3 flex-wrap">
-                    <Toggle label="Halal certified" value={form.halal} onChange={v => update('halal', v)} />
-                    <Toggle label="Organic certified" value={form.organic} onChange={v => update('organic', v)} />
-                    <Toggle label="Vegan-friendly" value={form.vegan} onChange={v => update('vegan', v)} />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Step 1: Kitchen Needs */}
-            {step === 1 && (
-              <div className="fade-up space-y-8">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Equipment you need</label>
-                  <MultiSelect options={equipmentOptions} selected={form.equipment} onChange={v => update('equipment', v)} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Storage required</label>
-                  <MultiSelect options={['dry', 'cold', 'frozen']} selected={form.storage} onChange={v => update('storage', v)} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">When do you need to operate?</label>
-                  <MultiSelect options={['morning', 'afternoon', 'evening', 'overnight']} selected={form.operatingHours} onChange={v => update('operatingHours', v)} />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Delivery platforms you use</label>
-                  <MultiSelect options={['Deliveroo', 'UberEats', 'JustEat', 'Own fleet']} selected={form.deliveryPlatforms} onChange={v => update('deliveryPlatforms', v)} />
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Location & Budget */}
-            {step === 2 && (
-              <div className="fade-up space-y-8">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">City</label>
-                  <div className="grid grid-cols-5 gap-2">
-                    {cities.map(city => (
-                      <button key={city} onClick={() => update('city', city)}
-                        className="py-2 px-3 rounded-lg border text-sm font-medium transition-all"
-                        style={{ background: form.city === city ? '#1a1a1a' : 'white', color: form.city === city ? 'white' : '#374151', borderColor: form.city === city ? '#1a1a1a' : '#e5e7eb' }}>
-                        {city}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-3">Budget</label>
-                  <div className="flex gap-3 mb-4">
-                    <button onClick={() => update('budgetType', 'monthly')}
-                      className="px-4 py-2 rounded-lg border text-sm font-medium transition-all"
-                      style={{ background: form.budgetType === 'monthly' ? '#1a1a1a' : 'white', color: form.budgetType === 'monthly' ? 'white' : '#6b7280', borderColor: form.budgetType === 'monthly' ? '#1a1a1a' : '#e5e7eb' }}>
-                      Monthly
-                    </button>
-                    <button onClick={() => update('budgetType', 'hourly')}
-                      className="px-4 py-2 rounded-lg border text-sm font-medium transition-all"
-                      style={{ background: form.budgetType === 'hourly' ? '#1a1a1a' : 'white', color: form.budgetType === 'hourly' ? 'white' : '#6b7280', borderColor: form.budgetType === 'hourly' ? '#1a1a1a' : '#e5e7eb' }}>
-                      Hourly
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <input type="range"
-                      min={form.budgetType === 'monthly' ? 300 : 8}
-                      max={form.budgetType === 'monthly' ? 5000 : 50}
-                      step={form.budgetType === 'monthly' ? 50 : 1}
-                      value={form.budget}
-                      onChange={e => update('budget', +e.target.value)}
-                      className="flex-1 accent-gray-900" />
-                    <span className="text-2xl font-bold w-28 text-center">£{form.budget.toLocaleString()}{form.budgetType === 'hourly' ? '/hr' : '/mo'}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Navigation */}
-            <div className="flex justify-between mt-10">
-              {step > 0 ? (
-                <button onClick={() => setStep(s => s - 1)}
-                  className="px-6 py-3 rounded-xl border text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-all">
-                  Back
-                </button>
-              ) : <div />}
-              {step < 2 ? (
-                <button onClick={() => setStep(s => s + 1)} disabled={step === 0 && !form.businessType}
-                  className="px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-40"
-                  style={{ background: '#1a1a1a' }}>
-                  Continue →
-                </button>
-              ) : (
-                <button onClick={runMatch}
-                  className="px-8 py-3 rounded-xl text-sm font-semibold text-white transition-all"
-                  style={{ background: `linear-gradient(135deg, #1a1a1a, #374151)` }}>
-                  Find My Kitchen 🔍
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
-          // Results
-          <div className="fade-up">
-            <div className="flex items-center justify-between mb-8">
+          {chatStep === 2 && (
+            <div className="fade-up space-y-10">
               <div>
-                <h2 className="text-2xl font-bold">Your Matched Kitchens</h2>
-                <p className="text-gray-500 text-sm mt-1">
-                  {loading ? 'Finding your matches...' : `${results.length} kitchens matched in ${form.city}`}
-                </p>
+                <h2 className="text-2xl font-bold tracking-tight mb-1.5">Where are you based?</h2>
+                <p className="text-sm text-gray-500 mb-5">We&apos;ll find kitchens in your city first, then nearby if needed.</p>
+                <div className="flex flex-wrap gap-2">
+                  {cities.map(c => pill(c, city === c, () => setCity(c)))}
+                </div>
               </div>
-              <button onClick={() => { setStep(0); setResults([]) }}
-                className="px-4 py-2 rounded-lg border text-sm text-gray-600 hover:bg-gray-50 transition-all">
-                ← Start Over
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight mb-1.5">What&apos;s your monthly budget?</h2>
+                <p className="text-sm text-gray-500 mb-5">We&apos;ll show options above and below if you&apos;re flexible.</p>
+                <div className="flex flex-wrap gap-2">
+                  {budgetRanges.map(b => pill(b.label, budget === b.value && budgetType === b.type, () => { setBudget(b.value); setBudgetType(b.type) }))}
+                </div>
+              </div>
+              <button onClick={() => setChatStep(3)}
+                className="bg-gray-900 text-white px-8 py-3.5 rounded-full text-sm font-bold inline-flex items-center gap-2 hover:bg-black transition-colors">
+                Continue → <span className="opacity-60">(almost there)</span>
               </button>
             </div>
+          )}
 
-            {loading ? (
-              <div className="text-center py-20">
-                <div className="w-10 h-10 rounded-full border-2 border-gray-200 border-t-gray-900 spin mx-auto mb-4" />
-                <p className="text-gray-500">Matching you to the best kitchens...</p>
-              </div>
-            ) : results.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
-                <div className="text-4xl mb-4">🔍</div>
-                <h3 className="font-semibold text-gray-900 mb-2">No exact matches found</h3>
-                <p className="text-gray-500 text-sm">Try adjusting your budget or location.</p>
-                <button onClick={() => setStep(0)} className="mt-6 px-6 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: '#1a1a1a' }}>
-                  Adjust Search
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {results.map((result, i) => {
-                  const k = result.kitchen
-                  const isTop = i === 0
-                  const isExpanded = expanded === k.id
-
-                  return (
-                    <div key={k.id}
-                      className="bg-white rounded-2xl border overflow-hidden transition-all cursor-pointer"
-                      style={{ borderColor: isTop ? '#d4a843' : '#e5e7eb', boxShadow: isTop ? '0 0 0 1px #d4a843' : 'none' }}
-                      onClick={() => setExpanded(isExpanded ? null : k.id)}>
-
-                      {isTop && (
-                        <div className="px-6 py-2 text-xs font-semibold" style={{ background: '#d4a843', color: 'white' }}>
-                          ⭐ Best Match
-                        </div>
-                      )}
-
-                      <div className="p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-1">
-                              <h3 className="font-bold text-gray-900">{k.name}</h3>
-                              {k.verified && <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium border border-green-100">✓ Verified</span>}
-                            </div>
-                            <p className="text-sm text-gray-500 mb-3">{k.area}, {k.city} · {k.postcode}</p>
-                            <p className="text-sm text-gray-600 leading-relaxed">{k.description}</p>
-                          </div>
-
-                          {/* Match score */}
-                          <div className="text-center flex-shrink-0">
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold border-4 mb-1"
-                              style={{ borderColor: result.compatibilityPct >= 80 ? '#22c55e' : result.compatibilityPct >= 60 ? '#d4a843' : '#e5e7eb', color: result.compatibilityPct >= 80 ? '#22c55e' : result.compatibilityPct >= 60 ? '#d4a843' : '#6b7280' }}>
-                              {result.compatibilityPct}%
-                            </div>
-                            <div className="text-xs text-gray-500">match</div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-50">
-                          <div>
-                            <span className="text-xs text-gray-500">Price</span>
-                            <div className="text-sm font-semibold">
-                              {k.pricePerMonth ? `£${k.pricePerMonth.toLocaleString()}/mo` : ''}
-                              {k.pricePerHour > 0 ? ` · £${k.pricePerHour}/hr` : ''}
-                            </div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-gray-500">Capacity</span>
-                            <div className="text-sm font-semibold">Up to {k.maxCapacity} people</div>
-                          </div>
-                          <div>
-                            <span className="text-xs text-gray-500">Rating</span>
-                            <div className="text-sm font-semibold">⭐ {k.rating} ({k.reviewCount})</div>
-                          </div>
-                          <div className="ml-auto">
-                            <span className="text-xs text-gray-400">{isExpanded ? 'Less ↑' : 'More ↓'}</span>
-                          </div>
-                        </div>
-
-                        {isExpanded && (
-                          <div className="mt-5 pt-5 border-t border-gray-50 space-y-4">
-                            {result.matchReasons.length > 0 && (
-                              <div>
-                                <p className="text-xs font-semibold text-green-700 mb-2">✓ Why it matches</p>
-                                <ul className="space-y-1">
-                                  {result.matchReasons.map((r, i) => <li key={i} className="text-xs text-gray-600 flex gap-2"><span className="text-green-500">✓</span>{r}</li>)}
-                                </ul>
-                              </div>
-                            )}
-
-                            {result.gaps.length > 0 && (
-                              <div>
-                                <p className="text-xs font-semibold text-amber-700 mb-2">⚠ Things to check</p>
-                                <ul className="space-y-1">
-                                  {result.gaps.map((g, i) => <li key={i} className="text-xs text-gray-600 flex gap-2"><span className="text-amber-500">!</span>{g}</li>)}
-                                </ul>
-                              </div>
-                            )}
-
-                            <div>
-                              <p className="text-xs font-semibold text-gray-700 mb-2">Equipment available</p>
-                              <div className="flex flex-wrap gap-1.5">
-                                {k.equipment.map(e => (
-                                  <span key={e} className="text-xs px-2 py-0.5 rounded-full bg-gray-50 border border-gray-100 text-gray-600">{e}</span>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-2">
-                              <a href={`mailto:${k.email}`}
-                                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white text-center transition-all"
-                                style={{ background: '#1a1a1a' }}>
-                                Enquire Now →
-                              </a>
-                              <a href={`https://${k.website}`} target="_blank" rel="noopener"
-                                className="px-6 py-3 rounded-xl text-sm font-semibold border text-gray-700 hover:bg-gray-50 transition-all">
-                                Visit Website
-                              </a>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-
-                <div className="text-center pt-4 text-sm text-gray-400">
-                  Not finding the right fit? <a href="mailto:hello@findmeakitchen.co.uk" className="underline">Tell us what you need</a> and we&apos;ll source it for you.
+          {chatStep === 3 && (
+            <div className="fade-up space-y-8">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight mb-1.5">Equipment you need?</h2>
+                <p className="text-sm text-gray-500 mb-4">Select all that apply — we&apos;ll filter for you.</p>
+                <div className="flex flex-wrap gap-2">
+                  {equipmentOptions.map(e => pill(e, equipment.includes(e), () => toggleArr(equipment, setEquipment, e)))}
                 </div>
               </div>
-            )}
+              <div>
+                <h2 className="text-xl font-bold tracking-tight mb-4">Any special requirements?</h2>
+                <div className="flex flex-wrap gap-2">
+                  {['dry storage', 'cold storage', 'frozen storage'].map(s => {
+                    const v = s.replace(' storage','')
+                    return pill(s, storage.includes(v), () => toggleArr(storage, setStorage, v))
+                  })}
+                  {[['Deliveroo','Deliveroo'], ['UberEats','UberEats'], ['JustEat','JustEat']].map(([l, v]) =>
+                    pill(l, platforms.includes(v), () => toggleArr(platforms, setPlatforms, v))
+                  )}
+                  {pill('Halal certified', halal, () => setHalal(!halal))}
+                </div>
+              </div>
+              <button onClick={runMatch}
+                className="bg-gray-900 text-white px-10 py-3.5 rounded-full text-sm font-bold hover:bg-black transition-colors">
+                Find my kitchen 🔍
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Right preview */}
+        <div className="bg-gray-50 px-10 py-12 border-l border-gray-100">
+          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-5">Your matches loading...</div>
+          <div className="space-y-3">
+            {[
+              { name: 'Karma Kitchen Bermondsey', loc: 'SE1 · London', price: '£1,500/mo', match: '94%', active: true },
+              { name: 'East End Food Hub', loc: 'E8 · Hackney', price: '£650/mo', match: '—', active: false },
+              { name: 'Mission Kitchen W12', loc: 'W12 · White City', price: '£800/mo', match: '—', active: false },
+            ].map(k => (
+              <div key={k.name} className="bg-white rounded-2xl border p-4 transition-all"
+                style={{ borderColor: k.active ? '#111' : '#f0f0f0', opacity: k.active ? 1 : 0.4 }}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-sm font-bold">{k.name}</div>
+                    <div className="text-xs text-gray-400 mt-0.5">{k.loc}</div>
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: k.active ? '#16a34a' : '#9ca3af' }}>{k.match}</span>
+                </div>
+                <div className="text-sm font-bold">{k.price}</div>
+              </div>
+            ))}
           </div>
-        )}
-      </main>
+        </div>
+      </div>
+    </div>
+  )
+
+  // ─── RESULTS ───
+  return (
+    <div className="min-h-screen bg-white">
+      <nav className="flex items-center justify-between px-12 py-4 border-b border-gray-100 bg-white/95 backdrop-blur z-50 sticky top-0">
+        <div className="text-sm font-bold tracking-tight">find me a <span className="text-green-600">kitchen</span></div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => { setView('landing'); setResults([]); setSelected(null) }}
+            className="text-sm text-gray-500 hover:text-gray-900 transition-colors">← New search</button>
+          <div className="w-px h-5 bg-gray-200" />
+          <div className="flex gap-2 flex-wrap">
+            {city && <span className="bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-full">{city}</span>}
+            {businessType && <span className="bg-white text-gray-600 border border-gray-200 text-xs font-medium px-3 py-1.5 rounded-full">{businessType.split('/')[0].trim()} ✕</span>}
+          </div>
+          <span className="text-sm text-gray-400 ml-2">{loading ? 'Matching...' : `${results.length} kitchens matched`}</span>
+        </div>
+      </nav>
+
+      <div className="flex min-h-[calc(100vh-62px)]">
+        {/* Sidebar */}
+        <div className="w-80 border-r border-gray-100 overflow-y-auto flex-shrink-0">
+          <div className="px-5 pt-5 pb-3 text-xs font-bold text-gray-400 uppercase tracking-widest">Your matches</div>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-gray-900 spin" />
+            </div>
+          ) : results.map((r, i) => (
+            <div key={r.kitchen.id} onClick={() => setSelected(r)}
+              className="flex gap-3 px-5 py-3.5 cursor-pointer transition-all border-l-2"
+              style={{ background: selected?.kitchen.id === r.kitchen.id ? '#fafafa' : 'white', borderLeftColor: selected?.kitchen.id === r.kitchen.id ? '#111' : 'transparent' }}>
+              <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center text-lg flex-shrink-0">
+                {['🏭','🌿','🏢','🌆','🏗'][i] || '🍴'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold truncate">{r.kitchen.name}</div>
+                <div className="text-xs text-gray-400 mt-0.5">{r.kitchen.area} · {r.kitchen.city}</div>
+                <div className="text-xs font-bold mt-1">
+                  {r.kitchen.pricePerMonth ? `£${r.kitchen.pricePerMonth.toLocaleString()}/mo` : `£${r.kitchen.pricePerHour}/hr`}
+                </div>
+                <div className="text-xs font-bold mt-0.5" style={{ color: i === 0 ? '#16a34a' : '#9ca3af' }}>
+                  {i === 0 ? `⭐ ${r.compatibilityPct}% match` : `${r.compatibilityPct}% match`}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Detail */}
+        <div className="flex-1 overflow-y-auto p-8">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4">
+              <div className="w-10 h-10 rounded-full border-2 border-gray-200 border-t-gray-900 spin" />
+              <p className="text-gray-500 text-sm">Finding your perfect match...</p>
+            </div>
+          ) : !selected ? (
+            <div className="flex items-center justify-center h-full text-gray-400">No results found. Try adjusting your search.</div>
+          ) : (
+            <div className="max-w-2xl fade-up">
+              {/* Header image */}
+              <div className="h-52 rounded-2xl mb-6 flex items-center justify-center relative overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%)' }}>
+                <span className="text-5xl">🏭</span>
+                <div className="absolute top-4 left-4 bg-white rounded-full px-3 py-1.5 text-xs font-bold">
+                  ⭐ {selected.compatibilityPct}% match
+                </div>
+                {selected.kitchen.verified && (
+                  <div className="absolute top-4 right-4 text-white text-xs font-semibold px-3 py-1.5 rounded-full"
+                    style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', backdropFilter: 'blur(8px)' }}>
+                    ✓ Verified
+                  </div>
+                )}
+              </div>
+
+              <h2 className="text-2xl font-extrabold tracking-tight mb-1">{selected.kitchen.name}</h2>
+              <p className="text-sm text-gray-500 mb-6">📍 {selected.kitchen.area}, {selected.kitchen.city} · {selected.kitchen.postcode}</p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {[
+                  ['Monthly', selected.kitchen.pricePerMonth ? `£${selected.kitchen.pricePerMonth.toLocaleString()}` : '—'],
+                  ['Capacity', `${selected.kitchen.maxCapacity} people`],
+                  ['Rating', `⭐ ${selected.kitchen.rating}`],
+                ].map(([l, v]) => (
+                  <div key={l} className="bg-gray-50 rounded-xl p-4">
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">{l}</div>
+                    <div className="text-lg font-extrabold tracking-tight">{v}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Match reasons */}
+              {selected.matchReasons.length > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5">
+                  <div className="text-xs font-bold text-green-700 uppercase tracking-wide mb-3">✓ Why it&apos;s your match</div>
+                  {selected.matchReasons.slice(0, 5).map((r, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-gray-700 mb-1.5">
+                      <span className="text-green-600 font-bold text-xs">✓</span>{r}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Gaps */}
+              {selected.gaps.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+                  <div className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-3">⚠ Things to check</div>
+                  {selected.gaps.map((g, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-gray-700 mb-1.5">
+                      <span className="text-amber-500 font-bold text-xs">!</span>{g}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-600 leading-relaxed mb-5">{selected.kitchen.description}</p>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 mb-7">
+                {selected.kitchen.features.map(f => (
+                  <span key={f} className="text-xs px-3 py-1.5 rounded-full font-medium"
+                    style={{ background: '#f4f3f0', color: '#374151' }}>{f}</span>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <div className="flex gap-3">
+                <a href={`mailto:${selected.kitchen.email}`}
+                  className="flex-1 bg-gray-900 text-white text-sm font-bold py-4 rounded-xl text-center hover:bg-black transition-colors">
+                  Enquire Now →
+                </a>
+                <a href={`https://${selected.kitchen.website}`} target="_blank" rel="noopener"
+                  className="px-6 py-4 rounded-xl text-sm font-semibold border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+                  Website
+                </a>
+                <button className="w-12 h-12 rounded-xl border border-gray-200 flex items-center justify-center text-lg hover:bg-gray-50 transition-colors">🤍</button>
+              </div>
+
+              <p className="text-center text-xs text-gray-400 mt-6">
+                Not finding the right fit?{' '}
+                <a href="mailto:hello@findmeakitchen.com" className="underline hover:text-gray-600">Tell us what you need</a>
+                {' '}and we&apos;ll source it for you.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
