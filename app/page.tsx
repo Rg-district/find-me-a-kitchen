@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { MatchResult, UserRequirements } from './api/match/route'
+import type { MatchResult, UserRequirements } from '@/lib/types'
 
 type View = 'landing' | 'chat' | 'results'
 
