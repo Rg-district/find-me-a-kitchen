@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kitchens, Kitchen } from '@/lib/kitchens'
+import { Kitchen } from '@/lib/kitchens'
+import { supabaseAdmin } from '@/lib/supabase'
 import type { UserRequirements, MatchResult } from '@/lib/types'
 
 function scoreKitchen(kitchen: Kitchen, req: UserRequirements): MatchResult {
@@ -56,7 +57,55 @@ function scoreKitchen(kitchen: Kitchen, req: UserRequirements): MatchResult {
 export async function POST(req: NextRequest) {
   try {
     const requirements: UserRequirements = await req.json()
-    const results = kitchens.map(k => scoreKitchen(k, requirements)).filter(r => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 5)
+
+    // Fetch active kitchens from Supabase, fall back to static data if unavailable
+    let kitchenData: Kitchen[] = []
+    try {
+      const { data, error } = await supabaseAdmin
+        .from('kitchens')
+        .select('*')
+        .eq('listing_active', true)
+      if (!error && data && data.length > 0) {
+        // Map snake_case DB fields back to camelCase Kitchen type
+        kitchenData = data.map((k: Record<string, unknown>) => ({
+          id: k.id as string,
+          name: k.name as string,
+          city: k.city as string,
+          area: k.area as string,
+          postcode: k.postcode as string,
+          type: k.type as Kitchen['type'],
+          pricePerHour: k.price_per_hour as number,
+          pricePerMonth: k.price_per_month as number | null,
+          minHours: k.min_hours as number,
+          maxCapacity: k.max_capacity as number,
+          equipment: k.equipment as string[],
+          certifications: k.certifications as string[],
+          operatingHours: k.operating_hours as string,
+          availableShifts: k.available_shifts as Kitchen['availableShifts'],
+          storage: k.storage as Kitchen['storage'],
+          deliveryPlatforms: k.delivery_platforms as Kitchen['deliveryPlatforms'],
+          foodTypes: k.food_types as string[],
+          website: k.website as string,
+          phone: k.phone as string,
+          email: k.email as string,
+          description: k.description as string,
+          features: k.features as string[],
+          rating: Number(k.rating),
+          reviewCount: k.review_count as number,
+          verified: k.verified as boolean,
+        }))
+      }
+    } catch (dbErr) {
+      console.error('DB fetch failed, falling back to static data:', dbErr)
+    }
+
+    // Fall back to static data if DB is empty or unavailable
+    if (kitchenData.length === 0) {
+      const { kitchens: staticKitchens } = await import('@/lib/kitchens')
+      kitchenData = staticKitchens
+    }
+
+    const results = kitchenData.map(k => scoreKitchen(k, requirements)).filter(r => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 5)
     return NextResponse.json({ results, total: results.length })
   } catch {
     return NextResponse.json({ error: 'Matching failed' }, { status: 500 })
