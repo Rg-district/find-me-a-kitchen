@@ -1,24 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-02-25.clover',
-})
+export const dynamic = 'force-dynamic'
 
 const PLANS = {
   basic: {
     name: 'Kitchen Listed',
-    price: 4900, // £49/month in pence
+    price: 4900,
     description: 'List your kitchen and get matched with food businesses',
   },
   pro: {
     name: 'Kitchen Pro',
-    price: 9900, // £99/month
+    price: 9900,
     description: 'Priority listing, featured placement, analytics dashboard',
   },
 }
 
 export async function POST(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-02-25.clover',
+  })
+
   try {
     const { plan = 'basic', kitchenName, email, successUrl, cancelUrl } = await req.json()
 
@@ -28,7 +34,6 @@ export async function POST(req: NextRequest) {
 
     const selectedPlan = PLANS[plan as keyof typeof PLANS] || PLANS.basic
 
-    // Create or retrieve Stripe customer
     const customers = await stripe.customers.list({ email, limit: 1 })
     let customer = customers.data[0]
     if (!customer) {
@@ -39,7 +44,6 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       mode: 'subscription',
@@ -71,10 +75,17 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Webhook — Stripe calls this after payment
 export async function PUT(req: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 503 })
+  }
+
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-02-25.clover',
+  })
+
   const body = await req.text()
-  const sig  = req.headers.get('stripe-signature')!
+  const sig = req.headers.get('stripe-signature')!
 
   let event: Stripe.Event
   try {
@@ -86,13 +97,11 @@ export async function PUT(req: NextRequest) {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     console.log(`✅ New subscription: ${session.customer_email} | plan: ${session.metadata?.plan}`)
-    // TODO: update Supabase kitchens table with subscription status
   }
 
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object as Stripe.Subscription
     console.log(`❌ Subscription cancelled: ${sub.customer}`)
-    // TODO: mark kitchen as inactive in Supabase
   }
 
   return NextResponse.json({ received: true })
