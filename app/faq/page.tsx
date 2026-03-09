@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'FAQ & Policies — Find Me a Kitchen',
-  description: 'Frequently asked questions, refund policy, cancellation policy, and legal information for Find Me a Kitchen.',
+  description: 'Frequently asked questions and policies for Find Me a Kitchen — the UK\'s free commercial kitchen marketplace.',
 }
 
 export default function FAQPage() {
@@ -12,11 +12,11 @@ export default function FAQPage() {
 
       {/* Header */}
       <header style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Link href="/" style={{ fontWeight: 700, fontSize: '18px', color: '#111827', textDecoration: 'none' }}>
-          Find Me a <span style={{ color: '#10b981' }}>Kitchen</span>
+        <Link href="/">
+          <img src="/logo.png" alt="Find Me a Kitchen" style={{ height: 40 }} />
         </Link>
         <nav style={{ marginLeft: 'auto', display: 'flex', gap: '24px' }}>
-          <Link href="/" style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none' }}>Browse</Link>
+          <Link href="/browse" style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none' }}>Browse</Link>
           <Link href="/list-kitchen" style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none' }}>List your kitchen</Link>
         </nav>
       </header>
@@ -30,12 +30,77 @@ export default function FAQPage() {
       {/* Content */}
       <div style={{ maxWidth: '760px', margin: '0 auto', padding: '48px 24px 80px' }}>
 
+        {/* About */}
+        <Section title="About Find Me a Kitchen">
+          <QA q="What is Find Me a Kitchen?">
+            Find Me a Kitchen is the UK&apos;s free marketplace for commercial kitchen space. We connect food businesses looking for kitchen space with kitchen owners who have capacity to rent. Think of us like Rightmove, but for commercial kitchens.
+          </QA>
+          <QA q="Is it really free?">
+            Yes. It&apos;s completely free to list your kitchen and free to browse. We don&apos;t charge commission on rentals. Kitchen owners and renters connect directly and arrange terms between themselves.
+          </QA>
+          <QA q="How do you make money?">
+            We&apos;re currently focused on building the best kitchen marketplace in the UK. In the future, we may offer optional premium features for kitchen operators, but the core listing and search functionality will always be free.
+          </QA>
+        </Section>
+
+        {/* For Kitchen Searchers */}
+        <Section title="For Kitchen Searchers">
+          <QA q="How do I find a kitchen?">
+            Use our <Link href="/browse" style={{ color: '#10b981' }}>Browse</Link> page to search kitchens by location, type, equipment, and rental terms. You can also use our AI-powered quiz on the homepage to get personalized recommendations based on your business needs.
+          </QA>
+          <QA q="How do I contact a kitchen owner?">
+            Click on any kitchen listing to view full details. Click &quot;Show Contact Details&quot; to reveal the owner&apos;s email and phone number. You contact them directly to arrange viewings and discuss terms.
+          </QA>
+          <QA q="Do I need an account?">
+            No. You can browse all kitchens and contact owners without creating an account.
+          </QA>
+          <QA q="Is there a fee to enquire?">
+            No. Contacting kitchen owners is completely free. There are no enquiry fees or hidden charges.
+          </QA>
+        </Section>
+
+        {/* For Kitchen Owners */}
+        <Section title="For Kitchen Owners">
+          <QA q="How do I list my kitchen?">
+            Go to our <Link href="/list-kitchen" style={{ color: '#10b981' }}>List Your Kitchen</Link> page and fill out the form. Include details like location, equipment, pricing, and rental terms. Your listing will be reviewed and published within 24 hours.
+          </QA>
+          <QA q="What does it cost to list?">
+            Nothing. Listing your kitchen is completely free. We don&apos;t charge any listing fees, subscription fees, or commission on rentals you arrange.
+          </QA>
+          <QA q="How do I get enquiries?">
+            When someone is interested in your kitchen, they&apos;ll contact you directly using the email and phone number you provide. You handle all communication, viewings, and agreements directly with the renter.
+          </QA>
+          <QA q="Can I edit or remove my listing?">
+            Yes. Contact us at <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a> to update or remove your listing. We&apos;re working on self-service listing management.
+          </QA>
+        </Section>
+
+        {/* How It Works */}
+        <Section title="How It Works">
+          <QA q="What happens after I contact a kitchen?">
+            You and the kitchen owner arrange everything directly — viewings, terms, contracts, payments. Find Me a Kitchen is a discovery platform; we&apos;re not involved in the rental agreement itself.
+          </QA>
+          <QA q="Do you verify kitchens?">
+            <span>We review all listings before they go live. Our review includes:</span>
+            <ul style={{ paddingLeft: '20px', marginTop: '8px', lineHeight: 1.8 }}>
+              <li>Checking the address corresponds to a real location</li>
+              <li>Verifying contact details are valid</li>
+              <li>Ensuring the listing contains accurate information</li>
+            </ul>
+            <p style={{ marginTop: '10px' }}>
+              However, we recommend conducting your own due diligence before entering into any rental agreement. Visit the kitchen in person and verify certifications (food hygiene, gas safety, etc.) before committing.
+            </p>
+          </QA>
+          <QA q="Are you involved in the rental agreement?">
+            No. Find Me a Kitchen is a marketplace that connects kitchen owners and renters. We are not party to any agreement between you and a kitchen operator. All terms, payments, and contracts are arranged directly between parties.
+          </QA>
+        </Section>
+
         {/* Contact */}
         <Section title="Contact & Support">
           <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '20px 24px', marginBottom: '16px' }}>
             <p style={{ fontSize: '14px', color: '#374151', lineHeight: 1.8 }}>
               <strong>Email:</strong> <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981', textDecoration: 'none' }}>help@findmeakitchen.com</a><br />
-              <strong>Contact form:</strong> <Link href="/contact" style={{ color: '#10b981', textDecoration: 'none' }}>findmeakitchen.com/contact</Link><br />
               <strong>Response time:</strong> Within 1 business day (Monday–Friday, 9am–5pm GMT)
             </p>
           </div>
@@ -45,112 +110,16 @@ export default function FAQPage() {
           </p>
         </Section>
 
-        {/* Billing */}
-        <Section title="Subscriptions & Billing">
-          <QA q="How does billing work?">
-            Find Me a Kitchen operates on a monthly subscription basis. Your subscription begins on the date you sign up and renews automatically every 30 days. You will be charged the applicable subscription fee on each renewal date.
-          </QA>
-          <QA q="What payment methods do you accept?">
-            We accept all major credit and debit cards (Visa, Mastercard, American Express) processed securely via Stripe.
-          </QA>
-          <QA q="Is there a free trial?">
-            There is no free trial. Subscriptions begin immediately upon sign-up. We offer a <strong>14-day money-back guarantee</strong> for new subscribers — if you&apos;re not satisfied within the first 14 days, contact us at{' '}
-            <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a> for a full refund.
-          </QA>
-        </Section>
-
-        {/* Cancellation */}
-        <Section title="Cancellation Policy">
-          <QA q="Can I cancel my subscription at any time?">
-            Yes. You may cancel your subscription at any time with no cancellation fee. To cancel, log in to your account and navigate to Settings → Subscription → Cancel, or email{' '}
-            <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a>.
-          </QA>
-          <QA q="What happens after I cancel?">
-            Your access will continue until the end of your current billing period. You will not be charged again after cancellation. No partial refunds are issued for unused days in a billing period.
-          </QA>
-          <QA q="Is there a minimum contract?">
-            No. Find Me a Kitchen is a rolling monthly subscription with no minimum commitment. Cancel any time.
-          </QA>
-        </Section>
-
-        {/* Refunds */}
-        <Section title="Refund & Dispute Policy">
-          <QA q="Do you offer refunds?">
-            <span>We offer refunds in the following circumstances:</span>
-            <ul style={{ paddingLeft: '20px', marginTop: '8px', lineHeight: 1.8 }}>
-              <li>You were charged in error (e.g. duplicate payment)</li>
-              <li>You cancel within 7 days of your initial subscription payment and have not used the service</li>
-              <li>A technical fault prevented you from accessing the service for a significant portion of your billing period</li>
-            </ul>
-            <p style={{ marginTop: '10px' }}>
-              Refund requests must be submitted to <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a> within 14 days of the charge. Approved refunds are processed within 5–10 business days to your original payment method.
-            </p>
-          </QA>
-          <QA q="What if I have a billing dispute?">
-            Please contact us at <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a> before initiating a chargeback with your bank. We are committed to resolving billing issues promptly and fairly.
-          </QA>
-        </Section>
-
-        {/* Physical Goods */}
-        <Section title="Physical Goods">
-          <QA q="Do you sell physical products?">
-            No. Find Me a Kitchen is a digital service only. We do not sell or ship any physical goods. No returns policy applies.
-          </QA>
-        </Section>
-
         {/* Legal */}
-        <Section title="Legal & Restrictions">
+        <Section title="Legal & Privacy">
           <QA q="Who can use Find Me a Kitchen?">
-            Find Me a Kitchen is intended for use by individuals and businesses based in the United Kingdom. Users must be 18 years of age or older and must have the legal authority to enter into agreements on behalf of their business (if applicable).
-          </QA>
-          <QA q="Are there any export restrictions?">
-            Find Me a Kitchen is a UK-based digital service. Access from outside the United Kingdom is not restricted, however the kitchen listings and services are currently focused on the UK market. International users are welcome to browse but availability of listings outside the UK is limited.
+            Find Me a Kitchen is intended for use by individuals and businesses based in the United Kingdom. Users must be 18 years of age or older.
           </QA>
           <QA q="Are you GDPR compliant?">
             Yes. Find Me a Kitchen complies with UK GDPR and the Data Protection Act 2018. We collect and process personal data only as necessary to provide our service. Full details are available in our <Link href="/privacy" style={{ color: '#10b981' }}>Privacy Policy</Link>.
           </QA>
-        </Section>
-
-        {/* Promotions */}
-        <Section title="Promotions & Offers">
-          <QA q="General promotion terms">
-            <ul style={{ paddingLeft: '20px', lineHeight: 1.8 }}>
-              <li>Promotional pricing is available to new subscribers only unless explicitly stated otherwise</li>
-              <li>Discount codes are single-use and non-transferable</li>
-              <li>Promotions cannot be combined with other offers</li>
-              <li>Find Me a Kitchen reserves the right to withdraw or modify a promotion at any time without prior notice</li>
-              <li>Where a promotional period ends, your subscription will continue at the standard rate unless cancelled</li>
-              <li>No cash alternative is available for any promotion</li>
-            </ul>
-          </QA>
-          <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '20px 24px', marginTop: '8px' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: 600, color: '#065f46', marginBottom: '10px' }}>🎁 Launch Offer — Free listing for the first 30 kitchens</h4>
-            <ul style={{ fontSize: '13px', color: '#047857', paddingLeft: '18px', lineHeight: 1.8 }}>
-              <li>Available to kitchen operators only (not searchers)</li>
-              <li>One free listing per business</li>
-              <li>The free listing remains active subject to our standard listing terms</li>
-              <li>Find Me a Kitchen reserves the right to close this offer once 30 listings have been claimed</li>
-              <li>No cash alternative is available</li>
-            </ul>
-          </div>
-        </Section>
-
-        {/* Kitchen Listings */}
-        <Section title="Kitchen Listings">
-          <QA q={<>How are kitchens verified? <span style={{ display: 'inline-block', background: '#d1fae5', color: '#065f46', fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '99px', marginLeft: '6px' }}>Verified ✓</span></>}>
-            <span>All kitchen listings submitted to Find Me a Kitchen are reviewed by our team before going live. Our verification process includes:</span>
-            <ul style={{ paddingLeft: '20px', marginTop: '8px', lineHeight: 1.8 }}>
-              <li><strong>Address check</strong> — we confirm the address corresponds to a real, physical location</li>
-              <li><strong>Contact number check</strong> — we verify a valid UK telephone number is provided</li>
-              <li><strong>Business identity check</strong> — we cross-reference the business name against Companies House to confirm it is a registered UK company or trading name</li>
-            </ul>
-            <p style={{ marginTop: '10px' }}>
-              Listings that pass all three checks are marked with a Verified ✓ badge. We recommend users still conduct their own due diligence before entering into any agreement with a kitchen operator. Find Me a Kitchen is not party to any agreement between users and kitchen operators.
-            </p>
-          </QA>
-          <QA q="What happens if a kitchen listing is inaccurate?">
-            Find Me a Kitchen acts as a platform connecting users with kitchen operators. We are not party to any agreement between a user and a kitchen operator and accept no liability for the accuracy of listings, pricing, or availability. If you encounter an inaccurate or fraudulent listing, please report it to{' '}
-            <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a>.
+          <QA q="What if I find an inaccurate listing?">
+            Please report it to <a href="mailto:help@findmeakitchen.com" style={{ color: '#10b981' }}>help@findmeakitchen.com</a>. We take accuracy seriously and will investigate all reports.
           </QA>
         </Section>
 
