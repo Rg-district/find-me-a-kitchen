@@ -8,22 +8,27 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-export async function GET() {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const { data: kitchens, error } = await supabase
+    const { id } = params
+
+    const { data: kitchen, error } = await supabase
       .from('kitchen_listings')
       .select('*')
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
+      .eq('id', id)
+      .single()
 
     if (error) {
       console.error('Supabase error:', error)
-      return NextResponse.json({ error: 'Failed to fetch kitchens' }, { status: 500 })
+      return NextResponse.json({ error: 'Kitchen not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ kitchens: kitchens || [] })
+    return NextResponse.json({ kitchen })
   } catch (err) {
-    console.error('kitchens API error:', err)
+    console.error('kitchen API error:', err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

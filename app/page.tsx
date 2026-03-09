@@ -85,9 +85,9 @@ export default function Home() {
       <nav className="flex items-center justify-between px-12 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
         <div className="text-sm font-bold tracking-tight">find me a <span className="text-green-600">kitchen</span></div>
         <div className="flex gap-8">
-          {['Browse', 'List your kitchen', 'How it works'].map(l => (
-            <span key={l} className="text-sm text-gray-500 font-medium cursor-pointer hover:text-gray-900 transition-colors">{l}</span>
-          ))}
+          <a href="/browse" className="text-sm text-gray-500 font-medium cursor-pointer hover:text-gray-900 transition-colors">Browse</a>
+          <a href="/list-kitchen" className="text-sm text-gray-500 font-medium cursor-pointer hover:text-gray-900 transition-colors">List your kitchen</a>
+          <a href="/faq" className="text-sm text-gray-500 font-medium cursor-pointer hover:text-gray-900 transition-colors">How it works</a>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500 cursor-pointer hover:text-gray-900 transition-colors">Sign in</span>
