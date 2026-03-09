@@ -14,7 +14,11 @@ export async function POST(req: Request) {
 
     const {
       businessName, kitchenName, kitchenType, address, postcode, city,
-      capacity, pricePerDay, pricePerWeek, pricePerMonth, availableHours,
+      capacity, availableHours,
+      // New term fields
+      termsAvailable, pricePerHour, pricePerDay, pricePerWeek, pricePerMonth, priceLongTerm,
+      openToNegotiation,
+      // Equipment & contact
       equipment, contactName, contactEmail, contactPhone,
     } = body
 
@@ -32,10 +36,16 @@ export async function POST(req: Request) {
         postcode,
         city,
         capacity: capacity ? parseInt(capacity) : null,
+        available_hours: availableHours,
+        // Term availability and pricing
+        terms_available: termsAvailable || [],
+        price_per_hour: pricePerHour ? parseFloat(pricePerHour) : null,
         price_per_day: pricePerDay ? parseFloat(pricePerDay) : null,
         price_per_week: pricePerWeek ? parseFloat(pricePerWeek) : null,
         price_per_month: pricePerMonth ? parseFloat(pricePerMonth) : null,
-        available_hours: availableHours,
+        price_long_term: priceLongTerm || null,
+        open_to_negotiation: openToNegotiation || false,
+        // Equipment & contact
         equipment: equipment || [],
         contact_name: contactName,
         contact_email: contactEmail,

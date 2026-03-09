@@ -20,6 +20,14 @@ const KITCHEN_TYPES = [
   'Other',
 ]
 
+const TERM_OPTIONS = [
+  { key: 'hourly', label: 'Hourly', placeholder: 'e.g. 15' },
+  { key: 'daily', label: 'Daily', placeholder: 'e.g. 120' },
+  { key: 'weekly', label: 'Weekly', placeholder: 'e.g. 550' },
+  { key: 'monthly', label: 'Monthly', placeholder: 'e.g. 1800' },
+  { key: 'longTerm', label: 'Long-term (6+ months)', placeholder: 'Contact for rates' },
+]
+
 export default function ListKitchenPage() {
   const [form, setForm] = useState({
     businessName: '',
@@ -29,10 +37,17 @@ export default function ListKitchenPage() {
     postcode: '',
     city: '',
     capacity: '',
+    availableHours: '',
+    // Term availability
+    termsAvailable: [] as string[],
+    pricePerHour: '',
     pricePerDay: '',
     pricePerWeek: '',
     pricePerMonth: '',
-    availableHours: '',
+    priceLongTerm: '',
+    // Negotiation
+    openToNegotiation: false,
+    // Equipment & contact
     equipment: [] as string[],
     contactName: '',
     contactEmail: '',
@@ -48,6 +63,15 @@ export default function ListKitchenPage() {
       equipment: f.equipment.includes(item)
         ? f.equipment.filter(e => e !== item)
         : [...f.equipment, item],
+    }))
+  }
+
+  function toggleTerm(term: string) {
+    setForm(f => ({
+      ...f,
+      termsAvailable: f.termsAvailable.includes(term)
+        ? f.termsAvailable.filter(t => t !== term)
+        : [...f.termsAvailable, term],
     }))
   }
 
@@ -109,6 +133,15 @@ export default function ListKitchenPage() {
     background: '#fff', border: '1px solid #e5e7eb',
     borderRadius: 12, padding: '24px', marginBottom: 20,
   }
+
+  const checkboxLabelStyle = (active: boolean): React.CSSProperties => ({
+    display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+    background: active ? '#ecfdf5' : '#f9fafb',
+    border: `1px solid ${active ? '#10b981' : '#e5e7eb'}`,
+    borderRadius: 8, padding: '10px 14px', fontSize: 14, fontWeight: 500,
+    color: active ? '#065f46' : '#374151',
+    transition: 'all 0.15s',
+  })
 
   return (
     <main style={{ minHeight: '100vh', background: '#f9fafb', padding: '40px 20px', fontFamily: 'Inter, -apple-system, sans-serif' }}>
@@ -186,28 +219,107 @@ export default function ListKitchenPage() {
             </div>
           </div>
 
-          {/* Pricing */}
+          {/* Rental Terms & Pricing */}
           <div style={sectionStyle}>
-            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 20 }}>Pricing</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Price per day (£)</label>
-                <input style={inputStyle} value={form.pricePerDay} type="number"
-                  onChange={e => setForm(f => ({ ...f, pricePerDay: e.target.value }))}
-                  placeholder="e.g. 120" />
-              </div>
-              <div>
-                <label style={labelStyle}>Price per week (£)</label>
-                <input style={inputStyle} value={form.pricePerWeek} type="number"
-                  onChange={e => setForm(f => ({ ...f, pricePerWeek: e.target.value }))}
-                  placeholder="e.g. 550" />
-              </div>
-              <div>
-                <label style={labelStyle}>Price per month (£)</label>
-                <input style={inputStyle} value={form.pricePerMonth} type="number"
-                  onChange={e => setForm(f => ({ ...f, pricePerMonth: e.target.value }))}
-                  placeholder="e.g. 1800" />
-              </div>
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 8 }}>Rental Terms & Pricing</h2>
+            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 20 }}>
+              Select which rental terms you offer and set your prices. Renters can filter by these options.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
+              {TERM_OPTIONS.map(term => {
+                const isSelected = form.termsAvailable.includes(term.key)
+                const priceKey = term.key === 'longTerm' ? 'priceLongTerm' 
+                  : term.key === 'hourly' ? 'pricePerHour'
+                  : term.key === 'daily' ? 'pricePerDay'
+                  : term.key === 'weekly' ? 'pricePerWeek'
+                  : 'pricePerMonth'
+                
+                return (
+                  <div key={term.key} style={{ 
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    background: isSelected ? '#f0fdf4' : '#fafafa',
+                    border: `1px solid ${isSelected ? '#10b981' : '#e5e7eb'}`,
+                    borderRadius: 10, padding: '12px 16px',
+                    transition: 'all 0.15s',
+                  }}>
+                    <label style={{ 
+                      display: 'flex', alignItems: 'center', gap: 10, 
+                      cursor: 'pointer', flex: '0 0 180px',
+                    }}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        onChange={() => toggleTerm(term.key)}
+                        style={{ width: 18, height: 18, accentColor: '#10b981' }}
+                      />
+                      <span style={{ 
+                        fontWeight: 600, fontSize: 14,
+                        color: isSelected ? '#065f46' : '#374151',
+                      }}>
+                        {term.label}
+                      </span>
+                    </label>
+                    
+                    {isSelected && term.key !== 'longTerm' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                        <span style={{ color: '#6b7280', fontSize: 14 }}>£</span>
+                        <input
+                          type="number"
+                          style={{ 
+                            ...inputStyle, 
+                            width: '100px',
+                            padding: '8px 12px',
+                          }}
+                          placeholder={term.placeholder}
+                          value={form[priceKey as keyof typeof form] as string}
+                          onChange={e => setForm(f => ({ ...f, [priceKey]: e.target.value }))}
+                        />
+                        <span style={{ color: '#9ca3af', fontSize: 13 }}>
+                          per {term.key === 'hourly' ? 'hour' : term.key.replace('ly', '')}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {isSelected && term.key === 'longTerm' && (
+                      <span style={{ color: '#6b7280', fontSize: 13, fontStyle: 'italic' }}>
+                        Renters will contact you directly to discuss rates
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Negotiation Toggle */}
+            <div style={{ 
+              display: 'flex', alignItems: 'center', gap: 12,
+              background: form.openToNegotiation ? '#fef3c7' : '#fafafa',
+              border: `1px solid ${form.openToNegotiation ? '#f59e0b' : '#e5e7eb'}`,
+              borderRadius: 10, padding: '14px 16px',
+            }}>
+              <label style={{ 
+                display: 'flex', alignItems: 'center', gap: 10, 
+                cursor: 'pointer', flex: 1,
+              }}>
+                <input 
+                  type="checkbox" 
+                  checked={form.openToNegotiation}
+                  onChange={e => setForm(f => ({ ...f, openToNegotiation: e.target.checked }))}
+                  style={{ width: 18, height: 18, accentColor: '#f59e0b' }}
+                />
+                <div>
+                  <span style={{ 
+                    fontWeight: 600, fontSize: 14,
+                    color: form.openToNegotiation ? '#92400e' : '#374151',
+                  }}>
+                    Open to negotiation
+                  </span>
+                  <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    Let renters know you&apos;re flexible on price or terms
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -216,14 +328,7 @@ export default function ListKitchenPage() {
             <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', marginBottom: 16 }}>Equipment available</h2>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
               {EQUIPMENT_OPTIONS.map(item => (
-                <label key={item} style={{
-                  display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                  background: form.equipment.includes(item) ? '#ecfdf5' : '#f9fafb',
-                  border: `1px solid ${form.equipment.includes(item) ? '#10b981' : '#e5e7eb'}`,
-                  borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 500,
-                  color: form.equipment.includes(item) ? '#065f46' : '#374151',
-                  transition: 'all 0.15s',
-                }}>
+                <label key={item} style={checkboxLabelStyle(form.equipment.includes(item))}>
                   <input type="checkbox" style={{ display: 'none' }}
                     checked={form.equipment.includes(item)}
                     onChange={() => toggleEquipment(item)} />
