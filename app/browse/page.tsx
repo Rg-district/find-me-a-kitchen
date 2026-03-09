@@ -154,8 +154,8 @@ export default function BrowsePage() {
       {/* Header */}
       <header style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/" style={{ fontSize: 20, fontWeight: 700, color: '#10b981', textDecoration: 'none' }}>
-            Find Me a Kitchen
+          <Link href="/">
+            <img src="/logo.png" alt="Find Me a Kitchen" style={{ height: 40 }} />
           </Link>
           <Link href="/list-kitchen" style={{
             background: '#10b981', color: '#fff', padding: '10px 20px',
