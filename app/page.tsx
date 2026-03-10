@@ -13,7 +13,6 @@ const CATEGORIES = [
 ]
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<'rent' | 'buy'>('rent')
   const [location, setLocation] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -69,30 +68,6 @@ export default function HomePage() {
 
           {/* Dark Search Card */}
           <div className="bg-gray-900 rounded-2xl p-5 shadow-xl">
-            {/* Tabs */}
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setActiveTab('rent')}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                  activeTab === 'rent'
-                    ? 'bg-white text-gray-900'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                Rent
-              </button>
-              <button
-                onClick={() => setActiveTab('buy')}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                  activeTab === 'buy'
-                    ? 'bg-white text-gray-900'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                }`}
-              >
-                Buy
-              </button>
-            </div>
-
             {/* Location Input */}
             <div className="relative mb-4">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -107,7 +82,7 @@ export default function HomePage() {
 
             {/* Search Button */}
             <Link 
-              href={`/browse?location=${location}&mode=${activeTab}`}
+              href={`/browse?location=${location}`}
               className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
             >
               <Search className="w-5 h-5" />
