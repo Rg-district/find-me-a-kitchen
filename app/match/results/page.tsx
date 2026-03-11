@@ -18,6 +18,7 @@ interface Provider {
   description: string
   score: number
   matchPercent?: number
+  benefits?: string[]
 }
 
 function ResultsContent() {
@@ -147,6 +148,21 @@ function ResultsContent() {
                   <span>{provider.cities.slice(0, 3).join(', ')}{provider.cities.length > 3 ? ` +${provider.cities.length - 3} more` : ''}</span>
                 </div>
 
+                {/* Personalized Benefits */}
+                {provider.benefits && provider.benefits.length > 0 && (
+                  <div className="mb-4 p-3 bg-emerald-50 rounded-xl">
+                    <p className="text-xs font-semibold text-emerald-700 mb-2">Why this suits you:</p>
+                    <ul className="space-y-1.5">
+                      {provider.benefits.map((benefit, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                          <Check className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                          <span>{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {/* Features */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {provider.features.slice(0, 4).map((feature, i) => (
@@ -154,7 +170,6 @@ function ResultsContent() {
                       key={i}
                       className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full"
                     >
-                      <Check className="w-3 h-3 text-emerald-500" />
                       {feature}
                     </span>
                   ))}

@@ -501,6 +501,103 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
   return score
 }
 
+// Generate personalized benefits based on user data and provider type
+function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[] {
+  const benefits: string[] = []
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  const userScale = formData.dailyOutput || 'Not sure yet'
+  const userBudget = formData.budget || 'flexible'
+  const cuisines = formData.cuisines || []
+  const location = formData.location || ''
+  const expansionPlans = formData.expansionPlans || ''
+  
+  // Dark Kitchen benefits
+  if (provider.type === 'dark_kitchen') {
+    if (businessType === 'delivery_only' || businessType === 'home') {
+      benefits.push(`Perfect for delivery-only operations — no need to pay for customer-facing space`)
+    }
+    if (businessType === 'home') {
+      benefits.push(`Scale up from home cooking with a professional, licensed kitchen`)
+    }
+    if (userScale.includes('100') || userScale.includes('200') || userScale.includes('500')) {
+      benefits.push(`Built for high-volume output — handles ${userScale} orders/day comfortably`)
+    }
+    if (provider.features.some(f => f.toLowerCase().includes('delivery'))) {
+      benefits.push(`Integrated delivery platform partnerships can boost your order volume`)
+    }
+    if (expansionPlans.includes('growth')) {
+      benefits.push(`Easy to scale — add more shifts or move to larger unit as you grow`)
+    }
+    benefits.push(`All equipment included — no upfront equipment investment needed`)
+    benefits.push(`Fully licensed and compliant — no planning permission headaches`)
+  }
+  
+  // Shared Kitchen benefits
+  if (provider.type === 'shared_kitchen') {
+    if (businessType === 'starting' || businessType === 'home' || businessType === 'popup') {
+      benefits.push(`Low-commitment entry — test your concept without long-term lease`)
+    }
+    if (userBudget.includes('Under') || userBudget.includes('500')) {
+      benefits.push(`Pay only for hours you use — ideal for your budget`)
+    }
+    if (businessType === 'catering') {
+      benefits.push(`Perfect for catering — book kitchen time around your event schedule`)
+    }
+    if (cuisines.includes('Desserts & Bakery')) {
+      benefits.push(`Production-ready for baking — commercial ovens and prep space available`)
+    }
+    benefits.push(`No long-term commitment — scale up or down as needed`)
+    if (provider.features.some(f => f.toLowerCase().includes('support') || f.toLowerCase().includes('training'))) {
+      benefits.push(`Business support included — helpful when you're starting out`)
+    }
+  }
+  
+  // Mobile Unit benefits
+  if (provider.type === 'mobile_supplier') {
+    if (businessType === 'mobile' || businessType === 'popup') {
+      benefits.push(`Own your unit outright — no ongoing rent payments`)
+    }
+    benefits.push(`Take your business anywhere — festivals, markets, events, pitches`)
+    benefits.push(`Lower overheads than fixed premises — no rates, lower utilities`)
+    if (cuisines.some(c => ['Burgers', 'Fish & Chips', 'Chicken & Chips', 'Coffee & Café'].includes(c))) {
+      benefits.push(`Ideal setup for ${cuisines[0]} — high-demand street food category`)
+    }
+    if (expansionPlans.includes('growth')) {
+      benefits.push(`Build your brand and customer base before committing to fixed premises`)
+    }
+    benefits.push(`Flexibility to test different locations and find your best spots`)
+  }
+  
+  // Marketplace benefits
+  if (provider.type === 'marketplace') {
+    benefits.push(`Compare multiple options in ${location} — find the best fit for your needs`)
+    benefits.push(`Direct contact with kitchen owners — negotiate terms that work for you`)
+    if (userBudget.includes('Flexible') || userBudget.includes('Not sure')) {
+      benefits.push(`Browse a range of price points to find what suits your budget`)
+    }
+    benefits.push(`See reviews and verified listings before committing`)
+  }
+  
+  // Production Kitchen benefits
+  if (provider.type === 'production_kitchen') {
+    if (businessType === 'production' || businessType === 'catering') {
+      benefits.push(`Purpose-built for food production at scale`)
+    }
+    if (userScale.includes('200') || userScale.includes('500')) {
+      benefits.push(`Capacity for high-volume production — ${userScale} units/day`)
+    }
+    benefits.push(`Professional-grade equipment for consistent quality`)
+    if (provider.features.some(f => f.toLowerCase().includes('storage') || f.toLowerCase().includes('cold'))) {
+      benefits.push(`Cold storage included — essential for your production workflow`)
+    }
+  }
+  
+  // Return top 3-4 most relevant benefits
+  return benefits.slice(0, 4)
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.json()
@@ -537,11 +634,12 @@ export async function POST(req: NextRequest) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
     
-    // Calculate match percentage for display
+    // Calculate match percentage and generate personalized benefits
     const maxPossibleScore = 215 // Sum of all max scores
     const providersWithPercentage = scoredProviders.map(p => ({
       ...p,
-      matchPercent: Math.round((p.score / maxPossibleScore) * 100)
+      matchPercent: Math.round((p.score / maxPossibleScore) * 100),
+      benefits: generateBenefits(p, formData)
     }))
     
     // Generate recommendation text with OpenAI
