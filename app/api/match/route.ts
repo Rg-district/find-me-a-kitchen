@@ -1,115 +1,306 @@
-export const dynamic = 'force-dynamic'
-
 import { NextRequest, NextResponse } from 'next/server'
-import { Kitchen } from '@/lib/kitchens'
-import { supabaseAdmin } from '@/lib/supabase'
-import type { UserRequirements, MatchResult } from '@/lib/types'
+import { createClient } from '@supabase/supabase-js'
+import OpenAI from 'openai'
 
-function scoreKitchen(kitchen: Kitchen, req: UserRequirements): MatchResult {
-  let score = 0
-  const matchReasons: string[] = []
-  const gaps: string[] = []
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vmuprcheuqnawtlzdyds.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+)
 
-  const cityMatch = kitchen.city.toLowerCase() === req.city.toLowerCase()
-  if (!cityMatch) return { kitchen, score: -1, matchReasons: [], gaps: ['Wrong city'], compatibilityPct: 0 }
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+})
 
-  if (req.budgetType === 'hourly' && kitchen.pricePerHour > 0) {
-    if (kitchen.pricePerHour <= req.budget) { score += 25; matchReasons.push(`Within hourly budget (£${kitchen.pricePerHour}/hr)`) }
-    else { score -= 15; gaps.push(`Over hourly budget (£${kitchen.pricePerHour}/hr vs your £${req.budget}/hr)`) }
-  } else if (req.budgetType === 'monthly' && kitchen.pricePerMonth) {
-    if (kitchen.pricePerMonth <= req.budget) { score += 25; matchReasons.push(`Within monthly budget (£${kitchen.pricePerMonth.toLocaleString()}/mo)`) }
-    else { score -= 15; gaps.push(`Over monthly budget (£${kitchen.pricePerMonth.toLocaleString()}/mo vs your £${req.budget.toLocaleString()}/mo)`) }
+// Provider database (will move to Supabase)
+const PROVIDERS = [
+  {
+    id: 'karma-kitchen',
+    name: 'Karma Kitchen',
+    type: 'dark_kitchen',
+    cities: ['London', 'Manchester', 'Birmingham'],
+    priceMin: 800,
+    priceMax: 2500,
+    priceUnit: 'week',
+    equipment: ['Deep fat fryers', 'Commercial oven', 'Gas hobs / Range', 'Extraction / Ventilation'],
+    features: ['24hr access', 'Flexible terms', 'Delivery partnerships'],
+    bestFor: ['delivery_only', 'growing'],
+    website: 'https://karmakitchen.co',
+    description: 'Flexible dark kitchen rental with sustainable practices'
+  },
+  {
+    id: 'mission-kitchen',
+    name: 'Mission Kitchen',
+    type: 'shared_kitchen',
+    cities: ['London'],
+    priceMin: 15,
+    priceMax: 50,
+    priceUnit: 'hour',
+    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Storage shelving'],
+    features: ['Social enterprise', 'Business support', 'Memberships available'],
+    bestFor: ['starting', 'testing', 'small_batch'],
+    website: 'https://missionkitchen.org',
+    description: 'Social enterprise supporting food entrepreneurs'
+  },
+  {
+    id: 'deliveroo-editions',
+    name: 'Deliveroo Editions',
+    type: 'dark_kitchen',
+    cities: ['London', 'Manchester', 'Birmingham', 'Leeds', 'Bristol'],
+    priceMin: 1200,
+    priceMax: 3500,
+    priceUnit: 'week',
+    equipment: ['Deep fat fryers', 'Commercial oven', 'Gas hobs / Range', 'Extraction / Ventilation'],
+    features: ['Deliveroo partnership', 'High footfall areas', 'Marketing support'],
+    bestFor: ['scaling', 'high_volume'],
+    website: 'https://deliveroo.co.uk',
+    description: 'Delivery-only kitchens with Deliveroo integration'
+  },
+  {
+    id: 'foodstars',
+    name: 'FoodStars (CloudKitchens)',
+    type: 'dark_kitchen',
+    cities: ['London'],
+    priceMin: 1000,
+    priceMax: 3000,
+    priceUnit: 'month',
+    equipment: ['Deep fat fryers', 'Commercial oven', 'Gas hobs / Range'],
+    features: ['100+ locations', 'All equipment included'],
+    bestFor: ['delivery_only', 'virtual_brands'],
+    website: 'https://foodstars.co.uk',
+    description: 'Large-scale dark kitchen network across London'
+  },
+  {
+    id: 'amobox',
+    name: 'Amobox',
+    type: 'mobile_supplier',
+    cities: ['Nationwide'],
+    priceMin: 25000,
+    priceMax: 80000,
+    priceUnit: 'one_time',
+    equipment: ['Custom built to spec'],
+    features: ['Premium design', 'Bespoke builds', '8-16 week lead time'],
+    bestFor: ['mobile', 'premium'],
+    website: 'https://amobox.com',
+    description: 'Premium mobile kitchen and van conversions'
+  },
+  {
+    id: 'jiffy-trucks',
+    name: 'Jiffy Trucks',
+    type: 'mobile_supplier',
+    cities: ['Nationwide'],
+    priceMin: 15000,
+    priceMax: 45000,
+    priceUnit: 'one_time',
+    equipment: ['Bain maries', 'Deep fat fryers', 'Griddles'],
+    features: ['Hot & cold options', 'Snack trucks', 'Sandwich vans'],
+    bestFor: ['mobile', 'snacks', 'sandwiches'],
+    website: 'https://cateringtrucks.co.uk',
+    description: 'Specialist hot and cold snack catering trucks'
+  },
+  {
+    id: 'oya',
+    name: 'Oya',
+    type: 'marketplace',
+    cities: ['London', 'Manchester', 'Birmingham', 'Leeds', 'Bristol', 'Edinburgh', 'Glasgow', 'Cardiff'],
+    priceMin: 500,
+    priceMax: 5000,
+    priceUnit: 'month',
+    equipment: ['Varies by listing'],
+    features: ['Marketplace model', 'Multiple options', 'Direct contact'],
+    bestFor: ['all'],
+    website: 'https://oya.co.uk',
+    description: 'UK marketplace for commercial kitchen rentals'
+  },
+  {
+    id: 'ncass',
+    name: 'NCASS Classifieds',
+    type: 'marketplace',
+    cities: ['Nationwide'],
+    priceMin: 3000,
+    priceMax: 30000,
+    priceUnit: 'one_time',
+    equipment: ['Varies'],
+    features: ['Used equipment', 'Trailers', 'Vans', 'Industry trusted'],
+    bestFor: ['mobile', 'budget'],
+    website: 'https://ncass.org.uk/classified-adverts',
+    description: 'Industry classifieds for used catering equipment and vehicles'
+  },
+  {
+    id: 'sharethere',
+    name: 'ShareThere',
+    type: 'shared_kitchen',
+    cities: ['London', 'Manchester', 'Birmingham'],
+    priceMin: 15,
+    priceMax: 100,
+    priceUnit: 'hour',
+    equipment: ['Commercial oven', 'Prep tables', 'Storage'],
+    features: ['Flexible booking', 'Multiple locations'],
+    bestFor: ['starting', 'flexible'],
+    website: 'https://sharethere.co',
+    description: 'Flexible commercial kitchen rentals by the hour'
   }
+]
 
-  if (kitchen.maxCapacity >= req.teamSize) { score += 15; matchReasons.push(`Fits your team size (up to ${kitchen.maxCapacity})`) }
-  else { score -= 20; gaps.push(`Capacity too small (max ${kitchen.maxCapacity}, you need ${req.teamSize})`) }
-
-  const equipmentMatches = req.equipment.filter(e => kitchen.equipment.some(ke => ke.toLowerCase().includes(e.toLowerCase())))
-  if (equipmentMatches.length > 0) { score += equipmentMatches.length * 5; matchReasons.push(`Has ${equipmentMatches.length}/${req.equipment.length} required equipment items`) }
-  const missingEquipment = req.equipment.filter(e => !kitchen.equipment.some(ke => ke.toLowerCase().includes(e.toLowerCase())))
-  if (missingEquipment.length > 0) gaps.push(`Missing equipment: ${missingEquipment.slice(0, 3).join(', ')}`)
-
-  const storageMatches = req.storage.filter(s => kitchen.storage.includes(s as any))
-  if (storageMatches.length === req.storage.length && req.storage.length > 0) { score += 10; matchReasons.push('Has all required storage types') }
-  else if (storageMatches.length > 0) { score += 5 }
-
-  const shiftMap: Record<string, string> = { 'morning': 'morning', 'afternoon': 'afternoon', 'evening': 'evening', 'overnight': 'overnight', '24/7': '24hr' }
-  const shiftMatches = req.operatingHours.filter(s => kitchen.availableShifts.includes((shiftMap[s] || s) as any))
-  if (shiftMatches.length === req.operatingHours.length && req.operatingHours.length > 0) { score += 10; matchReasons.push('Available during your required hours') }
-
-  const platformMatches = req.deliveryPlatforms.filter(p => kitchen.deliveryPlatforms.includes(p as any))
-  if (platformMatches.length > 0) { score += platformMatches.length * 3; matchReasons.push(`Supports ${platformMatches.join(', ')}`) }
-
-  if (req.halal && kitchen.certifications.some(c => c.toLowerCase().includes('halal'))) { score += 20; matchReasons.push('Halal certified ✓') }
-  else if (req.halal) { score -= 30; gaps.push('Not Halal certified') }
-
-  if (req.organic && kitchen.certifications.some(c => c.toLowerCase().includes('organic'))) { score += 15; matchReasons.push('Organic certified ✓') }
-  else if (req.organic) gaps.push('Not organic certified')
-
-  if (req.vegan && (kitchen.certifications.some(c => c.toLowerCase().includes('vegan')) || kitchen.foodTypes.some(f => f.toLowerCase().includes('vegan')))) { score += 10; matchReasons.push('Vegan-friendly ✓') }
-
-  score += kitchen.rating * 2
-  if (kitchen.rating >= 4.8) matchReasons.push(`Highly rated (${kitchen.rating}★)`)
-  if (kitchen.verified) score += 5
-
-  const compatibilityPct = Math.min(Math.max(Math.round((score / 100) * 100), 5), 99)
-  return { kitchen, score, matchReasons, gaps, compatibilityPct }
+function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
+  let score = 0
+  
+  // Location match
+  const locationLower = formData.location.toLowerCase()
+  if (provider.cities.some(c => c.toLowerCase().includes(locationLower) || locationLower.includes(c.toLowerCase()))) {
+    score += 30
+  } else if (provider.cities.includes('Nationwide')) {
+    score += 15
+  }
+  
+  // Business type match
+  const businessType = formData.businessStatus === 'operating' ? formData.currentUnit : formData.plannedBusiness
+  if (businessType === 'delivery_only' && provider.type === 'dark_kitchen') score += 25
+  if (businessType === 'mobile' && provider.type === 'mobile_supplier') score += 25
+  if (businessType === 'cafe' && provider.type === 'shared_kitchen') score += 20
+  if (businessType === 'production' && provider.type === 'dark_kitchen') score += 20
+  if (businessType === 'home' && provider.type === 'shared_kitchen') score += 25 // upgrading from home
+  
+  // Equipment match
+  const equipmentMatch = formData.equipment.filter((e: string) => 
+    provider.equipment.some(pe => pe.toLowerCase().includes(e.toLowerCase()) || e.toLowerCase().includes(pe.toLowerCase()))
+  ).length
+  score += equipmentMatch * 3
+  
+  // Budget match
+  const budgetMap: Record<string, number> = {
+    'Under £500/month': 500,
+    '£500 - £1,000/month': 1000,
+    '£1,000 - £2,000/month': 2000,
+    '£2,000 - £5,000/month': 5000,
+    '£5,000+/month': 10000,
+    'Not sure / Flexible': 3000
+  }
+  const userBudget = budgetMap[formData.budget] || 2000
+  
+  // Normalize provider price to monthly
+  let monthlyPrice = provider.priceMin
+  if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 40 // assuming 40 hrs/month
+  if (provider.priceUnit === 'week') monthlyPrice = provider.priceMin * 4
+  
+  if (provider.priceUnit !== 'one_time') {
+    if (monthlyPrice <= userBudget) score += 20
+    if (monthlyPrice <= userBudget * 0.7) score += 10 // good value
+  }
+  
+  // Scale/output match
+  const outputMap: Record<string, string> = {
+    'Under 20': 'small',
+    '20-50': 'small',
+    '50-100': 'medium',
+    '100-200': 'medium',
+    '200-500': 'large',
+    '500+': 'enterprise',
+    'Not sure yet': 'small'
+  }
+  const scale = outputMap[formData.dailyOutput] || 'small'
+  
+  if (scale === 'large' || scale === 'enterprise') {
+    if (provider.type === 'dark_kitchen') score += 15
+    if (provider.id === 'deliveroo-editions') score += 10
+  }
+  if (scale === 'small' && provider.type === 'shared_kitchen') score += 15
+  
+  return score
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const requirements: UserRequirements = await req.json()
-
-    // Fetch active kitchens from Supabase, fall back to static data if unavailable
-    let kitchenData: Kitchen[] = []
+    const formData = await req.json()
+    
+    // Save the match request
+    const { data: matchData, error: matchError } = await supabase
+      .from('fmak_matches')
+      .insert({
+        business_status: formData.businessStatus,
+        current_unit: formData.currentUnit,
+        planned_business: formData.plannedBusiness,
+        cuisines: formData.cuisines,
+        equipment: formData.equipment,
+        staff_count: formData.staffCount,
+        daily_output: formData.dailyOutput,
+        expansion_plans: formData.expansionPlans,
+        location: formData.location,
+        budget: formData.budget,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+    
+    if (matchError) {
+      console.error('Error saving match:', matchError)
+    }
+    
+    // Score all providers
+    const scoredProviders = PROVIDERS.map(provider => ({
+      ...provider,
+      score: scoreProvider(provider, formData)
+    }))
+    .filter(p => p.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5)
+    
+    // Generate recommendation text with OpenAI
+    let recommendation = ''
     try {
-      const { data, error } = await supabaseAdmin
-        .from('kitchens')
-        .select('*')
-        .eq('listing_active', true)
-      if (!error && data && data.length > 0) {
-        // Map snake_case DB fields back to camelCase Kitchen type
-        kitchenData = data.map((k: Record<string, unknown>) => ({
-          id: k.id as string,
-          name: k.name as string,
-          city: k.city as string,
-          area: k.area as string,
-          postcode: k.postcode as string,
-          type: k.type as Kitchen['type'],
-          pricePerHour: k.price_per_hour as number,
-          pricePerMonth: k.price_per_month as number | null,
-          minHours: k.min_hours as number,
-          maxCapacity: k.max_capacity as number,
-          equipment: k.equipment as string[],
-          certifications: k.certifications as string[],
-          operatingHours: k.operating_hours as string,
-          availableShifts: k.available_shifts as Kitchen['availableShifts'],
-          storage: k.storage as Kitchen['storage'],
-          deliveryPlatforms: k.delivery_platforms as Kitchen['deliveryPlatforms'],
-          foodTypes: k.food_types as string[],
-          website: k.website as string,
-          phone: k.phone as string,
-          email: k.email as string,
-          description: k.description as string,
-          features: k.features as string[],
-          rating: Number(k.rating),
-          reviewCount: k.review_count as number,
-          verified: k.verified as boolean,
-        }))
-      }
-    } catch (dbErr) {
-      console.error('DB fetch failed, falling back to static data:', dbErr)
-    }
+      const businessType = formData.businessStatus === 'operating' ? formData.currentUnit : formData.plannedBusiness
+      const topProvider = scoredProviders[0]
+      
+      const prompt = `You are a commercial kitchen expert. Based on these user needs, write 2-3 sentences recommending the best kitchen solution. Be specific and helpful. Do not mention AI.
 
-    // Fall back to static data if DB is empty or unavailable
-    if (kitchenData.length === 0) {
-      const { kitchens: staticKitchens } = await import('@/lib/kitchens')
-      kitchenData = staticKitchens
-    }
+User profile:
+- Business type: ${businessType}
+- Cuisines: ${formData.cuisines.join(', ')}
+- Equipment needed: ${formData.equipment.slice(0, 5).join(', ')}
+- Staff: ${formData.staffCount}
+- Daily output: ${formData.dailyOutput}
+- Location: ${formData.location}
+- Budget: ${formData.budget}
+- Expansion plans: ${formData.expansionPlans}
 
-    const results = kitchenData.map(k => scoreKitchen(k, requirements)).filter(r => r.score > 0).sort((a, b) => b.score - a.score).slice(0, 5)
-    return NextResponse.json({ results, total: results.length })
-  } catch {
-    return NextResponse.json({ error: 'Matching failed' }, { status: 500 })
+Top match: ${topProvider?.name} (${topProvider?.type.replace('_', ' ')})
+
+Write a personalized recommendation explaining why this is a good fit and what to consider.`
+
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 200,
+        temperature: 0.7
+      })
+      
+      recommendation = completion.choices[0]?.message?.content || ''
+    } catch (e) {
+      console.error('OpenAI error:', e)
+      recommendation = `Based on your requirements for ${formData.cuisines[0] || 'your cuisine'} in ${formData.location}, we've found ${scoredProviders.length} matching options. The top match offers the right combination of equipment, location, and pricing for your needs.`
+    }
+    
+    // Save results
+    const matchId = matchData?.id || `temp_${Date.now()}`
+    
+    if (matchData?.id) {
+      await supabase
+        .from('fmak_matches')
+        .update({
+          results: scoredProviders,
+          recommendation
+        })
+        .eq('id', matchData.id)
+    }
+    
+    return NextResponse.json({
+      success: true,
+      matchId,
+      results: scoredProviders,
+      recommendation
+    })
+    
+  } catch (error) {
+    console.error('Match error:', error)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, Search, MapPin, Building2, UtensilsCrossed, Coffee, Truck, ChefHat, User, X, ChevronRight } from 'lucide-react'
+import { Menu, Search, MapPin, Building2, UtensilsCrossed, Coffee, Truck, ChefHat, User, X, ChevronRight, Sparkles } from 'lucide-react'
 
 const CATEGORIES = [
   { name: 'Dark Kitchens', icon: Building2, count: 24 },
@@ -66,28 +66,44 @@ export default function HomePage() {
             The UK's marketplace for commercial kitchens
           </p>
 
-          {/* Dark Search Card */}
-          <div className="bg-gray-900 rounded-2xl p-5 shadow-xl">
-            {/* Location Input */}
-            <div className="relative mb-4">
+          {/* Kitchen Matcher CTA */}
+          <Link 
+            href="/match"
+            className="block bg-gray-900 rounded-2xl p-6 shadow-xl hover:bg-gray-800 transition-colors group"
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center">
+                <Search className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-white font-bold text-lg">Find Your Perfect Kitchen</h2>
+                <p className="text-gray-400 text-sm">Answer a few questions, get matched instantly</p>
+              </div>
+            </div>
+            <div className="bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors">
+              Start Matching
+              <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Or Browse Directly */}
+          <div className="mt-4">
+            <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Enter city or postcode"
+                placeholder="Or search by location..."
                 value={location}
                 onChange={e => setLocation(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full pl-10 pr-24 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 outline-none"
               />
+              <Link 
+                href={`/browse?location=${location}`}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+              >
+                Browse
+              </Link>
             </div>
-
-            {/* Search Button */}
-            <Link 
-              href={`/browse?location=${location}`}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
-            >
-              <Search className="w-5 h-5" />
-              Search kitchens
-            </Link>
           </div>
 
           {/* Category Pills */}
