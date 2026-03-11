@@ -17,6 +17,7 @@ interface Provider {
   website: string
   description: string
   score: number
+  matchPercent?: number
 }
 
 function ResultsContent() {
@@ -129,7 +130,12 @@ function ResultsContent() {
                     <p className="text-sm text-gray-500">{getTypeLabel(provider.type)}</p>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-emerald-600">{formatPrice(provider)}</div>
+                    {provider.matchPercent && (
+                      <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full mb-1">
+                        {provider.matchPercent}% match
+                      </div>
+                    )}
+                    <div className="font-bold text-gray-900">{formatPrice(provider)}</div>
                   </div>
                 </div>
 
