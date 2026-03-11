@@ -598,6 +598,191 @@ function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[
   return benefits.slice(0, 4)
 }
 
+// #12 - Generate match factors that influenced results
+function generateMatchFactors(formData: any): string[] {
+  const factors: string[] = []
+  
+  if (formData.location) factors.push(`📍 ${formData.location}`)
+  
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  const businessLabels: Record<string, string> = {
+    'delivery_only': '🚚 Delivery-only',
+    'mobile': '🚐 Mobile business',
+    'home': '🏠 Home kitchen',
+    'cafe': '☕ Café/takeaway',
+    'restaurant': '🍽️ Restaurant',
+    'catering': '🎉 Catering',
+    'production': '🏭 Production',
+    'starting': '🚀 New business',
+    'popup': '⚡ Pop-up'
+  }
+  if (businessType && businessLabels[businessType]) {
+    factors.push(businessLabels[businessType])
+  }
+  
+  if (formData.budget) factors.push(`💰 ${formData.budget.replace('/month', '')}`)
+  if (formData.dailyOutput && formData.dailyOutput !== 'Not sure yet') {
+    factors.push(`📊 ${formData.dailyOutput} orders/day`)
+  }
+  if (formData.cuisines && formData.cuisines.length > 0) {
+    factors.push(`🍴 ${formData.cuisines.slice(0, 2).join(', ')}`)
+  }
+  
+  return factors.slice(0, 5)
+}
+
+// #3 - Generate location demand insight
+function generateDemandInsight(formData: any): string | null {
+  const location = formData.location?.toLowerCase() || ''
+  const cuisines = formData.cuisines || []
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  
+  // Location-based insights
+  const locationInsights: Record<string, Record<string, string>> = {
+    'london': {
+      'Caribbean': 'Delivery demand for Caribbean food in South and East London has grown 35% year-on-year. Strong opportunity.',
+      'Indian': 'Indian cuisine remains highly competitive in London — consider a niche (e.g., South Indian, street food) to stand out.',
+      'Burgers': 'Burger market is saturated in central London, but demand is growing in outer zones (E17, SE15, N17).',
+      'Chicken & Chips': 'Chicken shops remain high-demand, especially in residential areas. Consider dark kitchen for lower overheads.',
+      'Pizza': 'Artisan pizza is trending upward in London, especially sourdough and Neapolitan styles.',
+      'Desserts & Bakery': 'Dessert delivery has doubled since 2023. Strong opportunity for specialist bakeries.',
+      'default': 'London has high demand but intense competition. Differentiation is key to standing out.'
+    },
+    'manchester': {
+      'Burgers': 'Manchester burger scene is booming, especially in Northern Quarter and Ancoats areas.',
+      'Indian': 'Curry Mile competition is fierce — dark kitchens in South Manchester offer better margins.',
+      'default': 'Manchester's food scene is growing fast. Good time to enter with the right concept.'
+    },
+    'birmingham': {
+      'Indian': 'Birmingham has the UK's largest South Asian community — authentic cuisines do well here.',
+      'Caribbean': 'Growing Caribbean food scene in Birmingham, especially in Handsworth and city centre.',
+      'default': 'Birmingham's food delivery market is expanding rapidly with lower competition than London.'
+    }
+  }
+  
+  // Find matching insight
+  for (const [city, insights] of Object.entries(locationInsights)) {
+    if (location.includes(city)) {
+      for (const cuisine of cuisines) {
+        if (insights[cuisine]) return insights[cuisine]
+      }
+      return insights['default']
+    }
+  }
+  
+  // Generic insight for other locations
+  if (businessType === 'delivery_only') {
+    return 'Delivery-only models have lower overheads and can test demand before committing to premises.'
+  }
+  if (businessType === 'mobile') {
+    return 'Mobile food businesses can test multiple locations to find their best spots before settling.'
+  }
+  
+  return null
+}
+
+// #7 - Generate "Also Consider" alternative
+function generateAlsoConsider(formData: any, topResultType: string): { type: string; reason: string } | null {
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  const budget = formData.budget || ''
+  
+  // If they chose dark kitchen, suggest alternatives
+  if (topResultType === 'dark_kitchen') {
+    if (budget.includes('Under') || budget.includes('500')) {
+      return {
+        type: 'shared_kitchen',
+        reason: 'On a tighter budget? A shared kitchen lets you pay by the hour while you build up orders — lower risk while testing your concept.'
+      }
+    }
+    if (businessType === 'starting' || businessType === 'home') {
+      return {
+        type: 'shared_kitchen',
+        reason: 'Just starting out? A shared kitchen gives you flexibility to scale hours up or down as you learn what works.'
+      }
+    }
+  }
+  
+  // If they chose shared kitchen, suggest growth path
+  if (topResultType === 'shared_kitchen') {
+    if (formData.dailyOutput?.includes('100') || formData.dailyOutput?.includes('200')) {
+      return {
+        type: 'dark_kitchen',
+        reason: 'At your volume, a dedicated dark kitchen could actually be more cost-effective than hourly rates — and gives you 24/7 access.'
+      }
+    }
+  }
+  
+  // If they chose mobile, suggest testing first
+  if (topResultType === 'mobile_supplier') {
+    return {
+      type: 'shared_kitchen',
+      reason: 'Before investing in a van, consider testing your menu from a shared kitchen first. Lower risk way to validate demand.'
+    }
+  }
+  
+  // If looking at marketplace
+  if (topResultType === 'marketplace') {
+    return {
+      type: 'direct_provider',
+      reason: 'Marketplaces are great for comparing options, but going direct to providers like Karma Kitchen often gets you better terms.'
+    }
+  }
+  
+  return null
+}
+
+// #8 - Generate growth path recommendation
+function generateGrowthPath(formData: any, topResultType: string): { current: string; next: string; trigger: string } | null {
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  const dailyOutput = formData.dailyOutput || ''
+  
+  // Home → Shared → Dark Kitchen path
+  if (businessType === 'home' || businessType === 'starting') {
+    return {
+      current: 'Shared Kitchen',
+      next: 'Dark Kitchen',
+      trigger: 'When you hit 50+ consistent daily orders, graduate to a dedicated unit'
+    }
+  }
+  
+  // Shared → Dark Kitchen path
+  if (topResultType === 'shared_kitchen') {
+    return {
+      current: 'Shared Kitchen (hourly)',
+      next: 'Dedicated Dark Kitchen',
+      trigger: 'Move up when hourly costs exceed £1,500/month or you need 24/7 access'
+    }
+  }
+  
+  // Dark Kitchen → Multi-site path
+  if (topResultType === 'dark_kitchen' && (dailyOutput.includes('200') || dailyOutput.includes('500'))) {
+    return {
+      current: 'Single Dark Kitchen',
+      next: 'Multi-site Operation',
+      trigger: 'Consider a second location when maxing out capacity or to cover new delivery zones'
+    }
+  }
+  
+  // Mobile → Fixed premises path
+  if (topResultType === 'mobile_supplier') {
+    return {
+      current: 'Mobile Unit',
+      next: 'Fixed Premises or Dark Kitchen',
+      trigger: 'Once you\'ve built a loyal following and consistent revenue, consider a permanent base'
+    }
+  }
+  
+  return null
+}
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.json()
@@ -688,12 +873,38 @@ Write a personalized recommendation explaining why the top match suits their spe
     // Save results
     const matchId = matchData?.id || `temp_${Date.now()}`
     
+    // Generate intelligence data
+    const topResultType = providersWithPercentage[0]?.type || ''
+    const matchFactors = generateMatchFactors(formData)
+    const demandInsight = generateDemandInsight(formData)
+    const alsoConsider = generateAlsoConsider(formData, topResultType)
+    const growthPath = generateGrowthPath(formData, topResultType)
+    
+    // Build full response
+    const fullMatchData = {
+      results: providersWithPercentage,
+      recommendation,
+      matchFactors,
+      demandInsight,
+      alsoConsider,
+      growthPath,
+      userProfile: {
+        location: formData.location,
+        businessType: formData.businessStatus === 'operating' ? formData.currentUnit : formData.plannedBusiness,
+        budget: formData.budget,
+        scale: formData.dailyOutput,
+        cuisines: formData.cuisines
+      }
+    }
+    
     if (matchData?.id) {
       await supabase
         .from('fmak_matches')
         .update({
           results: providersWithPercentage,
-          recommendation
+          recommendation,
+          match_factors: matchFactors,
+          demand_insight: demandInsight
         })
         .eq('id', matchData.id)
     }
@@ -701,8 +912,7 @@ Write a personalized recommendation explaining why the top match suits their spe
     return NextResponse.json({
       success: true,
       matchId,
-      results: providersWithPercentage,
-      recommendation
+      ...fullMatchData
     })
     
   } catch (error) {

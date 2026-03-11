@@ -94,9 +94,18 @@ export default function MatchPage() {
       })
       const data = await res.json()
       if (data.results) {
-        // Store results for the results page
+        // Store full match data for the results page
         sessionStorage.setItem('matchResults', JSON.stringify(data.results))
         sessionStorage.setItem('matchRecommendation', data.recommendation || '')
+        sessionStorage.setItem('matchData', JSON.stringify({
+          results: data.results,
+          recommendation: data.recommendation,
+          matchFactors: data.matchFactors,
+          demandInsight: data.demandInsight,
+          alsoConsider: data.alsoConsider,
+          growthPath: data.growthPath,
+          userProfile: data.userProfile
+        }))
         window.location.href = `/match/results?id=${data.matchId}`
       }
     } catch (error) {

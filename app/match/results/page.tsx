@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Star, MapPin, Check, RefreshCw } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Star, MapPin, Check, RefreshCw, Mail, TrendingUp, Lightbulb, ArrowRight, Download, X } from 'lucide-react'
 
 interface Provider {
   id: string
@@ -21,25 +21,48 @@ interface Provider {
   benefits?: string[]
 }
 
+interface MatchData {
+  results: Provider[]
+  recommendation: string
+  matchFactors?: string[]
+  demandInsight?: string
+  alsoConsider?: { type: string; reason: string }
+  growthPath?: { current: string; next: string; trigger: string }
+  userProfile?: {
+    location: string
+    businessType: string
+    budget: string
+    scale: string
+    cuisines: string[]
+  }
+}
+
 function ResultsContent() {
   const searchParams = useSearchParams()
   const matchId = searchParams.get('id')
   
-  const [results, setResults] = useState<Provider[]>([])
-  const [recommendation, setRecommendation] = useState('')
+  const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [email, setEmail] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
+  const [sendingEmail, setSendingEmail] = useState(false)
 
   useEffect(() => {
-    // For now, get results from session storage (set before redirect)
     const storedResults = sessionStorage.getItem('matchResults')
     const storedRec = sessionStorage.getItem('matchRecommendation')
+    const storedMatchData = sessionStorage.getItem('matchData')
     
-    if (storedResults) {
-      setResults(JSON.parse(storedResults))
-      setRecommendation(storedRec || '')
+    if (storedMatchData) {
+      setMatchData(JSON.parse(storedMatchData))
+      setLoading(false)
+    } else if (storedResults) {
+      setMatchData({
+        results: JSON.parse(storedResults),
+        recommendation: storedRec || ''
+      })
       setLoading(false)
     } else {
-      // Fallback: fetch from API if we have matchId
       setLoading(false)
     }
   }, [matchId])
@@ -57,9 +80,30 @@ function ResultsContent() {
       'dark_kitchen': 'Dark Kitchen',
       'shared_kitchen': 'Shared Kitchen',
       'mobile_supplier': 'Mobile Unit Supplier',
-      'marketplace': 'Marketplace'
+      'marketplace': 'Marketplace',
+      'production_kitchen': 'Production Kitchen'
     }
     return labels[type] || type
+  }
+
+  const handleEmailResults = async () => {
+    if (!email) return
+    setSendingEmail(true)
+    
+    // TODO: Connect to email API
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    setEmailSent(true)
+    setSendingEmail(false)
+    
+    // Store email for follow-up
+    if (matchId) {
+      fetch('/api/match/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId, email })
+      }).catch(console.error)
+    }
   }
 
   if (loading) {
@@ -72,6 +116,9 @@ function ResultsContent() {
       </div>
     )
   }
+
+  const results = matchData?.results || []
+  const recommendation = matchData?.recommendation || ''
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FAF8F5' }}>
@@ -87,16 +134,43 @@ function ResultsContent() {
 
       <main className="max-w-2xl mx-auto px-4 py-8">
         {/* Results Header */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             We found {results.length} matches for you
           </h1>
           <p className="text-gray-500">Based on your requirements</p>
         </div>
 
+        {/* #12 - Match Factors (What influenced your results) */}
+        {matchData?.matchFactors && matchData.matchFactors.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+            <p className="text-xs font-medium text-gray-500 mb-2">Your match was based on:</p>
+            <div className="flex flex-wrap gap-2">
+              {matchData.matchFactors.map((factor, i) => (
+                <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full">
+                  {factor}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* #3 - Location Demand Insight */}
+        {matchData?.demandInsight && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <TrendingUp className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-amber-800">Market Insight</p>
+                <p className="text-sm text-amber-700">{matchData.demandInsight}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Recommendation Box */}
         {recommendation && (
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+          <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0">
                 <Star className="w-5 h-5 text-emerald-600" />
@@ -104,6 +178,24 @@ function ResultsContent() {
               <div>
                 <h2 className="font-semibold text-gray-900 mb-2">Our Recommendation</h2>
                 <p className="text-gray-600 text-sm leading-relaxed">{recommendation}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* #8 - Growth Path Recommendation */}
+        {matchData?.growthPath && (
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <TrendingUp className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-emerald-800 mb-1">Your Growth Path</p>
+                <div className="flex items-center gap-2 text-sm text-emerald-700">
+                  <span className="font-medium">{matchData.growthPath.current}</span>
+                  <ArrowRight className="w-4 h-4" />
+                  <span className="font-medium">{matchData.growthPath.next}</span>
+                </div>
+                <p className="text-xs text-emerald-600 mt-1">{matchData.growthPath.trigger}</p>
               </div>
             </div>
           </div>
@@ -192,6 +284,19 @@ function ResultsContent() {
           ))}
         </div>
 
+        {/* #7 - Also Consider Section */}
+        {matchData?.alsoConsider && (
+          <div className="mt-6 bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-start gap-3">
+              <Lightbulb className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold text-gray-900 mb-1">Also Consider</p>
+                <p className="text-sm text-gray-600">{matchData.alsoConsider.reason}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* No Results */}
         {results.length === 0 && (
           <div className="text-center py-12">
@@ -205,8 +310,59 @@ function ResultsContent() {
           </div>
         )}
 
+        {/* #11 - Email My Results */}
+        <div className="mt-8 bg-white rounded-2xl border border-gray-200 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Mail className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900 mb-1">Save Your Results</h3>
+              <p className="text-sm text-gray-500 mb-4">Get a summary emailed to you with all recommendations and next steps.</p>
+              
+              {!emailSent ? (
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:border-emerald-500 outline-none text-sm"
+                  />
+                  <button
+                    onClick={handleEmailResults}
+                    disabled={!email || sendingEmail}
+                    className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-300 text-white rounded-xl font-medium text-sm transition-colors"
+                  >
+                    {sendingEmail ? 'Sending...' : 'Send'}
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-emerald-600">
+                  <Check className="w-5 h-5" />
+                  <span className="text-sm font-medium">Results sent to {email}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* #6 - Questions to Ask Checklist */}
+        <div className="mt-4 bg-white rounded-xl border border-gray-200 p-4">
+          <Link 
+            href="/kitchen-checklist"
+            className="flex items-center gap-3 text-gray-700 hover:text-emerald-600 transition-colors"
+          >
+            <Download className="w-5 h-5" />
+            <div>
+              <p className="font-medium text-sm">Download: Questions to Ask Checklist</p>
+              <p className="text-xs text-gray-500">Essential questions before signing any kitchen agreement</p>
+            </div>
+          </Link>
+        </div>
+
         {/* Footer Actions */}
-        <div className="mt-8 space-y-3">
+        <div className="mt-6 space-y-3">
           <Link
             href="/match"
             className="block w-full py-4 rounded-xl border-2 border-gray-200 font-semibold text-gray-700 text-center hover:bg-gray-50 transition-colors"
