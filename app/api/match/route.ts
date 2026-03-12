@@ -516,53 +516,53 @@ function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[
   // Dark Kitchen benefits
   if (provider.type === 'dark_kitchen') {
     if (businessType === 'delivery_only' || businessType === 'home') {
-      benefits.push(`Perfect for delivery-only operations — no need to pay for customer-facing space`)
+      benefits.push(`Perfect for delivery-only operations - no need to pay for customer-facing space`)
     }
     if (businessType === 'home') {
       benefits.push(`Scale up from home cooking with a professional, licensed kitchen`)
     }
     if (userScale.includes('100') || userScale.includes('200') || userScale.includes('500')) {
-      benefits.push(`Built for high-volume output — handles ${userScale} orders/day comfortably`)
+      benefits.push(`Built for high-volume output - handles ${userScale} orders/day comfortably`)
     }
     if (provider.features.some(f => f.toLowerCase().includes('delivery'))) {
       benefits.push(`Integrated delivery platform partnerships can boost your order volume`)
     }
     if (expansionPlans.includes('growth')) {
-      benefits.push(`Easy to scale — add more shifts or move to larger unit as you grow`)
+      benefits.push(`Easy to scale - add more shifts or move to larger unit as you grow`)
     }
-    benefits.push(`All equipment included — no upfront equipment investment needed`)
-    benefits.push(`Fully licensed and compliant — no planning permission headaches`)
+    benefits.push(`All equipment included - no upfront equipment investment needed`)
+    benefits.push(`Fully licensed and compliant - no planning permission headaches`)
   }
   
   // Shared Kitchen benefits
   if (provider.type === 'shared_kitchen') {
     if (businessType === 'starting' || businessType === 'home' || businessType === 'popup') {
-      benefits.push(`Low-commitment entry — test your concept without long-term lease`)
+      benefits.push(`Low-commitment entry - test your concept without long-term lease`)
     }
     if (userBudget.includes('Under') || userBudget.includes('500')) {
-      benefits.push(`Pay only for hours you use — ideal for your budget`)
+      benefits.push(`Pay only for hours you use - ideal for your budget`)
     }
     if (businessType === 'catering') {
-      benefits.push(`Perfect for catering — book kitchen time around your event schedule`)
+      benefits.push(`Perfect for catering - book kitchen time around your event schedule`)
     }
     if (cuisines.includes('Desserts & Bakery')) {
-      benefits.push(`Production-ready for baking — commercial ovens and prep space available`)
+      benefits.push(`Production-ready for baking - commercial ovens and prep space available`)
     }
-    benefits.push(`No long-term commitment — scale up or down as needed`)
+    benefits.push(`No long-term commitment - scale up or down as needed`)
     if (provider.features.some(f => f.toLowerCase().includes('support') || f.toLowerCase().includes('training'))) {
-      benefits.push(`Business support included — helpful when you're starting out`)
+      benefits.push(`Business support included - helpful when you're starting out`)
     }
   }
   
   // Mobile Unit benefits
   if (provider.type === 'mobile_supplier') {
     if (businessType === 'mobile' || businessType === 'popup') {
-      benefits.push(`Own your unit outright — no ongoing rent payments`)
+      benefits.push(`Own your unit outright - no ongoing rent payments`)
     }
-    benefits.push(`Take your business anywhere — festivals, markets, events, pitches`)
-    benefits.push(`Lower overheads than fixed premises — no rates, lower utilities`)
-    if (cuisines.some(c => ['Burgers', 'Fish & Chips', 'Chicken & Chips', 'Coffee & Café'].includes(c))) {
-      benefits.push(`Ideal setup for ${cuisines[0]} — high-demand street food category`)
+    benefits.push(`Take your business anywhere - festivals, markets, events, pitches`)
+    benefits.push(`Lower overheads than fixed premises - no rates, lower utilities`)
+    if (cuisines.some((c: string) => ['Burgers', 'Fish & Chips', 'Chicken & Chips', 'Coffee & Cafe'].includes(c))) {
+      benefits.push(`Ideal setup for ${cuisines[0]} - high-demand street food category`)
     }
     if (expansionPlans.includes('growth')) {
       benefits.push(`Build your brand and customer base before committing to fixed premises`)
@@ -572,8 +572,8 @@ function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[
   
   // Marketplace benefits
   if (provider.type === 'marketplace') {
-    benefits.push(`Compare multiple options in ${location} — find the best fit for your needs`)
-    benefits.push(`Direct contact with kitchen owners — negotiate terms that work for you`)
+    benefits.push(`Compare multiple options in ${location} - find the best fit for your needs`)
+    benefits.push(`Direct contact with kitchen owners - negotiate terms that work for you`)
     if (userBudget.includes('Flexible') || userBudget.includes('Not sure')) {
       benefits.push(`Browse a range of price points to find what suits your budget`)
     }
@@ -586,11 +586,11 @@ function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[
       benefits.push(`Purpose-built for food production at scale`)
     }
     if (userScale.includes('200') || userScale.includes('500')) {
-      benefits.push(`Capacity for high-volume production — ${userScale} units/day`)
+      benefits.push(`Capacity for high-volume production - ${userScale} units/day`)
     }
     benefits.push(`Professional-grade equipment for consistent quality`)
     if (provider.features.some(f => f.toLowerCase().includes('storage') || f.toLowerCase().includes('cold'))) {
-      benefits.push(`Cold storage included — essential for your production workflow`)
+      benefits.push(`Cold storage included - essential for your production workflow`)
     }
   }
   
@@ -645,7 +645,7 @@ function generateDemandInsight(formData: any): string | null {
   const locationInsights: Record<string, Record<string, string>> = {
     'london': {
       'Caribbean': 'Delivery demand for Caribbean food in South and East London has grown 35% year-on-year. Strong opportunity.',
-      'Indian': 'Indian cuisine remains highly competitive in London — consider a niche (e.g., South Indian, street food) to stand out.',
+      'Indian': 'Indian cuisine remains highly competitive in London - consider a niche (e.g., South Indian, street food) to stand out.',
       'Burgers': 'Burger market is saturated in central London, but demand is growing in outer zones (E17, SE15, N17).',
       'Chicken & Chips': 'Chicken shops remain high-demand, especially in residential areas. Consider dark kitchen for lower overheads.',
       'Pizza': 'Artisan pizza is trending upward in London, especially sourdough and Neapolitan styles.',
@@ -654,13 +654,13 @@ function generateDemandInsight(formData: any): string | null {
     },
     'manchester': {
       'Burgers': 'Manchester burger scene is booming, especially in Northern Quarter and Ancoats areas.',
-      'Indian': 'Curry Mile competition is fierce — dark kitchens in South Manchester offer better margins.',
-      'default': 'Manchester's food scene is growing fast. Good time to enter with the right concept.'
+      'Indian': 'Curry Mile competition is fierce - dark kitchens in South Manchester offer better margins.',
+      'default': 'Manchester food scene is growing fast. Good time to enter with the right concept.'
     },
     'birmingham': {
-      'Indian': 'Birmingham has the UK's largest South Asian community — authentic cuisines do well here.',
+      'Indian': 'Birmingham has the UK largest South Asian community - authentic cuisines do well here.',
       'Caribbean': 'Growing Caribbean food scene in Birmingham, especially in Handsworth and city centre.',
-      'default': 'Birmingham's food delivery market is expanding rapidly with lower competition than London.'
+      'default': 'Birmingham food delivery market is expanding rapidly with lower competition than London.'
     }
   }
   
@@ -697,7 +697,7 @@ function generateAlsoConsider(formData: any, topResultType: string): { type: str
     if (budget.includes('Under') || budget.includes('500')) {
       return {
         type: 'shared_kitchen',
-        reason: 'On a tighter budget? A shared kitchen lets you pay by the hour while you build up orders — lower risk while testing your concept.'
+        reason: 'On a tighter budget? A shared kitchen lets you pay by the hour while you build up orders - lower risk while testing your concept.'
       }
     }
     if (businessType === 'starting' || businessType === 'home') {
@@ -713,7 +713,7 @@ function generateAlsoConsider(formData: any, topResultType: string): { type: str
     if (formData.dailyOutput?.includes('100') || formData.dailyOutput?.includes('200')) {
       return {
         type: 'dark_kitchen',
-        reason: 'At your volume, a dedicated dark kitchen could actually be more cost-effective than hourly rates — and gives you 24/7 access.'
+        reason: 'At your volume, a dedicated dark kitchen could actually be more cost-effective than hourly rates - and gives you 24/7 access.'
       }
     }
   }
