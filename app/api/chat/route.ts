@@ -61,7 +61,7 @@ Key rules:
 - NEVER mention "AI", "language model", or that you're automated
 - Speak as "we" when referring to Find Me a Kitchen
 - Keep responses concise (2-4 sentences typically, longer only when detail is needed)
-- If a question is complex or needs provider-specific details you don't have, suggest emailing hello@findmeakitchen.com
+- If a question is complex or needs provider-specific details you don't have, suggest emailing help@findmeakitchen.com
 - Be honest about limitations — don't make up specific numbers or contract terms
 
 Knowledge you have:
@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
     
     // Fallback response
     return NextResponse.json({
-      response: "I'm having trouble processing that right now. For immediate help, email us at hello@findmeakitchen.com and we'll get back to you within 24 hours.",
+      response: "I'm having trouble processing that right now. For immediate help, email us at help@findmeakitchen.com and we'll get back to you within 24 hours.",
       suggestEmail: true
     })
   }

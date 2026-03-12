@@ -103,7 +103,7 @@ function ResultsContent() {
     } catch (error) {
       setChatMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm having trouble connecting right now. For immediate help, email us at hello@findmeakitchen.com" 
+        content: "I'm having trouble connecting right now. For immediate help, email us at help@findmeakitchen.com" 
       }])
     } finally {
       setChatLoading(false)
@@ -531,7 +531,7 @@ function ResultsContent() {
                               setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }])
                               if (data.suggestEmail) setSuggestEmail(true)
                             } catch (error) {
-                              setChatMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting. Email us at hello@findmeakitchen.com for help." }])
+                              setChatMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting. Email us at help@findmeakitchen.com for help." }])
                             } finally {
                               setChatLoading(false)
                             }
@@ -591,11 +591,11 @@ function ResultsContent() {
                       For detailed help with this, our team can assist personally.
                     </p>
                     <a 
-                      href="mailto:hello@findmeakitchen.com?subject=Kitchen%20Search%20Help"
+                      href="mailto:help@findmeakitchen.com?subject=Kitchen%20Search%20Help"
                       className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-800"
                     >
                       <Mail className="w-4 h-4" />
-                      Email us at hello@findmeakitchen.com
+                      Email us at help@findmeakitchen.com
                     </a>
                   </div>
                 )}
