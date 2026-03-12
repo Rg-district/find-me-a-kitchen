@@ -19,6 +19,7 @@ interface Provider {
   score: number
   matchPercent?: number
   benefits?: string[]
+  whyThisMatch?: string
 }
 
 interface MatchData {
@@ -231,6 +232,13 @@ function ResultsContent() {
                     <div className="font-bold text-gray-900">{formatPrice(provider)}</div>
                   </div>
                 </div>
+
+                {/* Why This Match - Explicit reasoning */}
+                {provider.whyThisMatch && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                    <p className="text-sm text-blue-800">{provider.whyThisMatch}</p>
+                  </div>
+                )}
 
                 <p className="text-gray-600 text-sm mb-4">{provider.description}</p>
 

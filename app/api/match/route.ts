@@ -830,6 +830,93 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
   return score
 }
 
+// Generate explicit "Why This Match" reasoning tied to user's specific inputs
+function generateWhyThisMatch(provider: typeof PROVIDERS[0], formData: any): string {
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  const location = formData.location || 'your area'
+  const budget = formData.budget || ''
+  const cuisines = formData.cuisines || []
+  const dailyOutput = formData.dailyOutput || ''
+  const staffCount = formData.staffCount || ''
+  const expansionPlans = formData.expansionPlans || ''
+  
+  const reasons: string[] = []
+  
+  // Location reasoning
+  if (provider.cities.includes('Nationwide')) {
+    reasons.push(`operates nationwide so can serve you in ${location}`)
+  } else {
+    reasons.push(`has facilities in ${location}`)
+  }
+  
+  // Business type reasoning
+  const businessLabels: Record<string, string> = {
+    'delivery_only': 'delivery-only brand',
+    'mobile': 'mobile food business',
+    'home': 'home-based business looking to scale',
+    'cafe': 'cafe or takeaway',
+    'restaurant': 'restaurant',
+    'catering': 'catering operation',
+    'production': 'food production business',
+    'starting': 'new food business',
+    'popup': 'pop-up concept',
+    'dark_kitchen': 'existing dark kitchen operation'
+  }
+  const businessLabel = businessLabels[businessType] || 'food business'
+  
+  if (provider.type === 'dark_kitchen') {
+    reasons.push(`dark kitchens are ideal for your ${businessLabel} - you only pay for kitchen space, not customer-facing premises`)
+  } else if (provider.type === 'shared_kitchen') {
+    reasons.push(`shared kitchens give you the flexibility a ${businessLabel} needs - pay for what you use, scale when ready`)
+  } else if (provider.type === 'mobile_supplier') {
+    reasons.push(`a mobile unit lets your ${businessLabel} go where the customers are - festivals, markets, events`)
+  } else if (provider.type === 'production_kitchen') {
+    reasons.push(`production kitchens are built for the volume your ${businessLabel} requires`)
+  }
+  
+  // Budget reasoning
+  if (budget) {
+    let monthlyPrice = provider.priceMin
+    if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 80
+    if (provider.priceUnit === 'week') monthlyPrice = provider.priceMin * 4
+    if (provider.priceUnit === 'day') monthlyPrice = provider.priceMin * 20
+    
+    if (provider.priceUnit !== 'one_time') {
+      reasons.push(`pricing from ${provider.priceUnit === 'hour' ? '£' + provider.priceMin + '/hour' : '£' + provider.priceMin + '/' + provider.priceUnit} fits within your ${budget} budget`)
+    }
+  }
+  
+  // Cuisine reasoning
+  if (cuisines.length > 0 && provider.cuisineStrength.some((c: string) => cuisines.includes(c))) {
+    const matchedCuisines = cuisines.filter((c: string) => provider.cuisineStrength.includes(c))
+    reasons.push(`their kitchens are well-suited for ${matchedCuisines.join(' and ')} - the equipment and setup match your needs`)
+  }
+  
+  // Scale reasoning
+  if (dailyOutput) {
+    if (dailyOutput.includes('Under 20') || dailyOutput.includes('20-50')) {
+      if (provider.type === 'shared_kitchen') {
+        reasons.push(`at ${dailyOutput} orders/day, hourly rental is more cost-effective than a dedicated space`)
+      }
+    } else if (dailyOutput.includes('100') || dailyOutput.includes('200') || dailyOutput.includes('500')) {
+      if (provider.type === 'dark_kitchen') {
+        reasons.push(`with ${dailyOutput} orders/day, you need dedicated space - shared kitchens would limit your capacity`)
+      }
+    }
+  }
+  
+  // Expansion reasoning
+  if (expansionPlans.includes('significant growth')) {
+    reasons.push(`they can accommodate your growth plans with larger units or additional locations`)
+  }
+  
+  // Build the explanation
+  const mainReason = reasons.slice(0, 3).join(', and ')
+  return `We matched you with ${provider.name} because they ${mainReason}.`
+}
+
 // Generate personalized benefits based on user data and provider type
 function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[] {
   const benefits: string[] = []
@@ -1148,12 +1235,13 @@ export async function POST(req: NextRequest) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
     
-    // Calculate match percentage and generate personalized benefits
+    // Calculate match percentage and generate personalized content
     const maxPossibleScore = 215 // Sum of all max scores
     const providersWithPercentage = scoredProviders.map(p => ({
       ...p,
       matchPercent: Math.round((p.score / maxPossibleScore) * 100),
-      benefits: generateBenefits(p, formData)
+      benefits: generateBenefits(p, formData),
+      whyThisMatch: generateWhyThisMatch(p, formData)
     }))
     
     // Generate recommendation text with OpenAI
