@@ -846,9 +846,9 @@ function generateWhyThisMatch(provider: typeof PROVIDERS[0], formData: any): str
   
   // Location reasoning
   if (provider.cities.includes('Nationwide')) {
-    reasons.push(`operates nationwide so can serve you in ${location}`)
+    reasons.push(`operate nationwide so can serve you in ${location}`)
   } else {
-    reasons.push(`has facilities in ${location}`)
+    reasons.push(`have facilities in ${location}`)
   }
   
   // Business type reasoning
@@ -913,7 +913,7 @@ function generateWhyThisMatch(provider: typeof PROVIDERS[0], formData: any): str
   }
   
   // Build the explanation
-  const mainReason = reasons.slice(0, 3).join(', and ')
+  const mainReason = reasons.slice(0, 3).join(', ')
   return `We matched you with ${provider.name} because they ${mainReason}.`
 }
 
