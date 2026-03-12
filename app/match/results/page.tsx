@@ -1,9 +1,15 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Star, MapPin, Check, RefreshCw, Mail, TrendingUp, Lightbulb, ArrowRight, Download, X } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Star, MapPin, Check, RefreshCw, Mail, TrendingUp, Lightbulb, ArrowRight, Download, X, MessageCircle, Send, User, Sparkles } from 'lucide-react'
+
+interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+
 
 interface Provider {
   id: string
@@ -48,6 +54,77 @@ function ResultsContent() {
   const [email, setEmail] = useState('')
   const [emailSent, setEmailSent] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
+  
+  // Chat state
+  const [showChat, setShowChat] = useState(false)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [suggestEmail, setSuggestEmail] = useState(false)
+  const chatEndRef = useRef<HTMLDivElement>(null)
+  
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages])
+  
+  // Send chat message
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return
+    
+    const userMessage = chatInput.trim()
+    setChatInput('')
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+    setChatLoading(true)
+    setSuggestEmail(false)
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          conversationHistory: chatMessages,
+          userContext: matchData?.userProfile,
+          matchedProviders: matchData?.results
+        })
+      })
+      
+      const data = await response.json()
+      
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.response 
+      }])
+      
+      if (data.suggestEmail) {
+        setSuggestEmail(true)
+      }
+    } catch (error) {
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: "I'm having trouble connecting right now. For immediate help, email us at hello@findmeakitchen.com" 
+      }])
+    } finally {
+      setChatLoading(false)
+    }
+  }
+  
+  // Handle Enter key in chat
+  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendChatMessage()
+    }
+  }
+  
+  // Quick chat prompts
+  const quickPrompts = [
+    "What hidden costs should I watch for?",
+    "Compare my top 2 options",
+    "What questions should I ask providers?",
+    "How long does setup typically take?"
+  ]
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem('matchResults')
@@ -367,6 +444,191 @@ function ResultsContent() {
               <p className="text-xs text-gray-500">Essential questions before signing any kitchen agreement</p>
             </div>
           </Link>
+        </div>
+
+        {/* Chat Advisor Section */}
+        <div className="mt-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 overflow-hidden">
+          {!showChat ? (
+            // Chat CTA
+            <button
+              onClick={() => setShowChat(true)}
+              className="w-full p-5 text-left hover:bg-emerald-50/50 transition-colors"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-6 h-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 mb-1">Got questions about your results?</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Ask our kitchen advisor anything — contract terms, hidden costs, how to choose, or what to expect.
+                  </p>
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+                    <Sparkles className="w-4 h-4" />
+                    Start a conversation
+                  </span>
+                </div>
+              </div>
+            </button>
+          ) : (
+            // Chat Interface
+            <div className="flex flex-col h-[450px]">
+              {/* Chat Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-emerald-200 bg-white/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-gray-900">Kitchen Advisor</p>
+                    <p className="text-xs text-emerald-600">Online now</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowChat(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+              
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {chatMessages.length === 0 && (
+                  <div className="space-y-4">
+                    {/* Welcome message */}
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <MessageCircle className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 max-w-[85%] shadow-sm">
+                        <p className="text-sm text-gray-800">
+                          Hi! I can see you've got some great matches. What would you like to know? I can help with contract details, pricing, or comparing your options.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Quick prompts */}
+                    <div className="flex flex-wrap gap-2 pl-11">
+                      {quickPrompts.map((prompt, i) => (
+                        <button
+                          key={i}
+                          onClick={async () => {
+                            setChatMessages(prev => [...prev, { role: 'user', content: prompt }])
+                            setChatLoading(true)
+                            try {
+                              const response = await fetch('/api/chat', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  message: prompt,
+                                  conversationHistory: chatMessages,
+                                  userContext: matchData?.userProfile,
+                                  matchedProviders: matchData?.results
+                                })
+                              })
+                              const data = await response.json()
+                              setChatMessages(prev => [...prev, { role: 'assistant', content: data.response }])
+                              if (data.suggestEmail) setSuggestEmail(true)
+                            } catch (error) {
+                              setChatMessages(prev => [...prev, { role: 'assistant', content: "I'm having trouble connecting. Email us at hello@findmeakitchen.com for help." }])
+                            } finally {
+                              setChatLoading(false)
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-white border border-emerald-200 rounded-full text-xs text-emerald-700 hover:bg-emerald-50 transition-colors"
+                        >
+                          {prompt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {chatMessages.map((msg, i) => (
+                  <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                    {msg.role === 'assistant' && (
+                      <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <MessageCircle className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    <div className={`rounded-2xl px-4 py-3 max-w-[85%] shadow-sm ${
+                      msg.role === 'user' 
+                        ? 'bg-emerald-500 text-white rounded-tr-sm' 
+                        : 'bg-white rounded-tl-sm'
+                    }`}>
+                      <p className={`text-sm ${msg.role === 'user' ? 'text-white' : 'text-gray-800'}`}>
+                        {msg.content}
+                      </p>
+                    </div>
+                    {msg.role === 'user' && (
+                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-4 h-4 text-gray-600" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                {chatLoading && (
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <MessageCircle className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="bg-white rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                      <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Email suggestion */}
+                {suggestEmail && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 ml-11">
+                    <p className="text-sm text-amber-800 mb-2">
+                      For detailed help with this, our team can assist personally.
+                    </p>
+                    <a 
+                      href="mailto:hello@findmeakitchen.com?subject=Kitchen%20Search%20Help"
+                      className="inline-flex items-center gap-2 text-sm font-medium text-amber-700 hover:text-amber-800"
+                    >
+                      <Mail className="w-4 h-4" />
+                      Email us at hello@findmeakitchen.com
+                    </a>
+                  </div>
+                )}
+                
+                <div ref={chatEndRef} />
+              </div>
+              
+              {/* Chat Input */}
+              <div className="p-3 border-t border-emerald-200 bg-white/50">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={handleChatKeyDown}
+                    placeholder="Ask about your results..."
+                    className="flex-1 px-4 py-2.5 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    disabled={chatLoading}
+                  />
+                  <button
+                    onClick={sendChatMessage}
+                    disabled={!chatInput.trim() || chatLoading}
+                    className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 text-center mt-2">
+                  For complex questions, we'll connect you with our team
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer Actions */}
