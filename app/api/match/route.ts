@@ -1150,6 +1150,12 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
     }
   }
   
+  // 8. MARKETPLACE PENALTY - Marketplaces should rank below direct providers
+  // They're useful as fallback options but shouldn't beat a well-matched kitchen
+  if (provider.type === 'marketplace') {
+    score -= 50 // Significant penalty - marketplaces should be last resort
+  }
+  
   return score
 }
 
