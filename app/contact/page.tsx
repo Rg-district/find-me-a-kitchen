@@ -18,12 +18,23 @@ export default function ContactPage() {
     e.preventDefault()
     setLoading(true)
     
-    // For now, just simulate submission
-    // TODO: Connect to email API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setSubmitted(true)
-    setLoading(false)
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      
+      if (response.ok) {
+        setSubmitted(true)
+      } else {
+        alert('Failed to send message. Please try again or email help@findmeakitchen.com directly.')
+      }
+    } catch (error) {
+      alert('Failed to send message. Please try again or email help@findmeakitchen.com directly.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (submitted) {

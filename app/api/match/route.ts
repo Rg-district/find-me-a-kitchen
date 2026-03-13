@@ -188,23 +188,7 @@ const PROVIDERS = [
     website: 'https://cateringtrucks.co.uk',
     description: 'Specialist catering vehicle builder for hot food operations. Good value for traditional street food setups.'
   },
-  {
-    id: 'mobile-catering-solutions',
-    name: 'Mobile Catering Solutions',
-    type: 'mobile_supplier',
-    cities: ['Nationwide'],
-    priceMin: 12000,
-    priceMax: 40000,
-    priceUnit: 'one_time',
-    equipment: ['Deep fat fryers', 'Bain maries', 'Flat griddle / Plancha'],
-    features: ['New and used units', 'Finance available', 'Quick delivery'],
-    bestForBusiness: ['mobile'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['1000-2000', '2000-5000'],
-    cuisineStrength: ['Burgers', 'Fish & Chips', 'Chicken & Chips', 'Breakfast & Brunch'],
-    website: 'https://mobilecateringsolutions.co.uk',
-    description: 'Affordable new and used catering trailers and vans. Good entry point for mobile food businesses.'
-  },
+  // Mobile Catering Solutions REMOVED - website doesn't exist (Mar 2026)
   {
     id: 'ghst-ktchn',
     name: 'Ghst Ktchn',
@@ -1469,19 +1453,16 @@ function generateAlsoConsider(formData: any, topResultType: string): { type: str
   return null
 }
 
-// #8 - Generate growth path recommendation
+// #8 - Generate growth path recommendation - MUST match topResultType
 function generateGrowthPath(formData: any, topResultType: string): { current: string; next: string; trigger: string } | null {
-  const businessType = formData.businessStatus === 'operating' 
-    ? formData.currentUnit 
-    : formData.plannedBusiness
   const dailyOutput = formData.dailyOutput || ''
   
-  // Home → Shared → Dark Kitchen path
-  if (businessType === 'home' || businessType === 'starting') {
+  // Mobile → Fixed premises path (check FIRST based on topResultType)
+  if (topResultType === 'mobile_supplier') {
     return {
-      current: 'Shared Kitchen',
-      next: 'Dark Kitchen',
-      trigger: 'When you hit 50+ consistent daily orders, graduate to a dedicated unit'
+      current: 'Mobile Unit',
+      next: 'Fixed Premises or Dark Kitchen',
+      trigger: 'Once you\'ve built a loyal following and consistent revenue, consider a permanent base'
     }
   }
   
@@ -1495,20 +1476,27 @@ function generateGrowthPath(formData: any, topResultType: string): { current: st
   }
   
   // Dark Kitchen → Multi-site path
-  if (topResultType === 'dark_kitchen' && (dailyOutput.includes('200') || dailyOutput.includes('500'))) {
+  if (topResultType === 'dark_kitchen') {
+    if (dailyOutput.includes('200') || dailyOutput.includes('500')) {
+      return {
+        current: 'Single Dark Kitchen',
+        next: 'Multi-site Operation',
+        trigger: 'Consider a second location when maxing out capacity or to cover new delivery zones'
+      }
+    }
     return {
-      current: 'Single Dark Kitchen',
-      next: 'Multi-site Operation',
-      trigger: 'Consider a second location when maxing out capacity or to cover new delivery zones'
+      current: 'Dark Kitchen',
+      next: 'Multi-Location or Own Premises',
+      trigger: 'When you\'re ready to expand your delivery zones or build a flagship location'
     }
   }
   
-  // Mobile → Fixed premises path
-  if (topResultType === 'mobile_supplier') {
+  // Production Kitchen path
+  if (topResultType === 'production_kitchen') {
     return {
-      current: 'Mobile Unit',
-      next: 'Fixed Premises or Dark Kitchen',
-      trigger: 'Once you\'ve built a loyal following and consistent revenue, consider a permanent base'
+      current: 'Production Kitchen',
+      next: 'Larger Facility or Multiple Units',
+      trigger: 'When capacity is maxed or you need regional distribution hubs'
     }
   }
   

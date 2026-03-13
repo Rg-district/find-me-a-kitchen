@@ -168,19 +168,27 @@ function ResultsContent() {
     if (!email) return
     setSendingEmail(true)
     
-    // TODO: Connect to email API
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    setEmailSent(true)
-    setSendingEmail(false)
-    
-    // Store email for follow-up
-    if (matchId) {
-      fetch('/api/match/email', {
+    try {
+      const response = await fetch('/api/match/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchId, email })
-      }).catch(console.error)
+        body: JSON.stringify({ 
+          matchId, 
+          email,
+          results: matchData?.results,
+          recommendation: matchData?.recommendation
+        })
+      })
+      
+      if (response.ok) {
+        setEmailSent(true)
+      } else {
+        alert('Failed to send email. Please try again.')
+      }
+    } catch (error) {
+      alert('Failed to send email. Please try again.')
+    } finally {
+      setSendingEmail(false)
     }
   }
 
