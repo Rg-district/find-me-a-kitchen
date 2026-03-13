@@ -1032,37 +1032,60 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
   }
   
   // 3. BUDGET MATCH (0-35 points)
-  const budgetMap: Record<string, { monthly: number, key: string }> = {
+  // Check if user selected a one-time purchase budget (mobile unit buyer)
+  const isPurchaseBudget = formData.budget?.includes('one-time purchase')
+  
+  const budgetMap: Record<string, { monthly: number, key: string, purchase?: number }> = {
     'Under £500/month': { monthly: 500, key: 'under-500' },
     '£500 - £1,000/month': { monthly: 1000, key: '500-1000' },
     '£1,000 - £2,000/month': { monthly: 2000, key: '1000-2000' },
     '£2,000 - £5,000/month': { monthly: 5000, key: '2000-5000' },
     '£5,000+/month': { monthly: 10000, key: '5000+' },
+    '💰 £15,000 - £25,000 (one-time purchase)': { monthly: 0, key: 'purchase-15-25k', purchase: 25000 },
+    '💰 £25,000 - £50,000 (one-time purchase)': { monthly: 0, key: 'purchase-25-50k', purchase: 50000 },
+    '💰 £50,000+ (one-time purchase)': { monthly: 0, key: 'purchase-50k+', purchase: 75000 },
     'Not sure / Flexible': { monthly: 3000, key: 'flexible' }
   }
   
   const userBudgetInfo = budgetMap[formData.budget] || { monthly: 2000, key: 'flexible' }
   
-  // Check if provider's budget category matches
-  if (provider.bestForBudget.includes(userBudgetInfo.key) || provider.bestForBudget.includes('all')) {
-    score += 35
-    matchReasons.push('budget')
-  } else {
-    // Calculate actual price match
-    let monthlyPrice = provider.priceMin
-    if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 80 // 20hrs/week
-    if (provider.priceUnit === 'week') monthlyPrice = provider.priceMin * 4
-    
-    if (provider.priceUnit !== 'one_time') {
-      if (monthlyPrice <= userBudgetInfo.monthly) {
+  // If user selected purchase budget, ONLY show mobile suppliers
+  if (isPurchaseBudget) {
+    if (provider.type === 'mobile_supplier' && provider.priceUnit === 'one_time') {
+      // Check if provider's price is within user's purchase budget
+      if (userBudgetInfo.purchase && provider.priceMax <= userBudgetInfo.purchase * 1.2) {
+        score += 35
+        matchReasons.push('purchase_budget')
+      } else if (userBudgetInfo.purchase && provider.priceMin <= userBudgetInfo.purchase) {
         score += 25
-      } else if (monthlyPrice <= userBudgetInfo.monthly * 1.2) {
-        score += 10 // Slightly over budget
+        matchReasons.push('purchase_budget')
+      } else {
+        score += 10 // Mobile supplier but maybe out of budget
       }
     } else {
-      // One-time purchase (mobile units)
-      if (businessType === 'mobile') {
-        score += 30 // Relevant for mobile businesses
+      // Not a mobile supplier - heavily penalize for purchase budget users
+      score -= 50
+    }
+  } else {
+    // Monthly budget logic (exclude mobile suppliers for monthly budgets unless mobile business)
+    if (provider.priceUnit === 'one_time' && businessType !== 'mobile') {
+      // One-time purchase providers should score low for monthly budget users
+      score += 5
+    } else if (provider.bestForBudget.includes(userBudgetInfo.key) || provider.bestForBudget.includes('all')) {
+      score += 35
+      matchReasons.push('budget')
+    } else {
+      // Calculate actual price match
+      let monthlyPrice = provider.priceMin
+      if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 80 // 20hrs/week
+      if (provider.priceUnit === 'week') monthlyPrice = provider.priceMin * 4
+      
+      if (provider.priceUnit !== 'one_time') {
+        if (monthlyPrice <= userBudgetInfo.monthly) {
+          score += 25
+        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.2) {
+          score += 10 // Slightly over budget
+        }
       }
     }
   }

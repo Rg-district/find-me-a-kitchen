@@ -39,7 +39,19 @@ const EQUIPMENT = {
 const STAFF_OPTIONS = ['Just me', '2 people', '3-5 people', '6-10 people', '10+ people']
 const OUTPUT_OPTIONS = ['Under 20', '20-50', '50-100', '100-200', '200-500', '500+', 'Not sure yet']
 const EXPANSION_OPTIONS = ['Yes, significant growth planned', 'Yes, some growth expected', 'No, staying the same size', 'Not sure']
-const BUDGET_OPTIONS = ['Under £500/month', '£500 - £1,000/month', '£1,000 - £2,000/month', '£2,000 - £5,000/month', '£5,000+/month', 'Not sure / Flexible']
+const BUDGET_OPTIONS = [
+  'Under £500/month', 
+  '£500 - £1,000/month', 
+  '£1,000 - £2,000/month', 
+  '£2,000 - £5,000/month', 
+  '£5,000+/month',
+  '───────────────',
+  '💰 £15,000 - £25,000 (one-time purchase)',
+  '💰 £25,000 - £50,000 (one-time purchase)', 
+  '💰 £50,000+ (one-time purchase)',
+  '───────────────',
+  'Not sure / Flexible'
+]
 
 export default function MatchPage() {
   const [step, setStep] = useState<Step>(1)
@@ -468,25 +480,34 @@ export default function MatchPage() {
                 <PoundSterling className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">What's your monthly budget?</h2>
-                <p className="text-gray-500 text-sm">For kitchen space rental</p>
+                <h2 className="text-xl font-bold text-gray-900">What's your budget?</h2>
+                <p className="text-gray-500 text-sm">Monthly rental or one-time purchase</p>
               </div>
             </div>
             
             <div className="space-y-2">
-              {BUDGET_OPTIONS.map(option => (
-                <button
-                  key={option}
-                  onClick={() => setFormData(prev => ({ ...prev, budget: option }))}
-                  className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                    formData.budget === option
-                      ? 'border-emerald-500 bg-emerald-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
-                >
-                  <div className="font-medium text-gray-900">{option}</div>
-                </button>
-              ))}
+              {BUDGET_OPTIONS.map(option => {
+                // Skip separator rows
+                if (option.startsWith('───')) {
+                  return <div key={option} className="border-t border-gray-200 my-3" />
+                }
+                return (
+                  <button
+                    key={option}
+                    onClick={() => setFormData(prev => ({ ...prev, budget: option }))}
+                    className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                      formData.budget === option
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="font-medium text-gray-900">{option}</div>
+                    {option.includes('one-time') && (
+                      <div className="text-xs text-gray-500 mt-1">For buying a mobile unit or food truck</div>
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
