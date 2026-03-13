@@ -28,6 +28,11 @@ interface Provider {
   whyThisMatch?: string
 }
 
+interface HygieneRating {
+  rating: number | string | null
+  lastInspected: string | null
+}
+
 interface MatchData {
   results: Provider[]
   recommendation: string
@@ -63,10 +68,46 @@ function ResultsContent() {
   const [suggestEmail, setSuggestEmail] = useState(false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   
+  // Hygiene ratings state
+  const [hygieneRatings, setHygieneRatings] = useState<Record<string, HygieneRating>>({})
+  
   // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages])
+  
+  // Fetch hygiene ratings for results
+  useEffect(() => {
+    if (matchData?.results && matchData.results.length > 0) {
+      // Only fetch for kitchen types (not mobile suppliers or marketplaces)
+      const kitchenProviders = matchData.results.filter(
+        p => p.type === 'dark_kitchen' || p.type === 'shared_kitchen' || p.type === 'production_kitchen'
+      )
+      
+      if (kitchenProviders.length > 0) {
+        const userLocation = matchData.userProfile?.location || ''
+        
+        fetch('/api/hygiene', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            providers: kitchenProviders.map(p => ({
+              id: p.id,
+              name: p.name,
+              city: userLocation
+            }))
+          })
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.ratings) {
+              setHygieneRatings(data.ratings)
+            }
+          })
+          .catch(console.error)
+      }
+    }
+  }, [matchData])
   
   // Send chat message
   const sendChatMessage = async () => {
@@ -307,6 +348,22 @@ function ResultsContent() {
                   <div>
                     <h3 className="font-bold text-lg text-gray-900">{provider.name}</h3>
                     <p className="text-sm text-gray-500">{getTypeLabel(provider.type)}</p>
+                    {/* FSA Hygiene Rating */}
+                    {hygieneRatings[provider.id]?.rating && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <div className="flex items-center gap-0.5 bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">
+                          {typeof hygieneRatings[provider.id].rating === 'number' ? (
+                            <>
+                              {'⭐'.repeat(Math.min(hygieneRatings[provider.id].rating as number, 5))}
+                              <span className="ml-1">{hygieneRatings[provider.id].rating}/5</span>
+                            </>
+                          ) : (
+                            <span>{hygieneRatings[provider.id].rating}</span>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-400">FSA Verified</span>
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     {provider.matchPercent && (
