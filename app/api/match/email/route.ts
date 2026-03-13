@@ -58,37 +58,54 @@ export async function POST(req: NextRequest) {
       `).join('')
     }
     
-    // Send results email
+    // Send welcome + results email
     await getResend().emails.send({
       from: 'Find Me a Kitchen <noreply@findmeakitchen.com>',
       to: email,
-      subject: 'Your Kitchen Recommendations - Find Me a Kitchen',
+      subject: 'Welcome! Your Kitchen Recommendations Are Here 🍳',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #059669;">Your Kitchen Matches 🍳</h2>
-          <p>Thanks for using Find Me a Kitchen! Here are your personalized recommendations:</p>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <!-- Logo placeholder -->
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #059669; margin: 0; font-size: 24px;">🍳 Find Me a Kitchen</h1>
+          </div>
+          
+          <h2 style="color: #111; margin-bottom: 8px;">Welcome!</h2>
+          <p style="color: #444; font-size: 16px; line-height: 1.6;">
+            Thanks for using Find Me a Kitchen — you're now part of the UK's smartest kitchen finder community.
+          </p>
+          
+          <p style="color: #444; font-size: 16px; line-height: 1.6;">
+            We've matched you with the best options based on your needs. Here are your personalized recommendations:
+          </p>
           
           ${recommendation ? `
-            <div style="background: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 20px 0;">
-              <p style="margin: 0; font-style: italic;">${recommendation}</p>
+            <div style="background: #f0fdf4; border-left: 4px solid #059669; padding: 16px; margin: 24px 0; border-radius: 0 8px 8px 0;">
+              <p style="margin: 0; font-style: italic; color: #166534;">${recommendation}</p>
             </div>
           ` : ''}
           
-          <h3 style="color: #111; margin-top: 24px;">Your Top Matches</h3>
+          <h3 style="color: #111; margin-top: 32px; margin-bottom: 16px;">Your Top Matches</h3>
           ${resultsHtml || '<p>View your results at findmeakitchen.com</p>'}
           
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+          <div style="background: #fafafa; padding: 20px; border-radius: 12px; margin-top: 32px;">
+            <p style="font-size: 15px; color: #333; margin: 0 0 12px 0; font-weight: 600;">What's next?</p>
+            <ul style="margin: 0; padding-left: 20px; color: #555; line-height: 1.8;">
+              <li>Visit the provider websites to learn more</li>
+              <li><a href="https://findmeakitchen.com/kitchen-checklist" style="color: #059669;">Download our Questions to Ask Checklist</a></li>
+              <li>Reply to this email anytime — we're here to help</li>
+            </ul>
+          </div>
           
-          <p style="font-size: 14px; color: #666;">
-            <strong>What's next?</strong><br>
-            • Visit the provider websites to learn more<br>
-            • Download our <a href="https://findmeakitchen.com/kitchen-checklist" style="color: #059669;">Questions to Ask Checklist</a><br>
-            • Reply to this email if you need help
-          </p>
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
           
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-          <p style="color: #059669; font-weight: bold;">Find Me a Kitchen</p>
-          <p style="color: #666; font-size: 12px;">The UK's smartest kitchen finder</p>
+          <div style="text-align: center;">
+            <p style="color: #059669; font-weight: bold; font-size: 16px; margin-bottom: 4px;">Find Me a Kitchen</p>
+            <p style="color: #888; font-size: 12px; margin: 0;">The UK's smartest kitchen finder</p>
+            <p style="color: #aaa; font-size: 11px; margin-top: 16px;">
+              <a href="https://findmeakitchen.com" style="color: #059669;">findmeakitchen.com</a>
+            </p>
+          </div>
         </div>
       `
     })
