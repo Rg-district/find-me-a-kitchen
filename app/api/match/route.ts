@@ -100,6 +100,57 @@ const PROVIDERS = [
     phone: '0121 227 8568',
     description: 'Commercial dark kitchens in Birmingham. Purpose-built for Deliveroo, Uber Eats, and ghost kitchen operations. Central location with flexible rental terms.'
   },
+  {
+    id: 'one-kcn',
+    name: 'One KCN',
+    type: 'dark_kitchen',
+    cities: ['London'],
+    priceMin: 1800,
+    priceMax: 5000,
+    priceUnit: 'month',
+    equipment: ['Commercial oven', 'Gas hobs / Range', 'Deep fat fryers', 'Extraction / Ventilation', 'Prep tables', 'Upright fridge', 'Upright freezer'],
+    features: ['State-of-the-art', 'Equipment packages available', 'SW6 premium location', '30 years catering experience', 'High-speed internet', 'Fire & security'],
+    bestForBusiness: ['delivery_only', 'dark_kitchen', 'catering', 'production'],
+    bestForScale: ['small', 'medium', 'large'],
+    bestForBudget: ['1000-2000', '2000-5000'],
+    cuisineStrength: ['Indian', 'Chinese', 'Burgers', 'Healthy / Salads', 'Mediterranean', 'Caribbean'],
+    website: 'https://www.onekcn.com',
+    description: 'Premium ghost kitchens in Fulham, SW6. 7 high-end kitchens in one of London\'s highest delivery demand areas. Equipment financing available. 30 years industry experience.'
+  },
+  {
+    id: 'the-co-kitchens',
+    name: 'The Co-Kitchens',
+    type: 'shared_kitchen',
+    cities: ['London'],
+    priceMin: 1200,
+    priceMax: 4000,
+    priceUnit: 'month',
+    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Storage shelving', 'Upright fridge', 'Upright freezer'],
+    features: ['Community focused', 'Natural lighting', 'Flexible hours', 'R&D friendly', 'Bring your own equipment'],
+    bestForBusiness: ['starting', 'production', 'catering', 'dark_kitchen'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['1000-2000', '2000-5000'],
+    cuisineStrength: ['Desserts & Bakery', 'Healthy / Salads', 'Mediterranean', 'Italian / Pasta'],
+    website: 'https://theco-kitchens.com',
+    description: 'Community-focused cloud kitchen with great natural lighting and flexible hours. Popular for R&D, product development, and growing food brands. Highly rated by users.'
+  },
+  {
+    id: 'n4-kitchen-hire',
+    name: 'N4 Kitchen Hire',
+    type: 'shared_kitchen',
+    cities: ['London'],
+    priceMin: 100,
+    priceMax: 100,
+    priceUnit: 'hour',
+    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Upright fridge', 'Upright freezer'],
+    features: ['5-star hygiene rating', '24hr access', 'Loading bays', 'Free parking', 'Free WiFi', 'Short & long term'],
+    bestForBusiness: ['starting', 'catering', 'popup', 'production', 'delivery_only'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['under-500', '500-1000'],
+    cuisineStrength: ['Burgers', 'Indian', 'Caribbean', 'Chinese', 'Desserts & Bakery'],
+    website: 'https://www.n4kitchenhire.co.uk',
+    description: 'Affordable hourly kitchen hire in North London (N4). 5-star hygiene, 24hr access, 4 miles from central London. Ideal for market traders, delivery restaurants, and food producers.'
+  },
   
   // SHARED KITCHENS
   {
