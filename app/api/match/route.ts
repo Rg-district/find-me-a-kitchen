@@ -465,7 +465,7 @@ const PROVIDERS = [
     bestForScale: ['small'],
     bestForBudget: ['under-500', '500-1000'],
     cuisineStrength: ['Desserts & Bakery', 'Caribbean', 'Healthy / Salads'],
-    website: 'https://maidahillplace.org.uk',
+    website: 'https://www.maidahillplace.co.uk',
     description: 'Community kitchen in Westminster supporting food startups. Low overheads and business development support included.'
   },
   {
