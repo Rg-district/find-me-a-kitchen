@@ -82,6 +82,24 @@ const PROVIDERS = [
     website: 'https://jacunakitchens.com',
     description: 'Growing dark kitchen network with sites across major UK cities. Good mid-range option for delivery brands.'
   },
+  {
+    id: 'chefs-lab',
+    name: 'Chefs Lab',
+    type: 'dark_kitchen',
+    cities: ['Birmingham'],
+    priceMin: 1500,
+    priceMax: 4000,
+    priceUnit: 'month',
+    equipment: ['Commercial oven', 'Gas hobs / Range', 'Deep fat fryers', 'Extraction / Ventilation', 'Prep tables'],
+    features: ['Deliveroo & Uber Eats ready', 'Flexible terms', 'WhatsApp support', 'Ghost kitchen setup'],
+    bestForBusiness: ['delivery_only', 'dark_kitchen'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['1000-2000', '2000-5000'],
+    cuisineStrength: ['Burgers', 'Chicken & Chips', 'Indian', 'Caribbean', 'Chinese'],
+    website: 'https://chefslab.co.uk',
+    phone: '0121 227 8568',
+    description: 'Commercial dark kitchens in Birmingham. Purpose-built for Deliveroo, Uber Eats, and ghost kitchen operations. Central location with flexible rental terms.'
+  },
   
   // SHARED KITCHENS
   {
