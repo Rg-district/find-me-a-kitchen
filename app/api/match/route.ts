@@ -187,23 +187,7 @@ const PROVIDERS = [
     website: 'https://sharethere.com',
     description: 'Book commercial kitchen space by the hour across the UK. Ideal for caterers, pop-up chefs, and food producers needing flexible access.'
   },
-  {
-    id: 'the-kitchen-collective',
-    name: 'The Kitchen Collective',
-    type: 'shared_kitchen',
-    cities: ['London'],
-    priceMin: 20,
-    priceMax: 60,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Mixer', 'Prep tables', 'Walk-in cold room'],
-    features: ['Production focused', 'Food safety certified', 'Storage available'],
-    bestForBusiness: ['production', 'catering', 'starting'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['500-1000', '1000-2000'],
-    cuisineStrength: ['Desserts & Bakery', 'Healthy / Salads', 'Indian', 'Caribbean'],
-    website: 'https://thekitchencollective.co.uk',
-    description: 'Production-focused shared kitchen in London. Good for food producers and caterers needing regular kitchen time.'
-  },
+  // The Kitchen Collective REMOVED (Mar 2026) - website thekitchencollective.co.uk doesn't exist, tkcollective.co is NZ not UK
   {
     id: 'ncass-kitchen',
     name: 'NCASS Production Kitchen',
@@ -434,23 +418,7 @@ const PROVIDERS = [
     website: 'https://dephna.com',
     description: 'Established London kitchen provider since 1972. Eight locations across North West London. Reliable and experienced.'
   },
-  {
-    id: 'peckham-levels-kitchen',
-    name: 'Peckham Levels Kitchen',
-    type: 'shared_kitchen',
-    cities: ['London'],
-    priceMin: 20,
-    priceMax: 50,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Upright fridge'],
-    features: ['Creative hub location', 'Community focused', 'Event opportunities'],
-    bestForBusiness: ['starting', 'popup', 'catering'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://peckhamlevels.org',
-    description: 'Kitchen space within the creative Peckham Levels hub. Great for emerging food entrepreneurs in South London.'
-  },
+  // Peckham Levels Kitchen REMOVED (Mar 2026) - event venue, not commercial kitchen hire
   {
     id: 'maida-hill-place',
     name: 'Maida Hill Place',
@@ -590,143 +558,15 @@ const PROVIDERS = [
     description: 'Specialist mobile catering van and trailer conversions. Commercial-grade builds for serious operators.'
   },
   
-  // REGIONAL SHARED KITCHENS
-  {
-    id: 'baltic-kitchen-liverpool',
-    name: 'Baltic Kitchen',
-    type: 'shared_kitchen',
-    cities: ['Liverpool'],
-    priceMin: 12,
-    priceMax: 35,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Upright fridge'],
-    features: ['Baltic Triangle location', 'Flexible hours', 'Start-up friendly'],
-    bestForBusiness: ['starting', 'popup', 'catering'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://baltickitchen.co.uk',
-    description: 'Shared kitchen in Liverpool creative quarter. Perfect for food startups and pop-up concepts.'
-  },
-  {
-    id: 'sheffield-kitchen-collective',
-    name: 'Sheffield Kitchen Collective',
-    type: 'shared_kitchen',
-    cities: ['Sheffield'],
-    priceMin: 10,
-    priceMax: 30,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Mixer'],
-    features: ['Community focused', 'Low rates', 'Business support'],
-    bestForBusiness: ['starting', 'home', 'catering'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://sheffieldkitchencollective.org',
-    description: 'Community kitchen collective in Sheffield. Some of the most affordable rates outside London.'
-  },
-  {
-    id: 'nottingham-food-hub',
-    name: 'Nottingham Food Hub',
-    type: 'shared_kitchen',
-    cities: ['Nottingham'],
-    priceMin: 15,
-    priceMax: 40,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Walk-in cold room', 'Prep tables', 'Storage'],
-    features: ['Central location', 'Good transport links', 'Storage included'],
-    bestForBusiness: ['starting', 'catering', 'production'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['under-500', '500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://nottinghamfoodhub.co.uk',
-    description: 'Centrally located food hub in Nottingham with excellent facilities for growing food businesses.'
-  },
-  {
-    id: 'edinburgh-food-studio',
-    name: 'Edinburgh Food Studio',
-    type: 'shared_kitchen',
-    cities: ['Edinburgh'],
-    priceMin: 18,
-    priceMax: 45,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Upright fridge', 'Upright freezer'],
-    features: ['Professional grade', 'Training available', 'Event space'],
-    bestForBusiness: ['starting', 'catering', 'popup'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://edinburghfoodstudio.com',
-    description: 'Professional shared kitchen in Edinburgh with training facilities. Great for Scottish food entrepreneurs.'
-  },
-  {
-    id: 'glasgow-kitchen-incubator',
-    name: 'Glasgow Kitchen Incubator',
-    type: 'shared_kitchen',
-    cities: ['Glasgow'],
-    priceMin: 14,
-    priceMax: 38,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Mixer', 'Prep tables'],
-    features: ['Start-up focused', 'Mentorship available', 'Affordable rates'],
-    bestForBusiness: ['starting', 'home', 'popup'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://glasgowkitchenincubator.org',
-    description: 'Kitchen incubator supporting Glasgow food entrepreneurs. Mentorship and affordable rates for new businesses.'
-  },
-  {
-    id: 'cardiff-food-factory',
-    name: 'Cardiff Food Factory',
-    type: 'shared_kitchen',
-    cities: ['Cardiff'],
-    priceMin: 12,
-    priceMax: 35,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Walk-in cold room'],
-    features: ['Production focused', 'Good cold storage', 'Welsh food specialists'],
-    bestForBusiness: ['production', 'catering', 'starting'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['under-500', '500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://cardifffoodfactory.co.uk',
-    description: 'Production-focused shared kitchen in Cardiff. Good facilities for food manufacturers and caterers.'
-  },
-  {
-    id: 'leeds-food-works',
-    name: 'Leeds Food Works',
-    type: 'shared_kitchen',
-    cities: ['Leeds'],
-    priceMin: 14,
-    priceMax: 40,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Mixer', 'Upright fridge'],
-    features: ['City centre', 'Flexible bookings', 'Growing community'],
-    bestForBusiness: ['starting', 'catering', 'popup'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['under-500', '500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://leedsfoodworks.co.uk',
-    description: 'City centre shared kitchen in Leeds with flexible booking and a growing community of food businesses.'
-  },
-  {
-    id: 'newcastle-kitchen-hub',
-    name: 'Newcastle Kitchen Hub',
-    type: 'shared_kitchen',
-    cities: ['Newcastle'],
-    priceMin: 12,
-    priceMax: 32,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Storage shelving'],
-    features: ['North East hub', 'Affordable', 'Good parking'],
-    bestForBusiness: ['starting', 'catering', 'popup'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://newcastlekitchenhub.co.uk',
-    description: 'Affordable shared kitchen space in Newcastle. Serving the North East food business community.'
-  },
+  // REGIONAL SHARED KITCHENS - AUDIT (Mar 2026)
+  // Baltic Kitchen Liverpool REMOVED - kitchen fitters, not commercial kitchen rental
+  // Sheffield Kitchen Collective REMOVED - website doesn't exist
+  // Nottingham Food Hub REMOVED - website doesn't exist
+  // Edinburgh Food Studio REMOVED - supper club/events, not commercial rental
+  // Glasgow Kitchen Incubator REMOVED - website doesn't exist
+  // Cardiff Food Factory REMOVED - website doesn't exist
+  // Leeds Food Works REMOVED - website doesn't exist
+  // Newcastle Kitchen Hub REMOVED - website doesn't exist
   
   // ADDITIONAL DARK KITCHENS
   {
