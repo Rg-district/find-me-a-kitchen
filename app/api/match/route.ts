@@ -975,23 +975,7 @@ const PROVIDERS = [
   },
   
   // MORE LONDON KITCHENS
-  {
-    id: 'mazi-project',
-    name: 'The Mazi Project',
-    type: 'shared_kitchen',
-    cities: ['London'],
-    priceMin: 18,
-    priceMax: 50,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Event space'],
-    features: ['Community kitchen', 'Event venue', 'Workshops', 'Supper clubs'],
-    bestForBusiness: ['popup', 'catering', 'starting'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://themaziproject.com',
-    description: 'Community kitchen and venue in London. Perfect for supper clubs, workshops and private events.'
-  },
+  // The Mazi Project REMOVED (Mar 2026) - event/supper club venue, not commercial food production
   {
     id: 'walthamstow-kitchen-collective',
     name: 'Walthamstow Kitchen Collective',
