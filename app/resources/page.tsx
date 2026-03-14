@@ -219,15 +219,6 @@ export default function ResourcesPage() {
           </section>
         ))}
 
-        {/* Disclaimer */}
-        <div className="bg-gray-100 rounded-xl p-4 text-sm text-gray-500">
-          <p>
-            <strong>Disclosure:</strong> Some links on this page are affiliate links. 
-            This means we may earn a small commission if you make a purchase, at no extra cost to you. 
-            We only recommend products and services we believe will genuinely help your food business.
-          </p>
-        </div>
-
         {/* CTA */}
         <div className="bg-emerald-50 rounded-2xl p-6 text-center">
           <h3 className="text-xl font-bold text-gray-900 mb-2">Ready to find your kitchen?</h3>
