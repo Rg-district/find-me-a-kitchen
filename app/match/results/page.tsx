@@ -26,6 +26,14 @@ interface Provider {
   matchPercent?: number
   benefits?: string[]
   whyThisMatch?: string
+  matchConfidence?: {
+    level: string
+    percentage: number
+    breakdown: string
+    badge?: string
+  }
+  negotiationTips?: string[]
+  riskFlags?: string[]
 }
 
 interface HygieneRating {
@@ -40,6 +48,13 @@ interface MatchData {
   demandInsight?: string
   alsoConsider?: { type: string; reason: string }
   growthPath?: { current: string; next: string; trigger: string }
+  similarUsersInsight?: string
+  aiInsights?: {
+    marketContext?: string
+    similarUsers?: string
+    bestTimeToAct?: string
+    costSavingTip?: string
+  }
   userProfile?: {
     location: string
     businessType: string
@@ -328,6 +343,27 @@ function ResultsContent() {
           </div>
         )}
 
+        {/* AI Insights Panel */}
+        {matchData?.aiInsights && (
+          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-200 p-4 mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <p className="text-sm font-semibold text-purple-800">AI Insights</p>
+            </div>
+            <div className="space-y-2">
+              {matchData.aiInsights.similarUsers && (
+                <p className="text-sm text-purple-700">📊 {matchData.aiInsights.similarUsers}</p>
+              )}
+              {matchData.aiInsights.bestTimeToAct && (
+                <p className="text-sm text-purple-700">{matchData.aiInsights.bestTimeToAct}</p>
+              )}
+              {matchData.aiInsights.costSavingTip && (
+                <p className="text-sm text-purple-700">{matchData.aiInsights.costSavingTip}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Results List */}
         <div className="space-y-4">
           {results.map((provider, index) => (
@@ -416,6 +452,30 @@ function ResultsContent() {
                     </span>
                   ))}
                 </div>
+
+                {/* Risk Flags */}
+                {provider.riskFlags && provider.riskFlags.length > 0 && (
+                  <div className="mb-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                    <p className="text-xs font-semibold text-amber-700 mb-1.5">Things to check:</p>
+                    <ul className="space-y-1">
+                      {provider.riskFlags.map((flag, i) => (
+                        <li key={i} className="text-xs text-amber-700">{flag}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Negotiation Tips - Show on first result only */}
+                {index === 0 && provider.negotiationTips && provider.negotiationTips.length > 0 && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                    <p className="text-xs font-semibold text-blue-700 mb-1.5">💡 Negotiation tips:</p>
+                    <ul className="space-y-1">
+                      {provider.negotiationTips.slice(0, 3).map((tip, i) => (
+                        <li key={i} className="text-xs text-blue-700">• {tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="flex gap-3">
