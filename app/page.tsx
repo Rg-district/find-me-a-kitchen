@@ -5,11 +5,10 @@ import Link from 'next/link'
 import { Menu, Search, MapPin, Building2, UtensilsCrossed, Coffee, Truck, ChefHat, User, X, ChevronRight, Sparkles } from 'lucide-react'
 
 const CATEGORIES = [
-  { name: 'Dark Kitchens', icon: Building2, count: 24 },
-  { name: 'Shared Kitchens', icon: UtensilsCrossed, count: 18 },
-  { name: 'Cafes & Restaurants', icon: Coffee, count: 12 },
-  { name: 'Food Production', icon: ChefHat, count: 8 },
-  { name: 'Mobile Units', icon: Truck, count: 6 },
+  { name: 'Dark Kitchens', slug: 'dark-kitchens', icon: Building2, count: 12, description: 'Delivery-only' },
+  { name: 'Shared Kitchens', slug: 'shared-kitchens', icon: UtensilsCrossed, count: 10, description: 'Hourly rental' },
+  { name: 'Mobile Units', slug: 'mobile-units', icon: Truck, count: 19, description: 'Trucks & trailers' },
+  { name: 'Marketplaces', slug: 'marketplaces', icon: Search, count: 4, description: 'Directories' },
 ]
 
 export default function HomePage() {
@@ -106,21 +105,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Category Pills */}
+          {/* Category Cards */}
           <div className="mt-8">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Browse by type
+              Browse by Provider Type
             </h2>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {CATEGORIES.map(cat => (
                 <Link
                   key={cat.name}
-                  href={`/browse?type=${cat.name}`}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-white rounded-full border border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 transition-colors group"
+                  href={`/browse/${cat.slug}`}
+                  className="flex flex-col p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 hover:shadow-md transition-all group"
                 >
-                  <cat.icon className="w-4 h-4 text-gray-500 group-hover:text-emerald-600" />
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{cat.name}</span>
-                  <span className="text-xs text-gray-400">{cat.count}</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <cat.icon className="w-5 h-5 text-emerald-600" />
+                    <span className="text-sm font-bold text-gray-900">{cat.name}</span>
+                  </div>
+                  <span className="text-xs text-gray-500">{cat.description}</span>
+                  <span className="text-xs text-emerald-600 font-medium mt-1">{cat.count} providers</span>
                 </Link>
               ))}
             </div>
