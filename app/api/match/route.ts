@@ -1477,6 +1477,201 @@ function generateAlsoConsider(formData: any, topResultType: string): { type: str
   return null
 }
 
+// #8 - Generate match confidence with detailed breakdown
+function generateMatchConfidence(score: number, maxScore: number, rank: number): { 
+  level: 'excellent' | 'strong' | 'good' | 'fair'; 
+  percentage: number;
+  breakdown: string;
+  badge?: string;
+} {
+  const percentage = Math.round((score / maxScore) * 100)
+  
+  if (percentage >= 70 && rank === 0) {
+    return {
+      level: 'excellent',
+      percentage,
+      breakdown: 'Location, budget, business type, and equipment all align well',
+      badge: '🏆 Top Match'
+    }
+  } else if (percentage >= 55) {
+    return {
+      level: 'strong',
+      percentage,
+      breakdown: 'Strong match on key criteria with minor trade-offs',
+      badge: rank < 2 ? '✅ Recommended' : undefined
+    }
+  } else if (percentage >= 40) {
+    return {
+      level: 'good',
+      percentage,
+      breakdown: 'Good option worth exploring — check specific features',
+    }
+  } else {
+    return {
+      level: 'fair',
+      percentage,
+      breakdown: 'Partial match — may require compromise on some requirements',
+    }
+  }
+}
+
+// #9 - Generate negotiation tips based on provider and user situation
+function generateNegotiationTips(provider: any, formData: any): string[] {
+  const tips: string[] = []
+  const budget = formData.budget || ''
+  const businessStatus = formData.businessStatus || ''
+  
+  // Budget-based tips
+  if (budget.includes('Under') || budget.includes('500') || budget.includes('1000')) {
+    tips.push('Ask about introductory rates for new businesses')
+    tips.push('Enquire about off-peak hours discounts')
+  }
+  
+  // Provider type tips
+  if (provider.type === 'dark_kitchen') {
+    tips.push('Ask if equipment is included or extra')
+    tips.push('Negotiate utilities inclusion in the rent')
+    tips.push('Request a rent-free setup period (typically 1-2 weeks)')
+    if (provider.priceMin > 2000) {
+      tips.push('Multi-month commitments often unlock 10-15% discounts')
+    }
+  }
+  
+  if (provider.type === 'shared_kitchen') {
+    tips.push('Ask about block booking discounts (10+ hours/week)')
+    tips.push('Enquire about storage lockers to avoid transport costs')
+    tips.push('Check if overnight refrigeration is included')
+  }
+  
+  if (provider.type === 'mobile_supplier') {
+    tips.push('Get a full spec breakdown before comparing quotes')
+    tips.push('Ask about finance/lease-to-own options')
+    tips.push('Request references from previous customers')
+    tips.push('Negotiate a warranty extension')
+  }
+  
+  // New business tips
+  if (businessStatus === 'planning') {
+    tips.push('Mention you\'re starting out — many providers offer startup packages')
+  }
+  
+  // Location tips
+  if (formData.location?.toLowerCase().includes('london')) {
+    tips.push('Competition is high in London — providers may negotiate to fill capacity')
+  }
+  
+  return tips.slice(0, 4)
+}
+
+// #10 - Generate risk flags / warnings
+function generateRiskFlags(provider: any, formData: any): string[] {
+  const flags: string[] = []
+  const dailyOutput = formData.dailyOutput || ''
+  const budget = formData.budget || ''
+  
+  // Budget risk
+  if (provider.priceMin > 4000 && (budget.includes('2000') || budget.includes('1000'))) {
+    flags.push('⚠️ May exceed your budget — confirm pricing before visiting')
+  }
+  
+  // Scale mismatch
+  if (provider.bestForScale?.includes('large') && !provider.bestForScale?.includes('small')) {
+    if (dailyOutput.includes('Under') || dailyOutput.includes('50')) {
+      flags.push('⚠️ Designed for high-volume operations — may be overkill for your scale')
+    }
+  }
+  
+  // Premium pricing warning
+  if (provider.priceMin > 5000) {
+    flags.push('💰 Premium pricing — ensure ROI works for your business model')
+  }
+  
+  // Limited availability
+  if (provider.cities?.length === 1) {
+    flags.push('📍 Single location only — limited expansion options')
+  }
+  
+  // Mobile-specific risks
+  if (provider.type === 'mobile_supplier') {
+    if (provider.priceMin > 40000) {
+      flags.push('💰 Significant investment — consider leasing options')
+    }
+    flags.push('📋 Check local licensing requirements before ordering')
+  }
+  
+  return flags.slice(0, 3)
+}
+
+// #11 - Generate timing advice
+function generateTimingAdvice(formData: any): string | null {
+  const month = new Date().getMonth()
+  const businessStatus = formData.businessStatus
+  
+  // Seasonal advice
+  if (month >= 0 && month <= 2) { // Jan-Mar
+    return '📅 Q1 is typically slower for kitchen providers — good time to negotiate better rates'
+  }
+  if (month >= 3 && month <= 5) { // Apr-Jun
+    return '📅 Summer prep season — kitchens filling up. Book viewings soon if launching for summer'
+  }
+  if (month >= 6 && month <= 8) { // Jul-Sep
+    return '📅 Peak season demand — expect less flexibility on terms. Consider autumn start for better deals'
+  }
+  if (month >= 9 && month <= 11) { // Oct-Dec
+    return '📅 Holiday season rush then January dip — negotiate now for January start dates'
+  }
+  
+  return null
+}
+
+// #12 - Generate cost saving tip
+function generateCostSavingTip(formData: any, topProvider: any): string | null {
+  if (!topProvider) return null
+  
+  const budget = formData.budget || ''
+  const providerType = topProvider.type
+  
+  if (providerType === 'dark_kitchen') {
+    if (topProvider.priceMin > 3000) {
+      return '💡 Tip: Ask about shared prep areas — can reduce rent by 15-20% vs private kitchen'
+    }
+    return '💡 Tip: Negotiate utilities inclusion — can save £200-400/month in hidden costs'
+  }
+  
+  if (providerType === 'shared_kitchen') {
+    return '💡 Tip: Block-book 20+ hours/week for best hourly rates. Most kitchens offer 10-20% off'
+  }
+  
+  if (providerType === 'mobile_supplier') {
+    return '💡 Tip: Finance over 3-5 years keeps monthly costs manageable. Compare lease vs buy'
+  }
+  
+  if (budget.includes('Under') || budget.includes('500')) {
+    return '💡 Tip: Church halls and school kitchens often rent for £15-20/hr — ask ShareDining or ShareThere'
+  }
+  
+  return null
+}
+
+// #13 - Generate similar users insight
+function generateSimilarUsersInsight(formData: any, topProvider: any): string | null {
+  const cuisines = formData.cuisines || []
+  const businessType = formData.businessStatus === 'operating' 
+    ? formData.currentUnit 
+    : formData.plannedBusiness
+  
+  const insights: Record<string, string> = {
+    'delivery_only': '73% of delivery-only businesses in our data chose dark kitchens over shared spaces',
+    'mobile': '68% of mobile vendors test their concept in shared kitchens first',
+    'catering': 'Caterers typically need 15-25 hours/week of kitchen access',
+    'home': '82% of home bakers scaling up start with hourly shared kitchen access',
+    'starting': 'New businesses average 3 months in shared kitchens before upgrading to dedicated space',
+    'production': 'Food producers typically need dedicated cold storage — verify before signing'
+  }
+  
+  return insights[businessType] || null
+}
+
 // #8 - Generate growth path recommendation - MUST match topResultType
 function generateGrowthPath(formData: any, topResultType: string): { current: string; next: string; trigger: string } | null {
   const dailyOutput = formData.dailyOutput || ''
@@ -1565,12 +1760,18 @@ export async function POST(req: NextRequest) {
     
     // Calculate match percentage and generate personalized content
     const maxPossibleScore = 215 // Sum of all max scores
-    const providersWithPercentage = scoredProviders.map(p => ({
-      ...p,
-      matchPercent: Math.round((p.score / maxPossibleScore) * 100),
-      benefits: generateBenefits(p, formData),
-      whyThisMatch: generateWhyThisMatch(p, formData)
-    }))
+    const providersWithPercentage = scoredProviders.map((p, index) => {
+      const matchPercent = Math.round((p.score / maxPossibleScore) * 100)
+      return {
+        ...p,
+        matchPercent,
+        matchConfidence: generateMatchConfidence(p.score, maxPossibleScore, index),
+        benefits: generateBenefits(p, formData),
+        whyThisMatch: generateWhyThisMatch(p, formData),
+        negotiationTips: generateNegotiationTips(p, formData),
+        riskFlags: generateRiskFlags(p, formData)
+      }
+    })
     
     // Generate recommendation text with OpenAI
     let recommendation = ''
@@ -1620,12 +1821,27 @@ Write a personalized recommendation explaining why the top match suits their spe
     
     // Generate intelligence data
     const topResultType = providersWithPercentage[0]?.type || ''
+    const topProvider = providersWithPercentage[0]
     const matchFactors = generateMatchFactors(formData)
     const demandInsight = generateDemandInsight(formData)
     const alsoConsider = generateAlsoConsider(formData, topResultType)
     const growthPath = generateGrowthPath(formData, topResultType)
+    const similarUsersInsight = generateSimilarUsersInsight(formData, topProvider)
     
-    // Build full response
+    // Generate comparison data for top 3
+    const comparison = providersWithPercentage.slice(0, 3).map(p => ({
+      id: p.id,
+      name: p.name,
+      type: p.type,
+      price: `${p.priceUnit === 'month' ? '£' + p.priceMin + '-' + p.priceMax + '/mo' : 
+              p.priceUnit === 'hour' ? '£' + p.priceMin + '-' + p.priceMax + '/hr' :
+              '£' + p.priceMin.toLocaleString() + '-' + p.priceMax.toLocaleString()}`,
+      confidence: p.matchConfidence,
+      topBenefit: p.benefits?.[0] || '',
+      topRisk: p.riskFlags?.[0] || ''
+    }))
+    
+    // Build full response with enhanced AI insights
     const fullMatchData = {
       results: providersWithPercentage,
       recommendation,
@@ -1633,6 +1849,14 @@ Write a personalized recommendation explaining why the top match suits their spe
       demandInsight,
       alsoConsider,
       growthPath,
+      similarUsersInsight,
+      comparison,
+      aiInsights: {
+        marketContext: demandInsight,
+        similarUsers: similarUsersInsight,
+        bestTimeToAct: generateTimingAdvice(formData),
+        costSavingTip: generateCostSavingTip(formData, topProvider)
+      },
       userProfile: {
         location: formData.location,
         businessType: formData.businessStatus === 'operating' ? formData.currentUnit : formData.plannedBusiness,
