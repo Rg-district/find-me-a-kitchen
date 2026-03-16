@@ -119,7 +119,7 @@ const PROVIDERS = [
   },
   {
     id: 'titus-cics',
-    name: 'Titus (CICS)',
+    name: 'Titus by CSUK',
     type: 'dark_kitchen',
     cities: ['Nationwide'],
     priceMin: 1500,
@@ -131,8 +131,8 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium', 'large'],
     bestForBudget: ['1000-2000', '2000-5000'],
     cuisineStrength: ['all'],
-    website: 'https://cics.space',
-    description: 'UK dark kitchen manufacturer offering both ready-to-go cloud kitchens and bespoke modular builds. Perfect for startups or national chains looking to scale.'
+    website: 'https://cics.space/modular-construction/cloud-and-dark-kitchen-manufacture/',
+    description: 'Titus (part of CSUK Group) offers dark kitchen hubs around the UK with rolling or fixed-term memberships. They manufacture modular cloud kitchens for startups and national chains.'
   },
   {
     id: 'one-kcn',
@@ -1850,9 +1850,15 @@ User profile:
 
 Top match: ${topProvider.name} (${topProvider.type.replace('_', ' ')}) - ${topProvider.matchPercent}% match
 Provider pricing: From £${topProvider.priceMin}/${topProvider.priceUnit}
+Provider locations: ${topProvider.cities.join(', ')}
 Second option: ${providersWithPercentage[1]?.name || 'N/A'}
 
-Write a personalized recommendation explaining why the top match suits their specific needs. Mention one specific feature that makes it ideal for their situation. Be accurate about pricing - do not claim something fits the budget if the numbers don't work.`
+Write a personalized recommendation explaining why the top match suits their specific needs. Mention one specific feature that makes it ideal for their situation. 
+
+IMPORTANT RULES:
+1. Be accurate about pricing - do not claim something fits the budget if the numbers don't work
+2. Do NOT say the provider is "located in" a specific city unless they actually have a location there - check "Provider locations" field
+3. If provider is "Nationwide", say they "operate nationwide" or "can serve your area" - do NOT claim they have a facility in the user's specific location`
 
         const completion = await openai.chat.completions.create({
           model: 'gpt-4',
