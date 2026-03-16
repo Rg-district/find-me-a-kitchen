@@ -1066,20 +1066,28 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
     if (provider.priceUnit === 'one_time' && businessType !== 'mobile') {
       // One-time purchase providers should score low for monthly budget users
       score += 5
-    } else if (provider.bestForBudget.includes(userBudgetInfo.key) || provider.bestForBudget.includes('all')) {
-      score += 35
-      matchReasons.push('budget')
     } else {
-      // Calculate actual price match
+      // Calculate actual monthly price for comparison
       let monthlyPrice = provider.priceMin
-      if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 80 // 20hrs/week
+      if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 80 // 20hrs/week estimate
       if (provider.priceUnit === 'week') monthlyPrice = provider.priceMin * 4
+      if (provider.priceUnit === 'day') monthlyPrice = provider.priceMin * 20 // 5 days/week estimate
       
+      // STRICT budget matching - provider's MIN price must fit user's MAX budget
       if (provider.priceUnit !== 'one_time') {
         if (monthlyPrice <= userBudgetInfo.monthly) {
-          score += 25
-        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.2) {
-          score += 10 // Slightly over budget
+          // Provider fits within budget - full points
+          score += 35
+          matchReasons.push('budget')
+        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.3) {
+          // Slightly over budget (up to 30% over) - reduced points
+          score += 15
+        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.5) {
+          // Significantly over budget (30-50% over) - minimal points
+          score += 5
+        } else {
+          // Way over budget - PENALIZE, don't reward
+          score -= 20
         }
       }
     }
@@ -1200,16 +1208,30 @@ function generateWhyThisMatch(provider: typeof PROVIDERS[0], formData: any): str
     reasons.push(`production kitchens are built for the volume your ${businessLabel} requires`)
   }
   
-  // Budget reasoning
-  if (budget) {
+  // Budget reasoning - only claim budget fit if it actually fits
+  if (budget && provider.priceUnit !== 'one_time') {
+    const budgetMaxMap: Record<string, number> = {
+      'Under £500/month': 500,
+      '£500 - £1,000/month': 1000,
+      '£1,000 - £2,000/month': 2000,
+      '£2,000 - £5,000/month': 5000,
+      '£5,000+/month': 15000
+    }
+    const userMaxBudget = budgetMaxMap[budget] || 3000
+    
     let monthlyPrice = provider.priceMin
     if (provider.priceUnit === 'hour') monthlyPrice = provider.priceMin * 80
     if (provider.priceUnit === 'week') monthlyPrice = provider.priceMin * 4
     if (provider.priceUnit === 'day') monthlyPrice = provider.priceMin * 20
     
-    if (provider.priceUnit !== 'one_time') {
-      reasons.push(`pricing from ${provider.priceUnit === 'hour' ? '£' + provider.priceMin + '/hour' : '£' + provider.priceMin + '/' + provider.priceUnit} fits within your ${budget} budget`)
+    if (monthlyPrice <= userMaxBudget) {
+      // Actually fits the budget - can claim this
+      reasons.push(`pricing from ${provider.priceUnit === 'hour' ? '£' + provider.priceMin + '/hour' : '£' + provider.priceMin + '/' + provider.priceUnit} fits within your budget`)
+    } else if (monthlyPrice <= userMaxBudget * 1.3) {
+      // Slightly over - be honest
+      reasons.push(`pricing starts at £${provider.priceMin}/${provider.priceUnit} - slightly above your budget but worth considering`)
     }
+    // If way over budget, don't mention budget at all - focus on other reasons
   }
   
   // Cuisine reasoning
@@ -1569,9 +1591,25 @@ function generateRiskFlags(provider: any, formData: any): string[] {
   const dailyOutput = formData.dailyOutput || ''
   const budget = formData.budget || ''
   
-  // Budget risk
-  if (provider.priceMin > 4000 && (budget.includes('2000') || budget.includes('1000'))) {
-    flags.push('⚠️ May exceed your budget — confirm pricing before visiting')
+  // Budget risk - more comprehensive check
+  const budgetMaxMap: Record<string, number> = {
+    'Under £500/month': 500,
+    '£500 - £1,000/month': 1000,
+    '£1,000 - £2,000/month': 2000,
+    '£2,000 - £5,000/month': 5000,
+    '£5,000+/month': 15000
+  }
+  const userMaxBudget = budgetMaxMap[budget] || 3000
+  
+  // Calculate provider's effective monthly cost
+  let providerMonthly = provider.priceMin
+  if (provider.priceUnit === 'hour') providerMonthly = provider.priceMin * 80
+  if (provider.priceUnit === 'day') providerMonthly = provider.priceMin * 20
+  if (provider.priceUnit === 'week') providerMonthly = provider.priceMin * 4
+  
+  if (provider.priceUnit !== 'one_time' && providerMonthly > userMaxBudget) {
+    const overBy = Math.round(((providerMonthly - userMaxBudget) / userMaxBudget) * 100)
+    flags.push(`⚠️ Starts at £${providerMonthly}/mo — ${overBy}% above your budget`)
   }
   
   // Scale mismatch
@@ -1782,7 +1820,22 @@ export async function POST(req: NextRequest) {
       if (!topProvider) {
         recommendation = `We couldn't find providers matching all your criteria in ${formData.location}. Try broadening your search or contact us for personalised recommendations.`
       } else {
+        // Calculate if provider actually fits budget
+        const budgetMaxMap: Record<string, number> = {
+          'Under £500/month': 500,
+          '£500 - £1,000/month': 1000,
+          '£1,000 - £2,000/month': 2000,
+          '£2,000 - £5,000/month': 5000,
+          '£5,000+/month': 15000
+        }
+        const userMaxBudget = budgetMaxMap[formData.budget] || 3000
+        const providerMin = topProvider.priceMin
+        const budgetFits = providerMin <= userMaxBudget
+        const budgetWarning = !budgetFits ? `IMPORTANT: The provider's minimum price (£${providerMin}/month) EXCEEDS the user's budget (${formData.budget}). Do NOT claim it fits their budget. Instead, acknowledge it may be a stretch or mention they should confirm pricing.` : ''
+        
         const prompt = `You are a commercial kitchen expert. Based on these user needs, write 2-3 sentences recommending the best kitchen solution. Be specific and helpful. Do not mention AI. Be direct and practical.
+
+${budgetWarning}
 
 User profile:
 - Business type: ${businessType}
@@ -1795,9 +1848,10 @@ User profile:
 - Expansion plans: ${formData.expansionPlans}
 
 Top match: ${topProvider.name} (${topProvider.type.replace('_', ' ')}) - ${topProvider.matchPercent}% match
+Provider pricing: From £${topProvider.priceMin}/${topProvider.priceUnit}
 Second option: ${providersWithPercentage[1]?.name || 'N/A'}
 
-Write a personalized recommendation explaining why the top match suits their specific needs. Mention one specific feature that makes it ideal for their situation.`
+Write a personalized recommendation explaining why the top match suits their specific needs. Mention one specific feature that makes it ideal for their situation. Be accurate about pricing - do not claim something fits the budget if the numbers don't work.`
 
         const completion = await openai.chat.completions.create({
           model: 'gpt-4',
