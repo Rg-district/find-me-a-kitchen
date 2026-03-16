@@ -9,7 +9,8 @@ export default function ContactPage() {
     name: '',
     email: '',
     subject: 'general',
-    message: ''
+    message: '',
+    website: '' // Honeypot field - bots fill this, humans don't see it
   })
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -137,6 +138,18 @@ export default function ContactPage() {
               placeholder="Tell us how we can help..."
             />
           </div>
+
+          {/* Honeypot field - hidden from humans, bots fill it */}
+          <input
+            type="text"
+            name="website"
+            value={formData.website}
+            onChange={e => setFormData(prev => ({ ...prev, website: e.target.value }))}
+            className="absolute -left-[9999px] opacity-0 pointer-events-none"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+          />
 
           <button
             type="submit"

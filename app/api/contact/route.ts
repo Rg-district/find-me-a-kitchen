@@ -12,7 +12,29 @@ function getResend() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, subject, message } = await req.json()
+    const { name, email, subject, message, website } = await req.json()
+    
+    // Honeypot check - if 'website' field is filled, it's a bot
+    if (website) {
+      // Silently reject but return success to not alert bots
+      console.log('Bot submission blocked:', { name, email })
+      return NextResponse.json({ success: true })
+    }
+    
+    // Basic spam detection - reject gibberish names/messages
+    const looksLikeSpam = (text: string) => {
+      if (!text) return false
+      // Random string pattern: mostly consonants, no spaces, unusual length
+      const noSpaces = !text.includes(' ')
+      const tooManyConsonants = (text.match(/[bcdfghjklmnpqrstvwxz]/gi) || []).length > text.length * 0.7
+      const suspiciousLength = text.length > 15 && noSpaces
+      return suspiciousLength && tooManyConsonants
+    }
+    
+    if (looksLikeSpam(name) || looksLikeSpam(message)) {
+      console.log('Spam submission blocked:', { name, email })
+      return NextResponse.json({ success: true }) // Silent rejection
+    }
     
     if (!name || !email || !message) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
