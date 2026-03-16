@@ -190,8 +190,8 @@ const PROVIDERS = [
     name: 'N4 Kitchen Hire',
     type: 'shared_kitchen',
     cities: ['London'],
-    priceMin: 100,
-    priceMax: 100,
+    priceMin: 15,
+    priceMax: 35,
     priceUnit: 'hour',
     equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Upright fridge', 'Upright freezer'],
     features: ['5-star hygiene rating', '24hr access', 'Loading bays', 'Free parking', 'Free WiFi', 'Short & long term'],
@@ -1074,20 +1074,21 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
       if (provider.priceUnit === 'day') monthlyPrice = provider.priceMin * 20 // 5 days/week estimate
       
       // STRICT budget matching - provider's MIN price must fit user's MAX budget
+      // Budget is CRITICAL - should heavily influence results
       if (provider.priceUnit !== 'one_time') {
         if (monthlyPrice <= userBudgetInfo.monthly) {
           // Provider fits within budget - full points
-          score += 35
+          score += 50
           matchReasons.push('budget')
-        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.3) {
-          // Slightly over budget (up to 30% over) - reduced points
+        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.2) {
+          // Slightly over budget (up to 20% over) - some points
           score += 15
         } else if (monthlyPrice <= userBudgetInfo.monthly * 1.5) {
-          // Significantly over budget (30-50% over) - minimal points
-          score += 5
+          // Significantly over budget (20-50% over) - no bonus
+          score += 0
         } else {
-          // Way over budget - PENALIZE, don't reward
-          score -= 20
+          // Way over budget - HEAVY PENALTY
+          score -= 40
         }
       }
     }
