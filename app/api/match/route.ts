@@ -257,6 +257,77 @@ const PROVIDERS = [
     description: 'Professional production kitchen run by the National Caterers Association. Ideal for large-scale food production and events.'
   },
   
+  // CUSTOMER-FACING SPACES (Food Halls, Markets, Pop-ups)
+  {
+    id: 'appear-here',
+    name: 'Appear Here',
+    type: 'food_hall',
+    cities: ['London', 'Manchester', 'Birmingham', 'Bristol', 'Edinburgh', 'Glasgow', 'Leeds', 'Liverpool', 'Brighton', 'Nationwide'],
+    priceMin: 500,
+    priceMax: 5000,
+    priceUnit: 'week',
+    equipment: [],
+    features: ['Online booking', 'Flexible terms', 'Pop-up ready spaces', 'Market stalls available', 'Food & beverage collection', 'Short-term rentals'],
+    bestForBusiness: ['popup', 'starting', 'retail'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['500-1000', '1000-2000', '2000-5000'],
+    cuisineStrength: ['Coffee & Café', 'Desserts & Bakery', 'Street Food', 'Healthy / Salads'],
+    website: 'https://www.appearhere.co.uk',
+    description: 'UK\'s leading marketplace for short-term retail and food spaces. Book online like Airbnb — instant availability, flexible terms from 1 day to 1 year. Perfect for testing concepts or seasonal pop-ups.'
+  },
+  {
+    id: 'mercato-metropolitano',
+    name: 'Mercato Metropolitano',
+    type: 'food_hall',
+    cities: ['London'],
+    priceMin: 2000,
+    priceMax: 6000,
+    priceUnit: 'month',
+    equipment: ['Basic kitchen setup', 'Shared prep areas'],
+    features: ['Sustainable community market', 'High footfall', 'Events programme', 'Marketing support', 'Trader community'],
+    bestForBusiness: ['popup', 'starting', 'retail'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['2000-5000'],
+    cuisineStrength: ['Italian', 'Mediterranean', 'Pizza', 'Coffee & Café', 'Street Food', 'Vegan / Vegetarian'],
+    website: 'https://mercatometropolitano.com/traders-apply',
+    description: 'London\'s first sustainable community food market. Apply online with your concept — they look for authentic, artisanal food traders. Sites in Elephant & Castle and Mayfair.'
+  },
+  {
+    id: 'kerb-inkerbator',
+    name: 'KERB InKERBator',
+    type: 'food_hall',
+    cities: ['London'],
+    priceMin: 0,
+    priceMax: 500,
+    priceUnit: 'week',
+    equipment: [],
+    features: ['8-week mentorship programme', 'Market pitch included', 'Business coaching', 'Feedback & support', '78% graduate to full membership', 'Quarterly intake'],
+    bestForBusiness: ['starting', 'popup'],
+    bestForScale: ['small'],
+    bestForBudget: ['under-500', '500-1000'],
+    cuisineStrength: ['Street Food', 'Burgers', 'Mexican', 'Asian', 'Caribbean', 'Middle Eastern'],
+    website: 'https://www.kerbfood.com/inkerbator',
+    description: 'London\'s premier street food incubator. Apply quarterly for the 8-week programme — get mentorship, market access, and a path to trading at KERB locations including Seven Dials Market. 78% success rate.'
+  },
+  {
+    id: 'tooting-market',
+    name: 'Tooting Market',
+    type: 'food_hall',
+    cities: ['London'],
+    priceMin: 120,
+    priceMax: 300,
+    priceUnit: 'week',
+    equipment: [],
+    features: ['Historic South London market', 'Strong local community', 'Diverse food scene', 'Affordable entry', 'Direct application'],
+    bestForBusiness: ['starting', 'popup', 'retail'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['under-500', '500-1000'],
+    cuisineStrength: ['Caribbean', 'African', 'Indian', 'Street Food', 'Coffee & Café'],
+    website: 'https://tootingmarket.com',
+    contactEmail: 'admin@tootingmarket.com',
+    description: 'Vibrant South London indoor market with affordable stalls from £120/week. Less competitive than Borough Market — email admin@tootingmarket.com directly to enquire about availability.'
+  },
+  
   // MOBILE UNIT SUPPLIERS
   {
     id: 'amobox',
