@@ -5,15 +5,17 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, MapPin, ChefHat, Users, TrendingUp, PoundSterling, Utensils } from 'lucide-react'
 
 // Types
-type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10
+type Step = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11
 type BusinessStatus = 'operating' | 'starting' | null
 type CurrentUnit = 'home' | 'dark_kitchen' | 'shared_kitchen' | 'food_van' | 'cafe' | 'restaurant' | 'popup' | 'other' | null
 type PlannedBusiness = 'delivery_only' | 'mobile' | 'cafe' | 'restaurant' | 'catering' | 'production' | 'unsure' | null
+type SpaceType = 'customer_facing' | 'production_only' | 'both' | 'mobile_unit' | null
 
 interface FormData {
   businessStatus: BusinessStatus
   currentUnit: CurrentUnit
   plannedBusiness: PlannedBusiness
+  spaceType: SpaceType
   cuisines: string[]
   equipment: string[]
   staffCount: string
@@ -59,6 +61,7 @@ export default function MatchPage() {
     businessStatus: null,
     currentUnit: null,
     plannedBusiness: null,
+    spaceType: null,
     cuisines: [],
     equipment: [],
     staffCount: '',
@@ -69,7 +72,7 @@ export default function MatchPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const totalSteps = formData.businessStatus === 'operating' ? 9 : 9
+  const totalSteps = 10
   const progress = (step / totalSteps) * 100
 
   const canProceed = () => {
@@ -77,19 +80,20 @@ export default function MatchPage() {
       case 1: return true // Welcome
       case 2: return formData.businessStatus !== null
       case 3: return formData.businessStatus === 'operating' ? formData.currentUnit !== null : formData.plannedBusiness !== null
-      case 4: return formData.cuisines.length > 0
-      case 5: return formData.equipment.length > 0
-      case 6: return formData.staffCount !== ''
-      case 7: return formData.dailyOutput !== ''
-      case 8: return formData.expansionPlans !== ''
-      case 9: return formData.location.trim() !== ''
-      case 10: return formData.budget !== ''
+      case 4: return formData.spaceType !== null
+      case 5: return formData.cuisines.length > 0
+      case 6: return formData.equipment.length > 0
+      case 7: return formData.staffCount !== ''
+      case 8: return formData.dailyOutput !== ''
+      case 9: return formData.expansionPlans !== ''
+      case 10: return formData.location.trim() !== ''
+      case 11: return formData.budget !== ''
       default: return false
     }
   }
 
   const handleNext = () => {
-    if (step < 10) setStep((step + 1) as Step)
+    if (step < 11) setStep((step + 1) as Step)
   }
 
   const handleBack = () => {
@@ -154,7 +158,7 @@ export default function MatchPage() {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <span className="font-semibold">Kitchen Matcher</span>
-          <span className="text-sm text-gray-500">{step > 1 ? `${step - 1}/9` : ''}</span>
+          <span className="text-sm text-gray-500">{step > 1 ? `${step - 1}/10` : ''}</span>
         </div>
         {/* Progress bar */}
         {step > 1 && (
@@ -287,8 +291,66 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 4: Cuisine Type */}
+        {/* Step 4: Space Type - NEW */}
         {step === 4 && (
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">What type of space do you need?</h2>
+            <p className="text-gray-500 text-sm mb-6">This helps us recommend the right facilities</p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => setFormData(prev => ({ ...prev, spaceType: 'production_only' }))}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  formData.spaceType === 'production_only'
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold text-gray-900">🏭 Production / Prep only</div>
+                <div className="text-sm text-gray-500">Kitchen for cooking, prep, or delivery — no customers on-site</div>
+              </button>
+              
+              <button
+                onClick={() => setFormData(prev => ({ ...prev, spaceType: 'customer_facing' }))}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  formData.spaceType === 'customer_facing'
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold text-gray-900">🍽️ Customer-facing</div>
+                <div className="text-sm text-gray-500">Retail space where customers can visit, dine-in, or takeaway</div>
+              </button>
+              
+              <button
+                onClick={() => setFormData(prev => ({ ...prev, spaceType: 'both' }))}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  formData.spaceType === 'both'
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold text-gray-900">🏪 Both</div>
+                <div className="text-sm text-gray-500">Production kitchen with customer-facing area</div>
+              </button>
+              
+              <button
+                onClick={() => setFormData(prev => ({ ...prev, spaceType: 'mobile_unit' }))}
+                className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
+                  formData.spaceType === 'mobile_unit'
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="font-semibold text-gray-900">🚚 Mobile unit</div>
+                <div className="text-sm text-gray-500">Food truck, trailer, or mobile catering vehicle</div>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Step 5: Cuisine Type */}
+        {step === 5 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">What type of food do you make?</h2>
             <p className="text-gray-500 text-sm mb-6">Select all that apply</p>
@@ -325,8 +387,8 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 5: Equipment */}
-        {step === 5 && (
+        {/* Step 6: Equipment */}
+        {step === 6 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">What equipment do you need?</h2>
             <p className="text-gray-500 text-sm mb-6">Select all that apply</p>
@@ -359,8 +421,8 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 6: Staff Count */}
-        {step === 6 && (
+        {/* Step 7: Staff Count */}
+        {step === 7 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -389,8 +451,8 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 7: Daily Output */}
-        {step === 7 && (
+        {/* Step 8: Daily Output */}
+        {step === 8 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -419,8 +481,8 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 8: Expansion Plans */}
-        {step === 8 && (
+        {/* Step 9: Expansion Plans */}
+        {step === 9 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -449,8 +511,8 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 9: Location */}
-        {step === 9 && (
+        {/* Step 10: Location */}
+        {step === 10 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -472,8 +534,8 @@ export default function MatchPage() {
           </div>
         )}
 
-        {/* Step 10: Budget */}
-        {step === 10 && (
+        {/* Step 11: Budget */}
+        {step === 11 && (
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
@@ -522,7 +584,7 @@ export default function MatchPage() {
               Back
             </button>
             
-            {step < 10 ? (
+            {step < 11 ? (
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
