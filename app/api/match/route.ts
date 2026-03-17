@@ -413,7 +413,7 @@ const PROVIDERS = [
     bestForScale: ['medium', 'large', 'enterprise'],
     bestForBudget: ['2000-5000', '5000+'],
     cuisineStrength: ['Desserts & Bakery', 'Healthy / Salads', 'Italian / Pasta'],
-    website: 'https://fulhamkitchen.com',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'Dedicated production kitchen space in West London. Ideal for food manufacturers and large-scale catering.'
   },
   {
@@ -449,7 +449,7 @@ const PROVIDERS = [
     bestForScale: ['medium', 'large'],
     bestForBudget: ['2000-5000', '5000+'],
     cuisineStrength: ['Burgers', 'Chicken & Chips', 'Pizza', 'Indian', 'Chinese'],
-    website: 'https://growthkitchen.co.uk',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'New player with massive Bermondsey hub. VC-backed with ambitious expansion plans. Good for growth-minded brands.'
   },
   {
@@ -702,7 +702,7 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['1000-2000', '2000-5000'],
     cuisineStrength: ['Caribbean', 'African', 'Chicken & Chips', 'Burgers'],
-    website: 'https://papikitchens.com',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'East London dark kitchens with a community focus. Popular with Caribbean and African cuisine brands.'
   },
   
@@ -755,7 +755,7 @@ const PROVIDERS = [
     bestForScale: ['small'],
     bestForBudget: ['under-500', '500-1000'],
     cuisineStrength: ['all'],
-    website: 'https://coexistcommunitykitchen.org',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'Community kitchen supporting local food businesses. Every hire supports community meals and classes.'
   },
   
@@ -774,7 +774,7 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['500-1000', '1000-2000'],
     cuisineStrength: ['all'],
-    website: 'https://northernkitchenhire.co.uk',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'Spacious commercial kitchen in Leeds with cold storage. Good for production and catering.'
   },
   {
@@ -825,7 +825,7 @@ const PROVIDERS = [
     bestForScale: ['small'],
     bestForBudget: ['under-500', '500-1000'],
     cuisineStrength: ['all'],
-    website: 'https://liverpoolfoodcollective.org',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'Community-focused kitchen collective in Liverpool. Affordable rates with business support.'
   },
   
@@ -912,7 +912,7 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['2000-5000', '5000+'],
     cuisineStrength: ['Pizza'],
-    website: 'https://pizzatrailercompany.co.uk',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'Specialist pizza trailer and van conversions with wood-fired oven options. Training included.'
   },
   
@@ -932,7 +932,7 @@ const PROVIDERS = [
     bestForScale: ['small'],
     bestForBudget: ['under-500', '500-1000'],
     cuisineStrength: ['all'],
-    website: 'https://walthamstowkitchen.org',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'East London community kitchen supporting local food entrepreneurs and startups.'
   },
   {
@@ -949,7 +949,7 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['500-1000', '1000-2000'],
     cuisineStrength: ['all'],
-    website: 'https://hackneykitchen.co.uk',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'Creative kitchen space in Hackney Wick. Photo-ready facilities perfect for content creation.'
   },
   {
@@ -966,7 +966,7 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['under-500', '500-1000', '1000-2000'],
     cuisineStrength: ['Caribbean', 'African', 'Chicken & Chips'],
-    website: 'https://brixtonkitchenhub.co.uk',
+    website: 'https://findmeakitchen.com/provider-unavailable',
     description: 'South London kitchen with strong Caribbean food community. Close to Brixton Market.'
   }
 ]
