@@ -1146,15 +1146,25 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
   const isPurchaseBudget = formData.budget?.includes('one-time purchase')
   
   const budgetMap: Record<string, { monthly: number, key: string, purchase?: number }> = {
+    // Support both full labels and short keys
     'Under £500/month': { monthly: 500, key: 'under-500' },
+    'under-500': { monthly: 500, key: 'under-500' },
     '£500 - £1,000/month': { monthly: 1000, key: '500-1000' },
+    '500-1000': { monthly: 1000, key: '500-1000' },
     '£1,000 - £2,000/month': { monthly: 2000, key: '1000-2000' },
+    '1000-2000': { monthly: 2000, key: '1000-2000' },
     '£2,000 - £5,000/month': { monthly: 5000, key: '2000-5000' },
+    '2000-5000': { monthly: 5000, key: '2000-5000' },
     '£5,000+/month': { monthly: 10000, key: '5000+' },
+    '5000+': { monthly: 10000, key: '5000+' },
     '💰 £15,000 - £25,000 (one-time purchase)': { monthly: 0, key: 'purchase-15-25k', purchase: 25000 },
+    'purchase-15-25k': { monthly: 0, key: 'purchase-15-25k', purchase: 25000 },
     '💰 £25,000 - £50,000 (one-time purchase)': { monthly: 0, key: 'purchase-25-50k', purchase: 50000 },
+    'purchase-25-50k': { monthly: 0, key: 'purchase-25-50k', purchase: 50000 },
     '💰 £50,000+ (one-time purchase)': { monthly: 0, key: 'purchase-50k+', purchase: 75000 },
-    'Not sure / Flexible': { monthly: 3000, key: 'flexible' }
+    'purchase-50k+': { monthly: 0, key: 'purchase-50k+', purchase: 75000 },
+    'Not sure / Flexible': { monthly: 3000, key: 'flexible' },
+    'flexible': { monthly: 3000, key: 'flexible' }
   }
   
   const userBudgetInfo = budgetMap[formData.budget] || { monthly: 2000, key: 'flexible' }
