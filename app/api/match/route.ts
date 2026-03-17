@@ -840,6 +840,30 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
   let score = 0
   let matchReasons: string[] = []
   
+  // 0. SPACE TYPE FILTER - Exclude incompatible provider types
+  const spaceType = formData.spaceType
+  if (spaceType) {
+    // Customer-facing: exclude dark kitchens and production-only spaces
+    if (spaceType === 'customer_facing') {
+      if (provider.type === 'dark_kitchen' || provider.type === 'production_kitchen') {
+        return 0 // Exclude - they want customer-facing, not production
+      }
+    }
+    // Production only: prioritize dark kitchens and production kitchens
+    if (spaceType === 'production_only') {
+      if (provider.type === 'retail_space' || provider.type === 'food_hall') {
+        return 0 // Exclude retail/food hall for production-only users
+      }
+    }
+    // Mobile unit: only show mobile suppliers
+    if (spaceType === 'mobile_unit') {
+      if (provider.type !== 'mobile_supplier') {
+        return 0 // Only mobile suppliers for mobile unit seekers
+      }
+    }
+    // Both: allow all types
+  }
+  
   // 1. LOCATION MATCH (0-40 points) - Critical factor
   const locationLower = formData.location.toLowerCase().trim()
   const locationMatch = provider.cities.some(city => {
@@ -1637,6 +1661,7 @@ export async function POST(req: NextRequest) {
         business_status: formData.businessStatus,
         current_unit: formData.currentUnit,
         planned_business: formData.plannedBusiness,
+        space_type: formData.spaceType,
         cuisines: formData.cuisines,
         equipment: formData.equipment,
         staff_count: formData.staffCount,
