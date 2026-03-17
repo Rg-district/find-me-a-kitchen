@@ -235,7 +235,7 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['under-500', '500-1000', '1000-2000'],
     cuisineStrength: ['Desserts & Bakery', 'Breakfast & Brunch', 'Italian / Pasta', 'Healthy / Salads'],
-    website: 'https://sharethere.com',
+    website: 'https://sharethere.co',
     description: 'Book commercial kitchen space by the hour across the UK. Ideal for caterers, pop-up chefs, and food producers needing flexible access.'
   },
   // The Kitchen Collective REMOVED (Mar 2026) - website thekitchencollective.co.uk doesn't exist, tkcollective.co is NZ not UK
