@@ -400,23 +400,6 @@ const PROVIDERS = [
   
   // PRODUCTION KITCHENS
   {
-    id: 'fulham-kitchen',
-    name: 'Fulham Kitchen',
-    type: 'production_kitchen',
-    cities: ['London'],
-    priceMin: 2500,
-    priceMax: 6000,
-    priceUnit: 'month',
-    equipment: ['Commercial oven', 'Walk-in cold room', 'Blast chiller', 'Mixer', 'Prep tables', 'Dishwasher'],
-    features: ['24hr access', 'Large production space', 'Cold storage included', 'Loading bay'],
-    bestForBusiness: ['production', 'catering'],
-    bestForScale: ['medium', 'large', 'enterprise'],
-    bestForBudget: ['2000-5000', '5000+'],
-    cuisineStrength: ['Desserts & Bakery', 'Healthy / Salads', 'Italian / Pasta'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'Dedicated production kitchen space in West London. Ideal for food manufacturers and large-scale catering.'
-  },
-  {
     id: 'food-works-sw',
     name: 'Food Works SW',
     type: 'production_kitchen',
@@ -435,23 +418,6 @@ const PROVIDERS = [
   },
   
   // ADDITIONAL DARK KITCHENS
-  {
-    id: 'growth-kitchen',
-    name: 'Growth Kitchen',
-    type: 'dark_kitchen',
-    cities: ['London'],
-    priceMin: 2200,
-    priceMax: 5500,
-    priceUnit: 'month',
-    equipment: ['Deep fat fryers', 'Commercial oven', 'Gas hobs / Range', 'Extraction / Ventilation', 'Prep tables'],
-    features: ['61,000 sq ft hub', 'Bermondsey location', 'VC-backed', 'Growth-focused'],
-    bestForBusiness: ['delivery_only', 'dark_kitchen'],
-    bestForScale: ['medium', 'large'],
-    bestForBudget: ['2000-5000', '5000+'],
-    cuisineStrength: ['Burgers', 'Chicken & Chips', 'Pizza', 'Indian', 'Chinese'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'New player with massive Bermondsey hub. VC-backed with ambitious expansion plans. Good for growth-minded brands.'
-  },
   {
     id: 'dephna',
     name: 'Dephna',
@@ -688,23 +654,6 @@ const PROVIDERS = [
     website: 'https://ghostxkitchens.co.uk',
     description: 'Modern dark kitchen spaces for digital-first food brands. From startups to national chains.'
   },
-  {
-    id: 'papi-kitchens',
-    name: 'Papi Kitchens',
-    type: 'dark_kitchen',
-    cities: ['London'],
-    priceMin: 2000,
-    priceMax: 4000,
-    priceUnit: 'month',
-    equipment: ['Deep fat fryers', 'Commercial oven', 'Gas hobs / Range', 'Prep tables'],
-    features: ['East London focus', 'Community feel', 'Startup friendly'],
-    bestForBusiness: ['delivery_only', 'starting'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['1000-2000', '2000-5000'],
-    cuisineStrength: ['Caribbean', 'African', 'Chicken & Chips', 'Burgers'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'East London dark kitchens with a community focus. Popular with Caribbean and African cuisine brands.'
-  },
   
   // MORE BRISTOL/SOUTHWEST KITCHENS
   {
@@ -755,28 +704,11 @@ const PROVIDERS = [
     bestForScale: ['small'],
     bestForBudget: ['under-500', '500-1000'],
     cuisineStrength: ['all'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
+    website: 'https://www.coexistcommunitykitchen.org',
     description: 'Community kitchen supporting local food businesses. Every hire supports community meals and classes.'
   },
   
   // MORE NORTHERN KITCHENS
-  {
-    id: 'northern-kitchen-hire',
-    name: 'Northern Kitchen Hire',
-    type: 'shared_kitchen',
-    cities: ['Leeds'],
-    priceMin: 14,
-    priceMax: 40,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Walk-in cold room', 'Prep tables'],
-    features: ['Large space', 'Cold storage', 'Good access'],
-    bestForBusiness: ['production', 'catering', 'starting'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'Spacious commercial kitchen in Leeds with cold storage. Good for production and catering.'
-  },
   {
     id: 'centre-for-life-newcastle',
     name: 'Centre for Life Kitchen',
@@ -810,23 +742,6 @@ const PROVIDERS = [
     cuisineStrength: ['Burgers', 'Chicken & Chips', 'Indian', 'Chinese', 'all'],
     website: 'https://www.encorekitchens.co.uk',
     description: 'Part of the UK\'s largest commercial kitchen network with 550+ kitchens. Delivery kitchens, CPUs and distribution centres across Manchester.'
-  },
-  {
-    id: 'liverpool-food-collective',
-    name: 'Liverpool Food Collective',
-    type: 'shared_kitchen',
-    cities: ['Liverpool'],
-    priceMin: 12,
-    priceMax: 38,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Storage shelving'],
-    features: ['Affordable', 'Community focused', 'Business support'],
-    bestForBusiness: ['starting', 'catering', 'popup'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'Community-focused kitchen collective in Liverpool. Affordable rates with business support.'
   },
   
   // SPECIALTY MOBILE SUPPLIERS
@@ -900,7 +815,7 @@ const PROVIDERS = [
   },
   {
     id: 'pizza-trailer-co',
-    name: 'Pizza Trailer Company',
+    name: 'Wood Fired Pizza Ovens UK',
     type: 'mobile_supplier',
     cities: ['Nationwide'],
     priceMin: 18000,
@@ -912,63 +827,13 @@ const PROVIDERS = [
     bestForScale: ['small', 'medium'],
     bestForBudget: ['2000-5000', '5000+'],
     cuisineStrength: ['Pizza'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
+    website: 'https://wood-fired-pizza-ovens.co.uk/mobile-pizza-ovens/',
     description: 'Specialist pizza trailer and van conversions with wood-fired oven options. Training included.'
   },
   
   // MORE LONDON KITCHENS
   // The Mazi Project REMOVED (Mar 2026) - event/supper club venue, not commercial food production
-  {
-    id: 'walthamstow-kitchen-collective',
-    name: 'Walthamstow Kitchen Collective',
-    type: 'shared_kitchen',
-    cities: ['London'],
-    priceMin: 15,
-    priceMax: 40,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Prep tables', 'Upright fridge'],
-    features: ['East London', 'Community focused', 'Startup friendly'],
-    bestForBusiness: ['starting', 'popup', 'catering'],
-    bestForScale: ['small'],
-    bestForBudget: ['under-500', '500-1000'],
-    cuisineStrength: ['all'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'East London community kitchen supporting local food entrepreneurs and startups.'
-  },
-  {
-    id: 'hackney-kitchen',
-    name: 'Hackney Kitchen',
-    type: 'shared_kitchen',
-    cities: ['London'],
-    priceMin: 18,
-    priceMax: 55,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Mixer', 'Prep tables', 'Walk-in cold room'],
-    features: ['Hackney Wick location', 'Creative hub', 'Photo-ready'],
-    bestForBusiness: ['popup', 'catering', 'production'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['500-1000', '1000-2000'],
-    cuisineStrength: ['all'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'Creative kitchen space in Hackney Wick. Photo-ready facilities perfect for content creation.'
-  },
-  {
-    id: 'brixton-kitchen-hub',
-    name: 'Brixton Kitchen Hub',
-    type: 'shared_kitchen',
-    cities: ['London'],
-    priceMin: 16,
-    priceMax: 45,
-    priceUnit: 'hour',
-    equipment: ['Commercial oven', 'Deep fat fryers', 'Gas hobs / Range', 'Prep tables'],
-    features: ['South London', 'Caribbean food specialists', 'Market access'],
-    bestForBusiness: ['starting', 'popup', 'catering'],
-    bestForScale: ['small', 'medium'],
-    bestForBudget: ['under-500', '500-1000', '1000-2000'],
-    cuisineStrength: ['Caribbean', 'African', 'Chicken & Chips'],
-    website: 'https://findmeakitchen.com/provider-unavailable',
-    description: 'South London kitchen with strong Caribbean food community. Close to Brixton Market.'
-  }
+  // Brixton Kitchen Hub REMOVED (Mar 2026) - website no longer active
 ]
 
 function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
