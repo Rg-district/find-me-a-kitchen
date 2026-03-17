@@ -1189,8 +1189,13 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
   } else {
     // Monthly budget logic (exclude mobile suppliers for monthly budgets unless mobile business)
     if (provider.priceUnit === 'one_time' && businessType !== 'mobile') {
-      // One-time purchase providers should score low for monthly budget users
-      score += 5
+      // One-time purchase providers (mobile vans) should be EXCLUDED for non-mobile users
+      // A catering business with £500-1000/month budget does NOT want a £20k van
+      score -= 100  // Heavy penalty - effectively excludes them
+      // Return early to skip further scoring
+    } else if (provider.type === 'mobile_supplier' && businessType !== 'mobile') {
+      // Mobile suppliers should only appear for mobile business users
+      score -= 100
     } else {
       // Calculate actual monthly price for comparison
       let monthlyPrice = provider.priceMin
