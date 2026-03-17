@@ -79,7 +79,7 @@ const PROVIDERS = [
     bestForScale: ['medium', 'large'],
     bestForBudget: ['2000-5000'],
     cuisineStrength: ['Indian', 'Caribbean', 'Turkish / Kebabs', 'Chinese'],
-    website: 'https://jacunakitchens.com',
+    website: 'https://www.jacuna.co.uk',
     description: 'Growing dark kitchen network with sites across major UK cities. Good mid-range option for delivery brands.'
   },
   {
