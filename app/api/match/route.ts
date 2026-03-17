@@ -1205,15 +1205,18 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
           // Provider fits within budget - full points
           score += 50
           matchReasons.push('budget')
-        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.2) {
-          // Slightly over budget (up to 20% over) - some points
-          score += 15
+        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.15) {
+          // Slightly over budget (up to 15% over) - small bonus, still usable
+          score += 10
+        } else if (monthlyPrice <= userBudgetInfo.monthly * 1.3) {
+          // Over budget (15-30% over) - small penalty
+          score -= 15
         } else if (monthlyPrice <= userBudgetInfo.monthly * 1.5) {
-          // Significantly over budget (20-50% over) - no bonus
-          score += 0
+          // Significantly over budget (30-50% over) - medium penalty
+          score -= 30
         } else {
-          // Way over budget - HEAVY PENALTY
-          score -= 40
+          // Way over budget - HEAVY PENALTY (should rarely appear)
+          score -= 60
         }
       }
     }
