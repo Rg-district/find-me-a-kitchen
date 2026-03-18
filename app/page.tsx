@@ -2,17 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, Search, MapPin, Building2, UtensilsCrossed, Coffee, Truck, ChefHat, User, X, ChevronRight, Sparkles } from 'lucide-react'
-
-const CATEGORIES = [
-  { name: 'Dark Kitchens', slug: 'dark-kitchens', icon: Building2, count: 12, description: 'Delivery-only' },
-  { name: 'Shared Kitchens', slug: 'shared-kitchens', icon: UtensilsCrossed, count: 10, description: 'Hourly rental' },
-  { name: 'Mobile Units', slug: 'mobile-units', icon: Truck, count: 19, description: 'Trucks & trailers' },
-  { name: 'Marketplaces', slug: 'marketplaces', icon: Search, count: 4, description: 'Directories' },
-]
+import { Menu, Search, User, X, ChevronRight } from 'lucide-react'
 
 export default function HomePage() {
-  const [location, setLocation] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
 
   return (
@@ -39,13 +31,11 @@ export default function HomePage() {
               <button onClick={() => setMenuOpen(false)}><X className="w-5 h-5" /></button>
             </div>
             <div className="p-4 space-y-1">
-              <Link href="/browse" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Browse Kitchens</Link>
-              <Link href="/list-kitchen" className="block py-3 px-4 rounded-lg hover:bg-gray-100">List Your Kitchen</Link>
+              <Link href="/match" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Find a Kitchen</Link>
+              <Link href="/markets" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Markets Guide</Link>
+              <Link href="/festivals" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Festivals Guide</Link>
+              <a href="mailto:listings@findmeakitchen.com" className="block py-3 px-4 rounded-lg hover:bg-gray-100">List Your Kitchen</a>
               <Link href="/faq" className="block py-3 px-4 rounded-lg hover:bg-gray-100">FAQ</Link>
-              <hr className="my-3" />
-              <Link href="/account" className="block py-3 px-4 rounded-lg bg-emerald-500 text-white text-center font-semibold">
-                Sign Up / Log In
-              </Link>
             </div>
           </div>
         </div>
@@ -85,88 +75,62 @@ export default function HomePage() {
             </div>
           </Link>
 
-          {/* Or Browse Directly */}
-          <div className="mt-4">
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Or search by location..."
-                value={location}
-                onChange={e => setLocation(e.target.value)}
-                className="w-full pl-10 pr-24 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
-              <Link 
-                href={`/browse?location=${location}`}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
-              >
-                Browse
-              </Link>
-            </div>
-          </div>
-
-          {/* Category Cards */}
+          {/* Resource Guides */}
           <div className="mt-8">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Browse by Provider Type
+              Guides & Resources
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              {CATEGORIES.map(cat => (
-                <Link
-                  key={cat.name}
-                  href={`/browse/${cat.slug}`}
-                  className="flex flex-col p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 hover:shadow-md transition-all group"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <cat.icon className="w-5 h-5 text-emerald-600" />
-                    <span className="text-sm font-bold text-gray-900">{cat.name}</span>
-                  </div>
-                  <span className="text-xs text-gray-500">{cat.description}</span>
-                  <span className="text-xs text-emerald-600 font-medium mt-1">{cat.count} providers</span>
-                </Link>
-              ))}
+              <Link
+                href="/markets"
+                className="flex flex-col p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 hover:shadow-md transition-all"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🏪</span>
+                  <span className="text-sm font-bold text-gray-900">UK Markets</span>
+                </div>
+                <span className="text-xs text-gray-500">Food markets & halls</span>
+                <span className="text-xs text-emerald-600 font-medium mt-1">13 locations</span>
+              </Link>
+              <Link
+                href="/festivals"
+                className="flex flex-col p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 hover:shadow-md transition-all"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">🎪</span>
+                  <span className="text-sm font-bold text-gray-900">UK Festivals</span>
+                </div>
+                <span className="text-xs text-gray-500">Festival trading guide</span>
+                <span className="text-xs text-emerald-600 font-medium mt-1">13 events</span>
+              </Link>
             </div>
           </div>
 
           {/* Quick Actions */}
           <div className="mt-10 space-y-3">
-            <Link
-              href="/list-kitchen"
+            <a
+              href="mailto:listings@findmeakitchen.com?subject=List My Kitchen on FMAK"
               className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors"
             >
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🏠</span>
                 <div>
                   <div className="font-semibold text-gray-900">List your kitchen</div>
-                  <div className="text-sm text-gray-500">Free to list · Reach operators across the UK</div>
+                  <div className="text-sm text-gray-500">Free to list · Email us at listings@findmeakitchen.com</div>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Link>
+            </a>
 
             <Link
-              href="/account"
+              href="/resources"
               className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors"
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">👤</span>
+                <span className="text-2xl">📚</span>
                 <div>
-                  <div className="font-semibold text-gray-900">Sign up or log in</div>
-                  <div className="text-sm text-gray-500">Save kitchens · Get alerts · Manage listings</div>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-gray-400" />
-            </Link>
-
-            <Link
-              href="/browse"
-              className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 hover:border-emerald-500 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">🔍</span>
-                <div>
-                  <div className="font-semibold text-gray-900">Browse all kitchens</div>
-                  <div className="text-sm text-gray-500">View all available spaces</div>
+                  <div className="font-semibold text-gray-900">Resources & guides</div>
+                  <div className="text-sm text-gray-500">Starting a food business · Equipment · Regulations</div>
                 </div>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
@@ -179,10 +143,10 @@ export default function HomePage() {
       <footer className="border-t border-gray-200 py-6 bg-white/50">
         <div className="max-w-lg mx-auto px-4">
           <div className="flex justify-center gap-6 text-xs text-gray-500 mb-3">
-            <Link href="/browse" className="hover:text-gray-700">Browse</Link>
-            <Link href="/list-kitchen" className="hover:text-gray-700">List Kitchen</Link>
+            <Link href="/match" className="hover:text-gray-700">Find Kitchen</Link>
+            <Link href="/markets" className="hover:text-gray-700">Markets</Link>
+            <Link href="/festivals" className="hover:text-gray-700">Festivals</Link>
             <Link href="/faq" className="hover:text-gray-700">FAQ</Link>
-            <Link href="/contact" className="hover:text-gray-700">Contact</Link>
           </div>
           <p className="text-center text-xs text-gray-400">
             © 2026 Find Me a Kitchen
