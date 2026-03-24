@@ -35,6 +35,7 @@ export default function HomePage() {
               <Link href="/find-events" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Market & Festival Finder</Link>
               <Link href="/markets" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Markets Guide</Link>
               <Link href="/festivals" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Festivals Guide</Link>
+              <Link href="/blog" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Guides & Resources</Link>
               <a href="mailto:listings@findmeakitchen.com" className="block py-3 px-4 rounded-lg hover:bg-gray-100">List Your Kitchen</a>
               <Link href="/faq" className="block py-3 px-4 rounded-lg hover:bg-gray-100">FAQ</Link>
             </div>
