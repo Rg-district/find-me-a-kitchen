@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, Bell, MapPin, ChevronRight, LogOut, User, Clock, BookmarkX, ArrowRight, Building2 } from 'lucide-react'
@@ -33,36 +33,29 @@ export default function DashboardPage() {
   const [user, setUser] = useState<FmakUser | null>(null)
   const [savedMatches, setSavedMatches] = useState<SavedMatch[]>([])
   const [loading, setLoading] = useState(true)
-  const [authChecked, setAuthChecked] = useState(false)
 
-  useEffect(() => {
-    checkAuth()
-  }, [])
+  const loadDashboard = useCallback(async () => {
+    const { data: { user: authUser } } = await supabase.auth.getUser()
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      router.push('/account/login')
+    if (!authUser) {
+      router.replace('/account/login')
       return
     }
 
-    // Look up fmak_users by auth email
     const { data: fmakUser } = await supabase
       .from('fmak_users')
       .select('*')
-      .eq('email', session.user.email?.toLowerCase() || '')
+      .eq('email', authUser.email?.toLowerCase() || '')
       .single()
 
     if (!fmakUser) {
-      // Registered via magic link but no profile — send to signup
-      router.push('/account?email=' + encodeURIComponent(session.user.email || ''))
+      // Authenticated but no profile — send to signup with email pre-filled
+      router.replace('/account?email=' + encodeURIComponent(authUser.email || ''))
       return
     }
 
     setUser(fmakUser)
 
-    // Load saved matches
     const { data: matches } = await supabase
       .from('saved_matches')
       .select('*')
@@ -72,12 +65,23 @@ export default function DashboardPage() {
 
     setSavedMatches(matches || [])
     setLoading(false)
-    setAuthChecked(true)
-  }
+  }, [router])
+
+  useEffect(() => {
+    loadDashboard()
+
+    // Listen for auth state changes (handles magic link session)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') loadDashboard()
+      if (event === 'SIGNED_OUT') router.replace('/account/login')
+    })
+
+    return () => subscription.unsubscribe()
+  }, [loadDashboard, router])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    router.push('/')
+    router.replace('/')
   }
 
   const formatDate = (iso: string) => {
@@ -163,11 +167,6 @@ export default function DashboardPage() {
                 : 'Turn on to get notified of new kitchens near you'}
             </p>
           </div>
-          {!user.wants_alerts && (
-            <Link href="/account/settings" className="text-xs text-gray-900 font-medium hover:underline whitespace-nowrap">
-              Turn on →
-            </Link>
-          )}
         </div>
 
         {/* Saved matches */}
@@ -208,10 +207,7 @@ export default function DashboardPage() {
                           <Clock className="w-3 h-3" /> {formatDate(match.created_at)}
                         </p>
                       </div>
-                      <Link
-                        href="/match"
-                        className="flex-shrink-0 p-2 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
+                      <Link href="/match" className="flex-shrink-0 p-2 hover:bg-gray-50 rounded-lg transition-colors">
                         <ChevronRight className="w-4 h-4 text-gray-400" />
                       </Link>
                     </div>
@@ -222,7 +218,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Profile section */}
+        {/* Profile */}
         <div className="mt-8 bg-white rounded-2xl border border-gray-100 p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center">
@@ -233,9 +229,7 @@ export default function DashboardPage() {
               <p className="text-xs text-gray-400">{user.email}</p>
             </div>
           </div>
-          <div className="text-xs text-gray-400">
-            Member since {formatDate(user.created_at)}
-          </div>
+          <p className="text-xs text-gray-400">Member since {formatDate(user.created_at)}</p>
         </div>
       </main>
     </div>
