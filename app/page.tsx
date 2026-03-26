@@ -16,7 +16,7 @@ export default function HomePage() {
             <Menu className="w-6 h-6 text-gray-800" />
           </button>
           <Link href="/" className="text-xl font-bold text-gray-900">FMAK</Link>
-          <Link href="/account" className="p-2 hover:bg-gray-100 rounded-lg">
+          <Link href="/account/login" className="p-2 hover:bg-gray-100 rounded-lg">
             <User className="w-6 h-6 text-gray-800" />
           </Link>
         </div>

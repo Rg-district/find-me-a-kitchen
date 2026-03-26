@@ -107,7 +107,7 @@ export default function AccountPage() {
             <div className="text-center pt-4">
               <p className="text-gray-500 text-sm">
                 Already have an account?{' '}
-                <Link href="/account/login" className="text-emerald-600 font-semibold hover:underline">
+                <Link href="/account/login" className="text-gray-900 font-semibold hover:underline">
                   Log in
                 </Link>
               </p>
