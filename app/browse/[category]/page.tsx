@@ -16,7 +16,6 @@ const PROVIDERS: Record<string, Provider[]> = {
     { id: 'ghost-x-kitchens', name: 'Ghost x Kitchens', cities: ['London', 'Manchester', 'Birmingham', 'Leeds', 'Liverpool'], priceRange: '£1,800-4,500/mo', website: 'https://ghostxkitchens.co.uk', description: 'Modern dark kitchen spaces for digital-first food brands.' },
     { id: 'jacuna-kitchens', name: 'Jacuna Kitchens', cities: ['London', 'Birmingham', 'Leeds', 'Manchester', 'Bristol'], priceRange: '£2,500-6,000/mo', website: 'https://jacunakitchens.com', description: 'Growing dark kitchen network across major UK cities.' },
     { id: 'papi-kitchens', name: 'Papi Kitchens', cities: ['London'], priceRange: '£2,000-4,000/mo', website: 'https://papikitchens.com', description: 'East London dark kitchens with a community focus.' },
-    { id: 'titus-cics', name: 'Titus (CICS)', cities: ['Nationwide'], priceRange: '£1,500-5,000/mo', website: 'https://cics.space', description: 'Modular dark kitchen manufacturer. Bespoke builds available.' },
     { id: 'the-co-kitchens', name: 'The Co-Kitchens', cities: ['London'], priceRange: '£1,200-4,000/mo', website: 'https://theco-kitchens.com', description: 'Community-focused cloud kitchen. Great for R&D and product development.' },
     { id: 'growth-kitchen', name: 'Growth Kitchen', cities: ['London', 'Nationwide'], priceRange: '£2,000-5,000/mo', website: 'https://growthkitchen.com', description: 'Satellite kitchen network for established brands. Tortilla, Tai Kitchen partners.' },
   ],

@@ -117,23 +117,7 @@ const PROVIDERS = [
     website: 'https://www.readykitchen.co.uk',
     description: 'Turnkey dark kitchens in Canary Wharf — one of London\'s highest delivery demand areas. Designed for online ordering and delivery. Low-risk, flexible setup.'
   },
-  {
-    id: 'titus-cics',
-    name: 'Titus by CSUK',
-    type: 'dark_kitchen',
-    cities: ['Nationwide'],
-    priceMin: 1500,
-    priceMax: 5000,
-    priceUnit: 'month',
-    equipment: ['Commercial oven', 'Gas hobs / Range', 'Extraction / Ventilation', 'Prep tables', 'Modular setup'],
-    features: ['Modular kitchens', 'Dark kitchen hubs', 'Bespoke builds available', 'National chains welcome', 'Rolling or fixed terms'],
-    bestForBusiness: ['delivery_only', 'dark_kitchen', 'production'],
-    bestForScale: ['small', 'medium', 'large'],
-    bestForBudget: ['1000-2000', '2000-5000'],
-    cuisineStrength: ['all'],
-    website: 'https://cics.space/modular-construction/cloud-and-dark-kitchen-manufacture/',
-    description: 'Titus (part of CSUK Group) offers dark kitchen hubs around the UK with rolling or fixed-term memberships. They manufacture modular cloud kitchens for startups and national chains.'
-  },
+
   {
     id: 'one-kcn',
     name: 'One KCN',
@@ -1099,15 +1083,53 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
            locationLower.includes(cityLower)
   })
   
+  // Nearby city mapping — for non-major-city searches, include nearby city providers
+  const NEARBY_CITIES: Record<string, string[]> = {
+    'reading': ['London', 'Nationwide'],
+    'oxford': ['London', 'Birmingham', 'Nationwide'],
+    'cambridge': ['London', 'Nationwide'],
+    'brighton': ['London', 'Nationwide'],
+    'portsmouth': ['London', 'Nationwide'],
+    'southampton': ['London', 'Nationwide'],
+    'guildford': ['London', 'Nationwide'],
+    'watford': ['London', 'Nationwide'],
+    'milton keynes': ['London', 'Birmingham', 'Nationwide'],
+    'luton': ['London', 'Nationwide'],
+    'coventry': ['Birmingham', 'Nationwide'],
+    'wolverhampton': ['Birmingham', 'Nationwide'],
+    'sheffield': ['Manchester', 'Leeds', 'Nationwide'],
+    'hull': ['Leeds', 'Nationwide'],
+    'york': ['Leeds', 'Manchester', 'Nationwide'],
+    'stoke': ['Manchester', 'Birmingham', 'Nationwide'],
+    'newcastle': ['Nationwide'],
+    'sunderland': ['Nationwide'],
+    'middlesbrough': ['Nationwide'],
+    'cardiff': ['Bristol', 'Nationwide'],
+    'swansea': ['Bristol', 'Nationwide'],
+    'exeter': ['Bristol', 'Nationwide'],
+    'plymouth': ['Bristol', 'Nationwide'],
+    'norwich': ['London', 'Nationwide'],
+    'ipswich': ['London', 'Nationwide'],
+    'southend': ['London', 'Nationwide'],
+  }
+
+  const nearbyCities = NEARBY_CITIES[locationLower] || []
+  const nearbyMatch = nearbyCities.length > 0 && provider.cities.some(city =>
+    nearbyCities.map(c => c.toLowerCase()).includes(city.toLowerCase())
+  )
+
   if (locationMatch) {
     score += 40
     matchReasons.push('location')
   } else if (provider.cities.includes('Nationwide')) {
-    score += 20
+    score += 25
     matchReasons.push('nationwide')
+  } else if (nearbyMatch) {
+    score += 15
+    matchReasons.push('nearby')
   } else {
-    // No location match - significant penalty
-    return 0 // Exclude providers that don't serve the area
+    // No location match - exclude
+    return 0
   }
   
   // 2. BUSINESS TYPE MATCH (0-50 points) - Most important factor
