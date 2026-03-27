@@ -35,6 +35,29 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   const loadDashboard = useCallback(async () => {
+    // Handle magic link hash on arrival (#access_token=...&refresh_token=...&type=magiclink)
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = new URLSearchParams(window.location.hash.slice(1))
+      const accessToken = hash.get('access_token')
+      const refreshToken = hash.get('refresh_token')
+      if (accessToken && refreshToken) {
+        await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        // Clear the hash from URL (clean UX)
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+    }
+
+    // Handle token_hash param (newer Supabase PKCE flow)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const tokenHash = params.get('token_hash')
+      const type = params.get('type')
+      if (tokenHash && type) {
+        await supabase.auth.verifyOtp({ token_hash: tokenHash, type: type as 'email' | 'magiclink' })
+        window.history.replaceState(null, '', window.location.pathname)
+      }
+    }
+
     const { data: { user: authUser } } = await supabase.auth.getUser()
 
     if (!authUser) {
