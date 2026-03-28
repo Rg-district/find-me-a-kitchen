@@ -187,6 +187,25 @@ const PROVIDERS = [
     description: 'Affordable hourly kitchen hire in North London (N4). 5-star hygiene, 24hr access, 4 miles from central London. Ideal for market traders, delivery restaurants, and food producers.'
   },
   
+  // DARK KITCHEN — BRISTOL
+  {
+    id: 'boxb-bristol',
+    name: 'BoxB.',
+    type: 'dark_kitchen',
+    cities: ['Bristol'],
+    priceMin: 1200,
+    priceMax: 3000,
+    priceUnit: 'month',
+    equipment: ['6-burner gas range', 'Gas interlocked canopy extraction', 'Commercial fridge', 'Commercial freezer', 'Pot wash / rinse station', 'Hand wash station', 'Stainless steel prep tables'],
+    features: ['Short-term contracts', 'Shipping container units', 'Delivery-optimised', 'Low overheads', 'No long-term commitment', 'Customisable setup'],
+    bestForBusiness: ['delivery_only', 'dark_kitchen', 'production'],
+    bestForScale: ['small', 'medium'],
+    bestForBudget: ['1000-2000', '2000-5000'],
+    cuisineStrength: ['all'],
+    website: 'https://www.boxb.co.uk',
+    description: 'Central Bristol dark kitchens in converted shipping container units. Purpose-built for delivery brands — low cost, short contracts, fast setup. Two central Bristol sites. Ideal for food startups and delivery brands expanding into Bristol.'
+  },
+
   // SHARED KITCHENS
   {
     id: 'mission-kitchen',
