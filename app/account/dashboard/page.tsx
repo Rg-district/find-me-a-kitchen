@@ -69,11 +69,11 @@ export default function DashboardPage() {
       .single()
 
     if (!fmakUser) {
-      // Authenticated but no profile — auto-create a minimal profile and continue
+      // Authenticated but no FMAK profile — auto-create a minimal one
       const emailUser = authUser.email || ''
       const nameFromEmail = emailUser.split('@')[0] || 'User'
       try {
-        const res = await fetch('/api/account/register', {
+        await fetch('/api/account/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -84,15 +84,23 @@ export default function DashboardPage() {
             wantsAlerts: false,
           }),
         })
-        if (!res.ok) {
-          // If auto-create fails (e.g. already exists race condition), just reload
-          console.warn('Auto-create profile response:', res.status)
-        }
       } catch (err) {
         console.error('Auto-create profile error:', err)
       }
-      // Reload the dashboard now that profile exists
-      loadDashboard()
+      // Fetch the newly created profile (no recursive call)
+      const { data: newUser } = await supabase
+        .from('fmak_users')
+        .select('*')
+        .eq('email', emailUser.toLowerCase())
+        .single()
+      if (!newUser) {
+        // Still nothing — send to registration
+        router.replace('/account?email=' + encodeURIComponent(emailUser))
+        return
+      }
+      setUser(newUser)
+      setSavedMatches([])
+      setLoading(false)
       return
     }
 
