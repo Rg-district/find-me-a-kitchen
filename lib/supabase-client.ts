@@ -1,6 +1,8 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vmuprcheuqnawtlzdyds.supabase.co'
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Use createBrowserClient so sessions are stored in cookies,
+// keeping them consistent with server-side SSR (middleware + route handlers).
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
