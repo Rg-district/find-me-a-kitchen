@@ -63,8 +63,30 @@ export default function DashboardPage() {
       .single()
 
     if (!fmakUser) {
-      // Authenticated but no profile — send to signup with email pre-filled
-      router.replace('/account?email=' + encodeURIComponent(authUser.email || ''))
+      // Authenticated but no profile — auto-create a minimal profile and continue
+      const emailUser = authUser.email || ''
+      const nameFromEmail = emailUser.split('@')[0] || 'User'
+      try {
+        const res = await fetch('/api/account/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: nameFromEmail,
+            email: emailUser,
+            location: 'UK',
+            accountType: 'seeker',
+            wantsAlerts: false,
+          }),
+        })
+        if (!res.ok) {
+          // If auto-create fails (e.g. already exists race condition), just reload
+          console.warn('Auto-create profile response:', res.status)
+        }
+      } catch (err) {
+        console.error('Auto-create profile error:', err)
+      }
+      // Reload the dashboard now that profile exists
+      loadDashboard()
       return
     }
 

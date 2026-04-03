@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Search, Building2, ChevronRight, Mail, MapPin, User, Briefcase, Bell, Check } from 'lucide-react'
 
 type Step = 'choose' | 'seeker' | 'lister' | 'success'
 
 export default function AccountPage() {
+  const router = useRouter()
   const [step, setStep] = useState<Step>('choose')
   const [form, setForm] = useState({
     name: '',
@@ -17,6 +19,15 @@ export default function AccountPage() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (step === 'success') {
+      const timer = setTimeout(() => {
+        router.push('/account/dashboard')
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [step, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -292,15 +303,16 @@ export default function AccountPage() {
               Welcome to Find Me a Kitchen.
             </p>
             {form.wantsAlerts && (
-              <p className="text-gray-500 mb-6">
+              <p className="text-gray-500 mb-4">
                 We'll email you at <strong>{form.email}</strong> when kitchens become available in <strong>{form.location}</strong>.
               </p>
             )}
+            <p className="text-sm text-gray-400 mb-6">Taking you to your dashboard...</p>
             <Link
-              href="/browse"
+              href="/account/dashboard"
               className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold transition-colors"
             >
-              Browse Kitchens
+              Go to Dashboard →
             </Link>
           </div>
         )}

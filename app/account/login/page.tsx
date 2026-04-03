@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Mail, Loader2 } from 'lucide-react'
+import { ArrowLeft, Mail, Loader2, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase-client'
 
 export default function LoginPage() {
@@ -45,7 +45,7 @@ export default function LoginPage() {
         </div>
       </header>
 
-      <main className="max-w-sm mx-auto px-4 py-12">
+      <main className="max-w-sm mx-auto px-4 py-10">
         {!sent ? (
           <>
             <div className="text-center mb-8">
@@ -55,42 +55,52 @@ export default function LoginPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-1" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
                 Welcome back
               </h2>
-              <p className="text-gray-500 text-sm">Enter your email — we'll send you a login link.</p>
+              <p className="text-gray-500 text-sm">Sign in with a magic link — no password needed.</p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl bg-white focus:border-gray-900 focus:ring-2 focus:ring-gray-100 outline-none text-gray-900"
-                />
+            {/* Sign in section */}
+            <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-4">
+              <p className="text-xs uppercase tracking-widest text-gray-400 mb-3">Already have an account?</p>
+              <form onSubmit={handleLogin} className="space-y-3">
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full pl-10 pr-4 py-3.5 border border-gray-200 rounded-xl bg-white focus:border-gray-900 focus:ring-2 focus:ring-gray-100 outline-none text-gray-900"
+                  />
+                </div>
+
+                {error && (
+                  <p className="text-red-600 text-sm bg-red-50 border border-red-100 px-4 py-3 rounded-xl">{error}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || !email}
+                  className="w-full bg-gray-900 hover:bg-gray-700 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {loading ? 'Sending...' : 'Sign in with magic link'}
+                </button>
+              </form>
+            </div>
+
+            {/* New user section */}
+            <Link
+              href="/account"
+              className="flex items-center justify-between w-full bg-emerald-50 border border-emerald-100 rounded-2xl p-5 hover:bg-emerald-100 hover:border-emerald-200 transition-all group"
+            >
+              <div>
+                <p className="text-xs uppercase tracking-widest text-emerald-600 mb-0.5">New here?</p>
+                <p className="font-semibold text-gray-900">Create your free account</p>
+                <p className="text-xs text-gray-500 mt-0.5">Find commercial kitchen space across the UK</p>
               </div>
-
-              {error && (
-                <p className="text-red-600 text-sm bg-red-50 border border-red-100 px-4 py-3 rounded-xl">{error}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || !email}
-                className="w-full bg-gray-900 hover:bg-gray-700 disabled:bg-gray-300 text-white py-3.5 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                {loading ? 'Sending...' : 'Send login link'}
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-gray-400 mt-6">
-              No account?{' '}
-              <Link href="/account" className="text-gray-900 font-medium hover:underline">
-                Sign up free
-              </Link>
-            </p>
+              <ChevronRight className="w-5 h-5 text-emerald-500 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
           </>
         ) : (
           <div className="text-center">
