@@ -49,11 +49,17 @@ export default function DashboardPage() {
       }
     }
 
-    const { data: { user: authUser } } = await supabase.auth.getUser()
+    let { data: { user: authUser } } = await supabase.auth.getUser()
 
     if (!authUser) {
-      router.replace('/account/login')
-      return
+      // Small delay to allow cookie session to hydrate after magic link redirect (SSR/CSR timing)
+      await new Promise(resolve => setTimeout(resolve, 800))
+      const { data: { user: retryUser } } = await supabase.auth.getUser()
+      if (!retryUser) {
+        router.replace('/account/login')
+        return
+      }
+      authUser = retryUser
     }
 
     const { data: fmakUser } = await supabase
