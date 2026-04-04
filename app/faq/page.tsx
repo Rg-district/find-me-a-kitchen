@@ -13,7 +13,7 @@ export default function FAQPage() {
       {/* Header */}
       <header style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <Link href="/">
-          <img src="/logo.png" alt="Find Me a Kitchen" style={{ height: 40 }} />
+          <img src="/logo.png" alt="Find Me a Kitchen" style={{ height: 32 }} />
         </Link>
         <nav style={{ marginLeft: 'auto', display: 'flex', gap: '24px' }}>
           <Link href="/browse" style={{ fontSize: '14px', color: '#6b7280', textDecoration: 'none' }}>Browse</Link>

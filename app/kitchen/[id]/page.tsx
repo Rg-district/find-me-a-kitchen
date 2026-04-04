@@ -112,7 +112,7 @@ export default function KitchenDetailPage() {
       <header style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/">
-            <img src="/logo.png" alt="Find Me a Kitchen" style={{ height: 40 }} />
+            <img src="/logo.png" alt="Find Me a Kitchen" style={{ height: 32 }} />
           </Link>
           <Link href="/browse" style={{ color: '#6b7280', fontSize: 14, textDecoration: 'none' }}>
             ← Back to browse
