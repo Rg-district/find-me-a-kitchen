@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAuth } from '@/lib/supabase-auth'
 
 export default function AuthConfirmPage() {
   const router = useRouter()
@@ -13,34 +13,40 @@ export default function AuthConfirmPage() {
     attempted.current = true
 
     async function handleAuth() {
-      // Implicit flow: Supabase puts tokens in the URL hash (#access_token=...&refresh_token=...)
+      // Implicit flow: Supabase appends #access_token=...&refresh_token=...&type=magiclink to the redirect URL
+      // The supabaseAuth client with detectSessionInUrl:true handles this automatically
+      // We just need to wait for it and check the session
+
+      // Give the client a moment to process the URL hash
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      const { data: { session }, error } = await supabaseAuth.auth.getSession()
+
+      if (session && !error) {
+        // Session established — go to dashboard
+        router.replace('/account/dashboard')
+        return
+      }
+
+      // If hash processing failed, try manual extraction as fallback
       if (typeof window !== 'undefined' && window.location.hash) {
         const hash = new URLSearchParams(window.location.hash.slice(1))
         const accessToken = hash.get('access_token')
         const refreshToken = hash.get('refresh_token')
-        const type = hash.get('type')
 
         if (accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({
+          const { error: setError } = await supabaseAuth.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
           })
-          if (!error) {
-            // Clean URL then go to dashboard
-            window.history.replaceState(null, '', '/auth/confirm')
+          if (!setError) {
             router.replace('/account/dashboard')
             return
           }
         }
       }
 
-      // Fallback: check if already signed in
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        router.replace('/account/dashboard')
-        return
-      }
-
+      // Nothing worked
       router.replace('/account/login?error=link_expired')
     }
 

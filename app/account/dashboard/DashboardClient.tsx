@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Search, Bell, MapPin, ChevronRight, LogOut, User, Clock, BookmarkX, ArrowRight, Building2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAuth } from '@/lib/supabase-auth'
 
 interface FmakUser {
   id: string
@@ -36,7 +36,7 @@ export default function DashboardClient({ user, savedMatches }: Props) {
   const router = useRouter()
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await supabaseAuth.auth.signOut()
     router.replace('/')
   }
 

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Mail, Loader2, ChevronRight } from 'lucide-react'
-import { supabase } from '@/lib/supabase-client'
+import { supabaseAuth } from '@/lib/supabase-auth'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,7 +17,7 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabaseAuth.auth.signInWithOtp({
       email: email.toLowerCase().trim(),
       options: {
         emailRedirectTo: `https://www.findmeakitchen.com/auth/confirm`,
