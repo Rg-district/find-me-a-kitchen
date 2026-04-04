@@ -20,7 +20,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email: email.toLowerCase().trim(),
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `https://www.findmeakitchen.com/auth/confirm`,
       },
     })
 
