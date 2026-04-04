@@ -4,24 +4,26 @@ import { createServerClient } from '@supabase/ssr'
 import DashboardClient from './DashboardClient'
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies()
+  // Next.js 14: cookies() is synchronous
+  const cookieStore = cookies()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() { return cookieStore.getAll() },
+        getAll() {
+          return cookieStore.getAll()
+        },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options)
+            try { cookieStore.set(name, value, options) } catch { /* read-only in Server Components */ }
           })
         },
       },
     }
   )
 
-  // Server-side auth check — no client-side timing issues
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
@@ -29,26 +31,32 @@ export default async function DashboardPage() {
   }
 
   // Fetch FMAK profile
-  const { data: fmakUser } = await supabase
+  let { data: fmakUser } = await supabase
     .from('fmak_users')
     .select('*')
     .eq('email', user.email?.toLowerCase() ?? '')
     .single()
 
   if (!fmakUser) {
-    // No profile — auto-create minimal one then reload
-    await supabase.from('fmak_users').insert({
-      email: user.email?.toLowerCase() ?? '',
-      name: (user.email ?? '').split('@')[0],
-      location: 'UK',
-      account_type: 'seeker',
-      wants_alerts: false,
-    })
-    // Reload to pick up new profile
-    redirect('/account/dashboard')
+    // Auto-create minimal profile
+    const { data: newUser } = await supabase
+      .from('fmak_users')
+      .insert({
+        email: user.email?.toLowerCase() ?? '',
+        name: (user.email ?? '').split('@')[0],
+        location: 'UK',
+        account_type: 'seeker',
+        wants_alerts: false,
+      })
+      .select()
+      .single()
+    fmakUser = newUser
   }
 
-  // Fetch saved matches
+  if (!fmakUser) {
+    redirect('/account')
+  }
+
   const { data: savedMatches } = await supabase
     .from('saved_matches')
     .select('*')

@@ -13,7 +13,6 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          // Set cookies on both the request AND the response
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
@@ -24,9 +23,7 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANT: do not run code between createServerClient and auth.getUser()
-  // A simple mistake could make it very hard to debug issues with users being
-  // randomly logged out.
+  // Refresh session
   await supabase.auth.getUser()
 
   return supabaseResponse
