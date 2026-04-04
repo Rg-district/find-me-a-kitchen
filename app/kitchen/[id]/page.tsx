@@ -89,8 +89,25 @@ export default function KitchenDetailPage() {
     fontWeight: 500,
   }
 
+  const schemaData = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": kitchen.kitchen_name,
+    "description": `${kitchen.kitchen_type || 'Commercial kitchen'} available in ${kitchen.city}`,
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": kitchen.address || '',
+      "addressLocality": kitchen.city || '',
+      "postalCode": kitchen.postcode || '',
+      "addressCountry": "GB"
+    },
+    "url": `https://www.findmeakitchen.com/kitchen/${kitchen.id}`,
+    ...(kitchen.price_per_hour ? { "priceRange": `£${kitchen.price_per_hour}/hr` } : {})
+  }
+
   return (
     <main style={{ minHeight: '100vh', background: '#f9fafb', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
       {/* Header */}
       <header style={{ background: '#fff', borderBottom: '1px solid #e5e7eb', padding: '16px 24px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

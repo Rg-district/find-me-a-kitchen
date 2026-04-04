@@ -20,7 +20,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={cn("font-sans", inter.variable)}>
       <head>
-        {/* Microsoft Clarity - replace CLARITY_PROJECT_ID with your ID from clarity.microsoft.com */}
+        {/* WebSite + SearchAction schema for Google */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Find Me a Kitchen",
+            "url": "https://www.findmeakitchen.com",
+            "description": "Find commercial kitchen space across the UK. Search dark kitchens, shared kitchens, production kitchens and more.",
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": "https://www.findmeakitchen.com/match?q={search_term_string}",
+              "query-input": "required name=search_term_string"
+            }
+          }) }}
+        />
+        {/* Microsoft Clarity */}
         <Script id="clarity-script" strategy="afterInteractive">
           {`
             (function(c,l,a,r,i,t,y){
