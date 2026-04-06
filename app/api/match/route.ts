@@ -11,8 +11,54 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
-// Expanded provider database with more specific matching criteria
-const PROVIDERS = [
+// Provider type for matching logic (maps from DB snake_case to camelCase used in scoring)
+type ProviderRecord = {
+  id: string
+  name: string
+  type: string
+  cities: string[]
+  priceMin: number
+  priceMax: number
+  priceUnit: string
+  priceRange: string
+  equipment: string[]
+  features: string[]
+  bestForBusiness: string[]
+  bestForScale: string[]
+  bestForBudget: string[]
+  cuisineStrength: string[]
+  website: string
+  description: string
+  active: boolean
+  verified: boolean
+}
+
+// Maps DB row (snake_case) → camelCase expected by scoring logic
+function mapDbProvider(row: any): ProviderRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    cities: row.cities || [],
+    priceMin: row.price_min ?? 0,
+    priceMax: row.price_max ?? 0,
+    priceUnit: row.price_unit ?? 'month',
+    priceRange: row.price_range ?? '',
+    equipment: row.equipment || [],
+    features: row.features || [],
+    bestForBusiness: row.best_for_business || [],
+    bestForScale: row.best_for_scale || [],
+    bestForBudget: row.best_for_budget || [],
+    cuisineStrength: row.cuisine_strength || [],
+    website: row.website ?? '',
+    description: row.description ?? '',
+    active: row.active ?? true,
+    verified: row.verified ?? false,
+  }
+}
+
+// ⚠️ LEGACY FALLBACK — only used if DB fetch fails
+const PROVIDERS_FALLBACK = [
   // DARK KITCHENS
   {
     id: 'karma-kitchen',
@@ -1049,7 +1095,7 @@ const PROVIDERS = [
   // Brixton Kitchen Hub REMOVED (Mar 2026) - website no longer active
 ]
 
-function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
+function scoreProvider(provider: ProviderRecord, formData: any): number {
   let score = 0
   let matchReasons: string[] = []
   
@@ -1322,7 +1368,7 @@ function scoreProvider(provider: typeof PROVIDERS[0], formData: any): number {
 }
 
 // Generate explicit "Why This Match" reasoning tied to user's specific inputs
-function generateWhyThisMatch(provider: typeof PROVIDERS[0], formData: any): string {
+function generateWhyThisMatch(provider: ProviderRecord, formData: any): string {
   const businessType = formData.businessStatus === 'operating' 
     ? formData.currentUnit 
     : formData.plannedBusiness
@@ -1423,7 +1469,7 @@ function generateWhyThisMatch(provider: typeof PROVIDERS[0], formData: any): str
 }
 
 // Generate personalized benefits based on user data and provider type
-function generateBenefits(provider: typeof PROVIDERS[0], formData: any): string[] {
+function generateBenefits(provider: ProviderRecord, formData: any): string[] {
   const benefits: string[] = []
   const businessType = formData.businessStatus === 'operating' 
     ? formData.currentUnit 
@@ -1697,7 +1743,7 @@ function generateMatchConfidence(score: number, maxScore: number, rank: number):
 }
 
 // #9 - Generate negotiation tips based on provider and user situation
-function generateNegotiationTips(provider: any, formData: any): string[] {
+function generateNegotiationTips(provider: ProviderRecord, formData: any): string[] {
   const tips: string[] = []
   const budget = formData.budget || ''
   const businessStatus = formData.businessStatus || ''
@@ -1745,7 +1791,7 @@ function generateNegotiationTips(provider: any, formData: any): string[] {
 }
 
 // #10 - Generate risk flags / warnings
-function generateRiskFlags(provider: any, formData: any): string[] {
+function generateRiskFlags(provider: ProviderRecord, formData: any): string[] {
   const flags: string[] = []
   const dailyOutput = formData.dailyOutput || ''
   const budget = formData.budget || ''
