@@ -1994,8 +1994,22 @@ export async function POST(req: NextRequest) {
       console.error('Error saving match:', matchError)
     }
     
-    // Score all providers (using fallback until DB migration complete)
-    const scoredProviders = (PROVIDERS_FALLBACK as ProviderRecord[]).map(provider => ({
+    // Fetch providers from database (fallback to hardcoded if DB unavailable)
+    let activeProviders: ProviderRecord[] = []
+    const { data: dbProviders, error: dbError } = await supabase
+      .from('providers')
+      .select('*')
+      .eq('active', true)
+    
+    if (dbError || !dbProviders || dbProviders.length === 0) {
+      console.warn('DB providers unavailable, using fallback:', dbError?.message)
+      activeProviders = PROVIDERS_FALLBACK as ProviderRecord[]
+    } else {
+      activeProviders = dbProviders.map(mapDbProvider)
+    }
+
+    // Score all providers
+    const scoredProviders = activeProviders.map(provider => ({
       ...provider,
       score: scoreProvider(provider, formData)
     }))
