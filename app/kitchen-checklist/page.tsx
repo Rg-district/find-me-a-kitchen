@@ -2,9 +2,11 @@
 
 import Link from 'next/link'
 import { ArrowLeft, Download, Check, AlertTriangle, FileText } from 'lucide-react'
+import { trackGuideDownload } from '@/lib/analytics'
 
 export default function KitchenChecklist() {
   const handlePrint = () => {
+    trackGuideDownload('/kitchen-checklist', 'Kitchen Setup Checklist')
     window.print()
   }
 

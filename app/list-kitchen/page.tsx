@@ -3,6 +3,7 @@
 // import Stripe from 'stripe'
 
 import { useState } from 'react'
+import { trackListingInquiry } from '@/lib/analytics'
 
 const EQUIPMENT_OPTIONS = [
   'Commercial Oven', 'Hob / Range', 'Griddle', 'Fryer', 'Bain Marie',
@@ -88,6 +89,7 @@ export default function ListKitchenPage() {
       const data = await res.json()
       if (res.ok && data.success) {
         setSubmitted(true)
+        trackListingInquiry('/list-kitchen')
       } else {
         setError(data.error || 'Something went wrong — please try again')
       }

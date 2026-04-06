@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { trackSignUpComplete } from '@/lib/analytics'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, Search, Building2, ChevronRight, Mail, MapPin, User, Briefcase, Bell, Check } from 'lucide-react'
@@ -46,6 +47,7 @@ export default function AccountPage() {
 
       if (res.ok) {
         setStep('success')
+        trackSignUpComplete('/account')
       } else {
         const data = await res.json()
         setError(data.error || 'Something went wrong')

@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { trackEmailCapture } from '@/lib/analytics'
 import { ArrowLeft, ExternalLink, Star, MapPin, Check, RefreshCw, Mail, TrendingUp, Lightbulb, ArrowRight, Download, X, MessageCircle, Send, User, Sparkles } from 'lucide-react'
 
 interface ChatMessage {
@@ -238,6 +239,7 @@ function ResultsContent() {
       
       if (response.ok) {
         setEmailSent(true)
+        trackEmailCapture('/match/results')
       } else {
         alert('Failed to send email. Please try again.')
       }
