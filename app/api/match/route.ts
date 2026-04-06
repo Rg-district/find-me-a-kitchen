@@ -17,20 +17,22 @@ type ProviderRecord = {
   name: string
   type: string
   cities: string[]
-  priceMin: number
-  priceMax: number
-  priceUnit: string
-  priceRange: string
-  equipment: string[]
-  features: string[]
-  bestForBusiness: string[]
-  bestForScale: string[]
-  bestForBudget: string[]
-  cuisineStrength: string[]
-  website: string
-  description: string
-  active: boolean
-  verified: boolean
+  priceMin?: number
+  priceMax?: number
+  priceUnit?: string
+  priceRange?: string
+  equipment?: string[]
+  features?: string[]
+  bestForBusiness?: string[]
+  bestForScale?: string[]
+  bestForBudget?: string[]
+  cuisineStrength?: string[]
+  website?: string
+  description?: string
+  active?: boolean
+  verified?: boolean
+  // Legacy fields from hardcoded data
+  [key: string]: any
 }
 
 // Maps DB row (snake_case) → camelCase expected by scoring logic
