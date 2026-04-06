@@ -17,21 +17,20 @@ type ProviderRecord = {
   name: string
   type: string
   cities: string[]
-  priceMin?: number
-  priceMax?: number
-  priceUnit?: string
-  priceRange?: string
-  equipment?: string[]
-  features?: string[]
-  bestForBusiness?: string[]
-  bestForScale?: string[]
-  bestForBudget?: string[]
-  cuisineStrength?: string[]
-  website?: string
-  description?: string
-  active?: boolean
-  verified?: boolean
-  // Legacy fields from hardcoded data
+  priceMin: number
+  priceMax: number
+  priceUnit: string
+  priceRange: string
+  equipment: string[]
+  features: string[]
+  bestForBusiness: string[]
+  bestForScale: string[]
+  bestForBudget: string[]
+  cuisineStrength: string[]
+  website: string
+  description: string
+  active: boolean
+  verified: boolean
   [key: string]: any
 }
 
@@ -1996,7 +1995,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Score all providers (using fallback until DB migration complete)
-    const scoredProviders = PROVIDERS_FALLBACK.map(provider => ({
+    const scoredProviders = (PROVIDERS_FALLBACK as ProviderRecord[]).map(provider => ({
       ...provider,
       score: scoreProvider(provider, formData)
     }))
