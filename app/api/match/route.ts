@@ -803,23 +803,7 @@ const PROVIDERS = [
     website: 'https://cateringunits.co.uk',
     description: 'Established family business with 25+ years in catering unit manufacturing. Reliable builds for all budgets.'
   },
-  {
-    id: 'food-truck-masters',
-    name: 'Food Truck Masters',
-    type: 'mobile_supplier',
-    cities: ['Nationwide'],
-    priceMin: 25000,
-    priceMax: 80000,
-    priceUnit: 'one_time',
-    equipment: ['Custom built to spec'],
-    features: ['Vintage specialists', 'Full restoration', 'Unique vehicles'],
-    bestForBusiness: ['mobile'],
-    bestForScale: ['medium', 'large'],
-    bestForBudget: ['2000-5000', '5000+'],
-    cuisineStrength: ['Burgers', 'Coffee & Cafe', 'Pizza', 'Desserts & Bakery'],
-    website: 'https://foodtruckmasters.com',
-    description: 'Vintage food truck restoration specialists. Hand-picked unique vehicles transformed into head-turning mobile kitchens.'
-  },
+
   {
     id: 'catering-van-conversions',
     name: 'Catering Van Conversions',
