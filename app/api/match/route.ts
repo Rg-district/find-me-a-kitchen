@@ -1993,8 +1993,8 @@ export async function POST(req: NextRequest) {
       console.error('Error saving match:', matchError)
     }
     
-    // Score all providers
-    const scoredProviders = PROVIDERS.map(provider => ({
+    // Score all providers (using fallback until DB migration complete)
+    const scoredProviders = PROVIDERS_FALLBACK.map(provider => ({
       ...provider,
       score: scoreProvider(provider, formData)
     }))
