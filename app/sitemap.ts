@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { getAllSlugs } from '@/lib/blog'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://findmeakitchen.com'
+  const baseUrl = 'https://www.findmeakitchen.com'
 
   const staticPages = [
     { url: baseUrl, priority: 1.0, changeFrequency: 'weekly' as const },

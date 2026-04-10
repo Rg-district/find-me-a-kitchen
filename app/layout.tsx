@@ -12,8 +12,12 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.findmeakitchen.com'),
   title: 'Find Me a Kitchen — AI Commercial Kitchen Matching',
   description: 'Find your perfect commercial kitchen in seconds. AI-powered matching for food businesses across the UK.',
+  alternates: {
+    canonical: 'https://www.findmeakitchen.com',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
