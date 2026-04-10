@@ -41,6 +41,25 @@ export async function POST(req: NextRequest) {
         signup_type: 'results_save',
         created_at: new Date().toISOString()
       })
+
+    // Add to MailerLite — fire and forget, never block email send
+    try {
+      await fetch('https://connect.mailerlite.com/api/subscribers', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.MAILERLITE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          groups: [process.env.MAILERLITE_GROUP_ID],
+          fields: { source: 'matcher_results' },
+          status: 'active',
+        }),
+      })
+    } catch (mlErr) {
+      console.error('MailerLite subscribe error (non-blocking):', mlErr)
+    }
     
     // Build results HTML
     let resultsHtml = ''
