@@ -1,27 +1,35 @@
 /**
- * FMAK Analytics — GA4 event helpers via GTM dataLayer
- * Events fire through GTM → GA4 (GTM-M3PTV54F)
+ * FMAK Analytics — GA4 event helpers via direct gtag
+ * GTM bypassed (tags flagged by Google malware scanner — April 2026)
+ * Events fire directly to GA4 property G-GP324NBFEJ
  */
 
 declare global {
   interface Window {
     dataLayer: Record<string, any>[]
+    _gtag: (...args: any[]) => void
+    gtag: (...args: any[]) => void
   }
 }
 
-function push(event: string, params: Record<string, any> = {}) {
+function track(eventName: string, params: Record<string, any> = {}) {
   if (typeof window === 'undefined') return
-  window.dataLayer = window.dataLayer || []
-  window.dataLayer.push({
-    event,
-    ...params,
-    timestamp: new Date().toISOString(),
-  })
+  try {
+    const fn = window.gtag || window._gtag
+    if (fn) {
+      fn('event', eventName, {
+        ...params,
+        timestamp: new Date().toISOString(),
+      })
+    }
+  } catch (e) {
+    // Silently fail — never break UX for analytics
+  }
 }
 
 /** User submits email to receive AI match results */
 export function trackEmailCapture(sourcePage: string) {
-  push('email_capture_results', {
+  track('email_capture_results', {
     source_page: sourcePage,
     user_type: 'food_maker',
   })
@@ -29,7 +37,7 @@ export function trackEmailCapture(sourcePage: string) {
 
 /** User successfully creates an account */
 export function trackSignUpComplete(sourcePage: string) {
-  push('sign_up_complete', {
+  track('sign_up_complete', {
     source_page: sourcePage,
     user_type: 'food_maker',
   })
@@ -37,7 +45,7 @@ export function trackSignUpComplete(sourcePage: string) {
 
 /** Kitchen owner submits listing inquiry */
 export function trackListingInquiry(sourcePage: string) {
-  push('listing_inquiry', {
+  track('listing_inquiry', {
     source_page: sourcePage,
     user_type: 'kitchen_owner',
   })
@@ -45,7 +53,7 @@ export function trackListingInquiry(sourcePage: string) {
 
 /** User downloads a guide */
 export function trackGuideDownload(sourcePage: string, guideName?: string) {
-  push('guide_download', {
+  track('guide_download', {
     source_page: sourcePage,
     user_type: 'food_maker',
     guide_name: guideName || 'unknown',
