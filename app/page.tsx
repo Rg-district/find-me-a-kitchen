@@ -33,6 +33,7 @@ export default function HomePage() {
             <div className="p-4 space-y-1">
               <Link href="/match" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Find a Kitchen</Link>
               <Link href="/find-events" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Market & Festival Finder</Link>
+              <Link href="/street-food-licence" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Street Food Licence Helper</Link>
               <Link href="/markets" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Markets Guide</Link>
               <Link href="/festivals" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Festivals Guide</Link>
               <Link href="/blog" className="block py-3 px-4 rounded-lg hover:bg-gray-100">Guides & Resources</Link>
@@ -89,6 +90,23 @@ export default function HomePage() {
               <div className="flex-1">
                 <h2 className="font-bold text-gray-900">Market & Festival Finder</h2>
                 <p className="text-sm text-gray-500">Find events to trade at near you</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </Link>
+
+          {/* Street Food Licence Helper */}
+          <Link 
+            href="/street-food-licence"
+            className="block mt-4 bg-white rounded-2xl p-5 border border-gray-200 hover:border-emerald-500 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center text-2xl">
+                📋
+              </div>
+              <div className="flex-1">
+                <h2 className="font-bold text-gray-900">Street Food Licence Helper</h2>
+                <p className="text-sm text-gray-500">Step-by-step guide for every UK council</p>
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400 group-hover:translate-x-1 transition-transform" />
             </div>
