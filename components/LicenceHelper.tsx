@@ -218,14 +218,31 @@ export default function LicenceHelper() {
               </div>
             </div>
 
-            <a
-              href={selected.applicationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-5 w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-xl transition-colors text-sm"
-            >
-              Apply to {selected.name} Council →
-            </a>
+            {selected.applicationUrl.includes('gov.uk/street-trading-licence') ? (
+              <div className="mt-5 space-y-2">
+                <a
+                  href={selected.applicationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-xl transition-colors text-sm"
+                >
+                  Apply via gov.uk →
+                </a>
+                <p className="text-xs text-gray-400 text-center">
+                  On gov.uk, search <span className="font-medium text-gray-600">&ldquo;{selected.name} street trading licence&rdquo;</span> to reach your council’s licensing page. Or{' '}
+                  <a href="https://www.gov.uk/find-local-council" target="_blank" rel="noopener noreferrer" className="text-orange-500 hover:underline">find your council directly</a>.
+                </p>
+              </div>
+            ) : (
+              <a
+                href={selected.applicationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-6 rounded-xl transition-colors text-sm"
+              >
+                Apply to {selected.name} Council →
+              </a>
+            )}
           </div>
         )}
 
