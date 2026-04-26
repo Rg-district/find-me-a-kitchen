@@ -30,7 +30,7 @@ export const universalRequirements = [
     id: 'public-liability',
     title: 'Public Liability Insurance',
     description: 'Minimum £5 million cover required. Most councils will not grant a licence without it. Cost: ~£150–£500/year.',
-    link: 'https://www.simplybusiness.co.uk/street-food-insurance/',
+    link: 'https://www.gocompare.com/public-liability-insurance/',
     linkText: 'Compare insurance',
     priority: 3,
   },
