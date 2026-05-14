@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Agent Strategy Guide — Mobile Repair Business</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.7;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 60%, #0f3460 100%);
+      color: #fff;
+      text-align: center;
+      padding: 56px 24px 48px;
+    }
+    .header h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+    .badge {
+      display: inline-block;
+      margin-top: 18px;
+      background: #e94560;
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 20px;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+
+    /* ── Section titles ── */
+    .section-title {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #0f3460;
+      border-left: 5px solid #e94560;
+      padding-left: 14px;
+      margin-bottom: 28px;
+    }
+    .subsection-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0f3460;
+      margin: 24px 0 10px;
+      border-bottom: 2px solid #e0e6f0;
+      padding-bottom: 6px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 28px 30px;
+      margin-bottom: 28px;
+    }
+
+    /* ── Agent grid ── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+    .agent-item {
+      background: #f7f9fc;
+      border-radius: 8px;
+      padding: 14px 16px;
+      border-left: 4px solid #0f3460;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .agent-item.highlight { border-left-color: #e94560; background: #fff5f7; }
+    .agent-num {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #e94560;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .agent-name { font-weight: 700; font-size: 0.95rem; color: #0f3460; }
+    .agent-desc { font-size: 0.84rem; color: #555; }
+
+    /* ── Priority callout ── */
+    .callout {
+      background: linear-gradient(90deg, #0f3460 0%, #1a4b8c 100%);
+      color: #fff;
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin-top: 18px;
+      font-size: 0.9rem;
+    }
+    .callout strong { color: #ffd166; }
+
+    /* ── Concern box ── */
+    .concern-box {
+      background: #fff8e1;
+      border-left: 5px solid #f59e0b;
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      font-size: 0.92rem;
+      color: #7c5e00;
+    }
+
+    /* ── Strategy cards ── */
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .strategy-card {
+      background: #f7f9fc;
+      border-radius: 10px;
+      padding: 18px 20px;
+      border-top: 4px solid #0f3460;
+    }
+    .strategy-card h4 { font-size: 0.95rem; font-weight: 700; color: #0f3460; margin-bottom: 6px; }
+    .strategy-card p { font-size: 0.84rem; color: #444; }
+    .strategy-num {
+      display: inline-block;
+      background: #e94560;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 800;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      text-align: center;
+      line-height: 22px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Charts ── */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+      margin: 28px 0;
+    }
+    .chart-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 24px 20px;
+    }
+    .chart-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0f3460;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .chart-wrapper { position: relative; height: 260px; }
+    .chart-wrapper-tall { position: relative; height: 320px; }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin: 20px 0 28px;
+    }
+    .stat-box {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      padding: 20px 18px;
+      text-align: center;
+    }
+    .stat-box .value {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: #e94560;
+      display: block;
+    }
+    .stat-box .label { font-size: 0.8rem; color: #666; margin-top: 4px; }
+
+    /* ── Section divider ── */
+    .divider { border: none; border-top: 2px solid #e0e6f0; margin: 40px 0; }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th {
+      background: #0f3460;
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+    }
+    td { padding: 9px 14px; border-bottom: 1px solid #e8edf4; }
+    tr:nth-child(even) td { background: #f7f9fc; }
+
+    footer {
+      text-align: center;
+      padding: 32px 16px;
+      font-size: 0.8rem;
+      color: #999;
+      background: #16213e;
+      color: #aaa;
+      margin-top: 60px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .chart-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<div class="header">
+  <h1>AI Agent Strategy Guide</h1>
+  <p>Mobile Repair Business &mdash; Growth &amp; Automation Playbook</p>
+  <span class="badge">Full Business Review &amp; Action Plan</span>
+</div>
+
+<div class="container">
+
+  <!-- ═══════════════════ OVERVIEW STATS ═══════════════════ -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <span class="value">40</span>
+      <div class="label">Total AI Agent Ideas (20 Online + 20 In-Store)</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">£2,314</span>
+      <div class="label">Average Weekly Sales</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">£3,500</span>
+      <div class="label">Weekly Revenue Target for Expansion</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">15</span>
+      <div class="label">Scaling Strategies Identified</div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════ PART 1 ═══════════════════ -->
+  <div class="section-title">PART 1 &mdash; 20 AI Agent Ideas: Online / Digital</div>
+
+  <!-- Chart Row 1 -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Online AI Agents by Category</h3>
+      <div class="chart-wrapper">
+        <canvas id="onlineCategoriesChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Estimated Impact by Agent Category (Online)</h3>
+      <div class="chart-wrapper">
+        <canvas id="onlineImpactChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lead Gen -->
+  <div class="card">
+    <div class="subsection-title">Lead Generation &amp; Traffic (Agents 1–5)</div>
+    <div class="agent-grid">
+      <div class="agent-item highlight">
+        <span class="agent-num">Agent 1 &mdash; High Priority</span>
+        <span class="agent-name">Repair Cost Estimator Bot</span>
+        <span class="agent-desc">Widget where customers describe their problem and get an instant price estimate, capturing their contact info in exchange.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 2</span>
+        <span class="agent-name">Is It Worth Repairing? Advisor</span>
+        <span class="agent-desc">Compares repair cost vs. replacement cost for any device, building trust and driving decisions toward booking.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 3</span>
+        <span class="agent-name">Social Media Comment Responder</span>
+        <span class="agent-desc">Auto-replies to comments and DMs on Instagram/Facebook with helpful info and a booking link.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 4</span>
+        <span class="agent-name">Local SEO Content Generator</span>
+        <span class="agent-desc">Produces weekly blog posts such as "iPhone screen repair in [City]" to rank on Google searches.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 5</span>
+        <span class="agent-name">Google Review Responder</span>
+        <span class="agent-desc">Drafts personalised responses to every review, improving local ranking signals.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Booking -->
+  <div class="card">
+    <div class="subsection-title">Booking &amp; Conversion (Agents 6–10)</div>
+    <div class="agent-grid">
+      <div class="agent-item highlight">
+        <span class="agent-num">Agent 6 &mdash; High Priority</span>
+        <span class="agent-name">24/7 Booking Chatbot</span>
+        <span class="agent-desc">Handles enquiries and books appointments outside business hours, capturing leads that would otherwise be lost.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 7</span>
+        <span class="agent-name">Abandoned Quote Follow-Up Agent</span>
+        <span class="agent-desc">If someone gets a quote but doesn't book, sends a timed follow-up via SMS or email.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 8</span>
+        <span class="agent-name">Device Triage Agent</span>
+        <span class="agent-desc">Asks diagnostic questions to qualify jobs before they arrive, saving technician time.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 9</span>
+        <span class="agent-name">Waitlist &amp; Cancellation Filler</span>
+        <span class="agent-desc">Automatically fills cancelled slots by texting customers on a waitlist.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 10</span>
+        <span class="agent-name">Warranty Upsell Bot</span>
+        <span class="agent-desc">After booking, pitches protection plans or screen protectors with a one-click add-on.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Retention -->
+  <div class="card">
+    <div class="subsection-title">Customer Retention (Agents 11–15)</div>
+    <div class="agent-grid">
+      <div class="agent-item highlight">
+        <span class="agent-num">Agent 11 &mdash; High Priority</span>
+        <span class="agent-name">Repair Status Updater</span>
+        <span class="agent-desc">Sends automated SMS/WhatsApp updates at each stage: received, in repair, ready for collection. Reduces inbound support calls significantly.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 12</span>
+        <span class="agent-name">Post-Repair Check-In Agent</span>
+        <span class="agent-desc">Messages customers 7 days after collection to ask how the device is working and request a Google review.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 13</span>
+        <span class="agent-name">Annual Device Health Reminder</span>
+        <span class="agent-desc">Reaches out to past customers yearly — "Your repair was 12 months ago — time for a checkup?"</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 14</span>
+        <span class="agent-name">Loyalty Points Tracker</span>
+        <span class="agent-desc">Tracks repeat customers and automatically applies discounts or sends referral codes.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 15</span>
+        <span class="agent-name">Recall &amp; Parts Update Notifier</span>
+        <span class="agent-desc">Alerts past customers if a known fault is discovered for their device model.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Operations -->
+  <div class="card">
+    <div class="subsection-title">Operations &amp; Upselling (Agents 16–20)</div>
+    <div class="agent-grid">
+      <div class="agent-item">
+        <span class="agent-num">Agent 16</span>
+        <span class="agent-name">Parts Inventory Assistant</span>
+        <span class="agent-desc">Monitors stock levels and flags when common parts are running low, and can auto-order from suppliers.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 17</span>
+        <span class="agent-name">Job Profitability Analyser</span>
+        <span class="agent-desc">Logs each repair type, calculates margins, and suggests which jobs to promote or deprioritise.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 18</span>
+        <span class="agent-name">Competitor Price Monitor</span>
+        <span class="agent-desc">Scrapes competitor websites weekly and alerts if pricing needs adjusting to stay competitive.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 19</span>
+        <span class="agent-name">Referral Campaign Manager</span>
+        <span class="agent-desc">Automatically sends referral links to happy customers and tracks conversions with small rewards.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 20</span>
+        <span class="agent-name">Insurance Claim Helper</span>
+        <span class="agent-desc">Guides customers through claiming phone repairs on their home insurance, removing a common barrier to booking.</span>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Where to start online:</strong> Agents 1, 6, and 11 — the Estimator Bot drives traffic, the 24/7 Booking Chatbot converts it, and the Repair Status Updater reduces support call volume.
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════ PART 2 ═══════════════════ -->
+  <div class="section-title">PART 2 &mdash; 20 AI Agent Ideas: Physical Shop Floor</div>
+
+  <!-- Chart Row 2 -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>In-Store AI Agents by Category</h3>
+      <div class="chart-wrapper">
+        <canvas id="inStoreCategoriesChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Top 3 In-Store Agent Priority Score</h3>
+      <div class="chart-wrapper">
+        <canvas id="inStoreTopChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-In -->
+  <div class="card">
+    <div class="subsection-title">Customer Check-In &amp; Reception (Agents 1–5)</div>
+    <div class="agent-grid">
+      <div class="agent-item highlight">
+        <span class="agent-num">Agent 1 &mdash; Top Priority</span>
+        <span class="agent-name">Smart Check-In Kiosk</span>
+        <span class="agent-desc">Tablet at the front desk where customers tap their device model, describe the fault, and receive a printed or texted repair ticket — no staff needed for intake.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 2</span>
+        <span class="agent-name">Queue Management Agent</span>
+        <span class="agent-desc">Displays estimated wait times and texts customers when their repair is next, so they can step out instead of waiting in store.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 3</span>
+        <span class="agent-name">Walk-In Triage Assistant</span>
+        <span class="agent-desc">Runs a quick diagnostic questionnaire and tells the customer their likely repair time and cost before they speak to a technician.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 4</span>
+        <span class="agent-name">Multilingual Reception Bot</span>
+        <span class="agent-desc">Greets walk-in customers in their preferred language — especially valuable in diverse urban areas like London.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 5</span>
+        <span class="agent-name">Appointment Check-In Agent</span>
+        <span class="agent-desc">Recognises returning customers by phone number, pulls up their history, and alerts the technician they have arrived.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- In-Store Sales -->
+  <div class="card">
+    <div class="subsection-title">In-Store Sales &amp; Upselling (Agents 6–10)</div>
+    <div class="agent-grid">
+      <div class="agent-item">
+        <span class="agent-num">Agent 6</span>
+        <span class="agent-name">Accessories Recommender Screen</span>
+        <span class="agent-desc">A display showing "Customers with your phone also bought…" — cases, chargers, screen protectors — while they wait.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 7</span>
+        <span class="agent-name">Trade-In Value Agent</span>
+        <span class="agent-desc">Customers enter old device details into a kiosk and instantly receive a trade-in quote, encouraging an upsell to a refurbished handset.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 8</span>
+        <span class="agent-name">Insurance Add-On Pitcher</span>
+        <span class="agent-desc">After the repair is logged, automatically presents a 30-second pitch for a protection plan on a tablet.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 9</span>
+        <span class="agent-name">Bundle Deal Suggester</span>
+        <span class="agent-desc">If a customer books a screen repair, the agent flags that a simultaneous battery replacement saves labour cost.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 10</span>
+        <span class="agent-name">Refurbished Phone Browser</span>
+        <span class="agent-desc">An in-store touchscreen kiosk showing current refurbished stock with specs, prices, and a reserve button.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Technician Support -->
+  <div class="card">
+    <div class="subsection-title">Technician Support (Agents 11–15)</div>
+    <div class="agent-grid">
+      <div class="agent-item highlight">
+        <span class="agent-num">Agent 11 &mdash; Top Priority</span>
+        <span class="agent-name">AI Repair Guide Assistant</span>
+        <span class="agent-desc">Technicians type a fault description and the agent instantly pulls up the best repair walkthrough, known issues, and part numbers.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 12</span>
+        <span class="agent-name">Fault Diagnosis Agent</span>
+        <span class="agent-desc">Technician inputs symptoms and the agent cross-references a database of known faults to suggest the most likely cause.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 13</span>
+        <span class="agent-name">Parts Lookup &amp; Ordering Agent</span>
+        <span class="agent-desc">Scans a device model and tells the technician which parts are in stock and which need ordering, with one-tap ordering.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 14</span>
+        <span class="agent-name">Repair Time Estimator for Techs</span>
+        <span class="agent-desc">Based on job complexity and current workload, tells the technician how long to quote — keeping promises realistic.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 15</span>
+        <span class="agent-name">Quality Control Checklist Agent</span>
+        <span class="agent-desc">After a repair, walks the technician through a pass/fail checklist before device handoff to the customer.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Handoff -->
+  <div class="card">
+    <div class="subsection-title">Customer Handoff &amp; After-Service (Agents 16–20)</div>
+    <div class="agent-grid">
+      <div class="agent-item">
+        <span class="agent-num">Agent 16</span>
+        <span class="agent-name">Repair Summary Explainer</span>
+        <span class="agent-desc">When handing back the device, a screen or printout explains in plain English what was fixed and provides aftercare tips.</span>
+      </div>
+      <div class="agent-item highlight">
+        <span class="agent-num">Agent 17 &mdash; Top Priority</span>
+        <span class="agent-name">On-the-Spot Review Requester</span>
+        <span class="agent-desc">As the customer pays, a tablet prompts them to leave a Google review while they're still in the positive feeling of getting their phone back.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 18</span>
+        <span class="agent-name">Payment Plan Agent</span>
+        <span class="agent-desc">For larger repairs, calculates and presents a simple "pay in 3" instalment option and sends the agreement to their phone.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 19</span>
+        <span class="agent-name">Data Backup Reminder Kiosk</span>
+        <span class="agent-desc">Before repairs begin, alerts the customer if their device has no recent backup and offers a paid backup service on the spot.</span>
+      </div>
+      <div class="agent-item">
+        <span class="agent-num">Agent 20</span>
+        <span class="agent-name">Uncollected Device Manager</span>
+        <span class="agent-desc">Tracks devices not collected after repair and sends escalating reminders (day 3, 7, 14) via SMS, flagging when to apply storage fees.</span>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>Top 3 in-store:</strong> #1 Smart Check-In Kiosk (frees up staff), #11 AI Repair Guide (faster technicians), #17 On-the-Spot Review Requester (Google reviews drive local foot traffic).
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════ PART 3 ═══════════════════ -->
+  <div class="section-title">PART 3 &mdash; Financial Analysis: Key Findings</div>
+
+  <!-- Financial Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <span class="value">£2,314</span>
+      <div class="label">Average Weekly Sales</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">£1,818</span>
+      <div class="label">Worst Week (Mar 30–Apr 5)</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">£2,834</span>
+      <div class="label">Best Week (Mar 2–8)</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">£800</span>
+      <div class="label">Weekly Salary Cost</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">~35%</span>
+      <div class="label">Revenue Consumed by Salaries</div>
+    </div>
+    <div class="stat-box">
+      <span class="value">59/41</span>
+      <div class="label">Cash vs Card Split (%)</div>
+    </div>
+  </div>
+
+  <!-- Financial Charts -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Weekly Sales Performance (£)</h3>
+      <div class="chart-wrapper">
+        <canvas id="salesChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Payment Method Split</h3>
+      <div class="chart-wrapper">
+        <canvas id="paymentSplitChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Weekly Cost Breakdown (Estimated)</h3>
+      <div class="chart-wrapper">
+        <canvas id="costBreakdownChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Revenue vs Target (Weekly £)</h3>
+      <div class="chart-wrapper">
+        <canvas id="revenueTargetChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Income -->
+  <div class="card">
+    <div class="subsection-title">Income</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Value</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Average weekly total sales</td><td><strong>£2,314</strong></td><td>Range: £1,818 – £2,834</td></tr>
+        <tr><td>Cash vs card split</td><td><strong>59% / 41%</strong></td><td>Cash-heavy — track carefully</td></tr>
+        <tr><td>Best week</td><td><strong>£2,834</strong></td><td>Mar 2–8</td></tr>
+        <tr><td>Worst week</td><td><strong>£1,818</strong></td><td>Mar 30–Apr 5</td></tr>
+        <tr><td>Highest-earning days</td><td><strong>Saturday &amp; Sunday</strong></td><td>Consistently highest cash takings</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Expenses -->
+  <div class="card">
+    <div class="subsection-title">Most Common Expenses</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Expense</th>
+          <th>Amount / Frequency</th>
+          <th>Priority Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Salaries</td><td>£800/week (fixed)</td><td>Dominant cost — ~35% of revenue</td></tr>
+        <tr><td>Bangla Tech</td><td>Almost every week</td><td>Most frequent parts supplier — negotiate bulk terms</td></tr>
+        <tr><td>Revive</td><td>Regular</td><td>Second most frequent supplier</td></tr>
+        <tr><td>eBay</td><td>Regular</td><td>Used for phones, screens, batteries</td></tr>
+        <tr><td>HMRC Tax</td><td>Periodic — £255</td><td>Ensure set aside in advance</td></tr>
+        <tr><td>Council Rates</td><td>Periodic — £80–£178</td><td>Fixed overhead</td></tr>
+        <tr><td>Insurance / Ria Transfers</td><td>Periodic</td><td>Track separately</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Concerns -->
+  <div class="card">
+    <div class="subsection-title">Financial Concerns</div>
+    <div class="concern-box">
+      <strong>Cash Flow Risk:</strong> End-of-week cash is often dangerously thin — several weeks show negative cash balances before personal top-ups are made. This is unsustainable and creates personal financial risk.
+    </div>
+    <div class="concern-box">
+      <strong>External Cash Dependency:</strong> The business is heavily reliant on external cash injections to cover high-expense salary weeks. A dedicated cash reserve of at least £1,600 (2 weeks of salary) is essential.
+    </div>
+    <div class="concern-box">
+      <strong>Side Venture Not Separated:</strong> Perfume stock appears as a side venture within the same books — this should be tracked separately to accurately measure core repair business profitability.
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ═══════════════════ PART 4 ═══════════════════ -->
+  <div class="section-title">PART 4 &mdash; Scaling Strategy: 15 Best Practices</div>
+
+  <!-- Scaling Chart -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Estimated Additional Monthly Revenue by Strategy</h3>
+      <div class="chart-wrapper-tall">
+        <canvas id="revenueStrategyChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Strategy Priority Matrix (Impact vs Effort)</h3>
+      <div class="chart-wrapper-tall">
+        <canvas id="priorityMatrixChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="strategy-grid">
+
+    <div class="strategy-card">
+      <div class="strategy-num">1</div>
+      <h4>Fix the Cash Flow Crisis First</h4>
+      <p>Separate business and personal finances immediately. Build a cash reserve equal to 2 weeks of salary (£1,600). Rule: if end-of-week cash is below £200, no discretionary spending that week.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">2</div>
+      <h4>Negotiate Bulk Supplier Pricing</h4>
+      <p>Approach Bangla Tech and Revive for monthly accounts with 30-day payment terms and volume discounts. Place one bulk order per month for the top 10 most-used parts.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">3</div>
+      <h4>Increase Average Order Value</h4>
+      <p>Train staff to offer battery + screen repairs together. Target an average transaction value of £80+ versus the current estimated £40–60.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">4</div>
+      <h4>Launch a WhatsApp Broadcast List</h4>
+      <p>Message 200+ past customers instantly at zero cost. One broadcast per week (tip, offer, or reminder) keeps the shop top of mind and drives repeat visits.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">5</div>
+      <h4>Formalise the eBay Sales Operation</h4>
+      <p>Set up a proper eBay store for refurbished phones, spare parts, and accessories. Even 5–10 eBay sales per week at £20–50 margin = £400–1,000/month additional revenue.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">6</div>
+      <h4>Introduce a Monthly Repair Membership</h4>
+      <p>£6–8/month provides: priority service, one free screen protector fitting per month, and 10% off all repairs. 50 members = £300/month in guaranteed recurring income.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">7</div>
+      <h4>Launch a Refurbished Phone Retail Line</h4>
+      <p>Formalise phone-flipping with a dedicated float of £500–1,000 in stock. Buy at £40–80, sell at £100–150. Potential: £400–800/month additional margin.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">8</div>
+      <h4>Extend Trading Hours on Weekends</h4>
+      <p>Saturdays and Sundays consistently show the highest takings. Extending to 7pm could capture £50–100 extra per day — £400–800/month additional revenue.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">9</div>
+      <h4>Target the Bengali/South Asian Community</h4>
+      <p>Market in Bengali via WhatsApp broadcast lists, local Facebook groups, and leaflets in local shops. Community trust translates into referrals at near-zero marketing cost.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">10</div>
+      <h4>Hire Part-Time Instead of Full-Time</h4>
+      <p>If one person is full-time and one is weekend-only, the weekly salary bill drops from £800 to £550–600 — freeing £800–1,000/month for reinvestment into the business.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">11</div>
+      <h4>Register on eBay as a Seller</h4>
+      <p>Extend reach nationally with a dedicated eBay store for refurbished phones, spare parts, and accessories. Complements Strategy 5 with a formal storefront.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">12</div>
+      <h4>Introduce a Simple Loyalty Card</h4>
+      <p>A stamp card (10 repairs = one free screen protector fitting) costs almost nothing to print but significantly increases return visit rates and customer lifetime value.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">13</div>
+      <h4>Build a Google Business Profile</h4>
+      <p>A fully optimised profile with 20–30 genuine reviews is the single highest-ROI marketing action available. Each 5-star review drives an estimated 1–3 additional customers per month.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">14</div>
+      <h4>Separate Business Finances Completely</h4>
+      <p>Use a dedicated business bank account and a bookkeeping app (QuickBooks Self-Employed at £8/month, or free Wave). Enables proper P&amp;L visibility and makes tax returns significantly faster.</p>
+    </div>
+
+    <div class="strategy-card">
+      <div class="strategy-num">15</div>
+      <h4>Plan for a Second Location After £3,500/week</h4>
+      <p>The current average of £2,314/week needs to reach £3,500 consistently before a second location is financially viable. This is achievable through the strategies above combined.</p>
+    </div>
+
+  </div>
+
+  <!-- Implementation Roadmap Chart -->
+  <div class="chart-grid" style="margin-top:28px;">
+    <div class="chart-card" style="grid-column: 1 / -1;">
+      <h3>Recommended Implementation Roadmap — Phase Timeline</h3>
+      <div style="position:relative; height:200px;">
+        <canvas id="roadmapChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  &copy; 2025 Mobile Repair Business &mdash; AI Agent Strategy Guide. All rights reserved.
+</footer>
+
+<!-- ═══════════════════ CHARTS JS ═══════════════════ -->
+<script>
+const BLUE  = '#0f3460';
+const RED   = '#e94560';
+const GOLD  = '#f59e0b';
+const GREEN = '#10b981';
+const TEAL  = '#0ea5e9';
+const PURPLE= '#8b5cf6';
+const GREY  = '#94a3b8';
+
+// ── 1. Online Categories Doughnut
+new Chart(document.getElementById('onlineCategoriesChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Lead Generation & Traffic', 'Booking & Conversion', 'Customer Retention', 'Operations & Upselling'],
+    datasets: [{
+      data: [5, 5, 5, 5],
+      backgroundColor: [BLUE, RED, GREEN, GOLD],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } }
+  }
+});
+
+// ── 2. Online Impact Radar
+new Chart(document.getElementById('onlineImpactChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Lead Gen', 'Booking', 'Retention', 'Operations'],
+    datasets: [{
+      label: 'Revenue Impact (0–10)',
+      data: [8, 9, 7, 6],
+      backgroundColor: [BLUE, RED, GREEN, GOLD],
+      borderRadius: 6
+    }, {
+      label: 'Ease of Implementation (0–10)',
+      data: [7, 8, 9, 5],
+      backgroundColor: [BLUE+'55', RED+'55', GREEN+'55', GOLD+'55'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
+    scales: {
+      y: { beginAtZero: true, max: 10, title: { display: true, text: 'Score (0–10)' } }
+    }
+  }
+});
+
+// ── 3. In-Store Categories Doughnut
+new Chart(document.getElementById('inStoreCategoriesChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Check-In & Reception', 'In-Store Sales & Upselling', 'Technician Support', 'Customer Handoff'],
+    datasets: [{
+      data: [5, 5, 5, 5],
+      backgroundColor: [TEAL, PURPLE, RED, GOLD],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } } }
+  }
+});
+
+// ── 4. In-Store Top 3 Bar
+new Chart(document.getElementById('inStoreTopChart'), {
+  type: 'bar',
+  data: {
+    labels: ['#1 Smart Check-In Kiosk', '#11 AI Repair Guide', '#17 On-the-Spot Review'],
+    datasets: [{
+      label: 'Staff Time Saved',
+      data: [9, 8, 5],
+      backgroundColor: BLUE,
+      borderRadius: 6
+    }, {
+      label: 'Revenue / Review Impact',
+      data: [6, 7, 9],
+      backgroundColor: RED,
+      borderRadius: 6
+    }, {
+      label: 'Ease of Deployment',
+      data: [7, 8, 9],
+      backgroundColor: GREEN,
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+    scales: { y: { beginAtZero: true, max: 10 } }
+  }
+});
+
+// ── 5. Weekly Sales Bar
+new Chart(document.getElementById('salesChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Worst Week\n(Mar 30–Apr 5)', 'Average', 'Best Week\n(Mar 2–8)'],
+    datasets: [{
+      label: 'Weekly Sales (£)',
+      data: [1818, 2314, 2834],
+      backgroundColor: [RED, GOLD, GREEN],
+      borderRadius: 8,
+      borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '£' + ctx.raw.toLocaleString() } }
+    },
+    scales: {
+      y: {
+        beginAtZero: false, min: 1500,
+        title: { display: true, text: 'Weekly Sales (£)' },
+        ticks: { callback: v => '£' + v.toLocaleString() }
+      }
+    }
+  }
+});
+
+// ── 6. Payment Split Pie
+new Chart(document.getElementById('paymentSplitChart'), {
+  type: 'pie',
+  data: {
+    labels: ['Cash (59%)', 'Card (41%)'],
+    datasets: [{
+      data: [59, 41],
+      backgroundColor: [BLUE, TEAL],
+      borderWidth: 3,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 16 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ' of all payments' } }
+    }
+  }
+});
+
+// ── 7. Cost Breakdown Doughnut
+new Chart(document.getElementById('costBreakdownChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Salaries (£800/wk)', 'Parts – Bangla Tech', 'Parts – Revive', 'Parts – eBay', 'HMRC / Tax', 'Council Rates', 'Insurance & Other'],
+    datasets: [{
+      data: [35, 18, 12, 10, 8, 7, 10],
+      backgroundColor: [RED, BLUE, TEAL, PURPLE, GOLD, GREEN, GREY],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': ~' + ctx.raw + '% of revenue' } }
+    }
+  }
+});
+
+// ── 8. Revenue vs Target
+new Chart(document.getElementById('revenueTargetChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Current Average', 'Interim Target', 'Expansion Target'],
+    datasets: [{
+      label: 'Weekly Revenue (£)',
+      data: [2314, 2900, 3500],
+      backgroundColor: [GOLD, TEAL, GREEN],
+      borderRadius: 8, borderWidth: 0
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      annotation: {},
+      tooltip: { callbacks: { label: ctx => '£' + ctx.raw.toLocaleString() + '/week' } }
+    },
+    scales: {
+      y: {
+        beginAtZero: false, min: 2000,
+        ticks: { callback: v => '£' + v.toLocaleString() },
+        title: { display: true, text: 'Weekly Revenue (£)' }
+      }
+    }
+  }
+});
+
+// ── 9. Revenue by Strategy (Horizontal Bar)
+new Chart(document.getElementById('revenueStrategyChart'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'eBay Sales Operation',
+      'Refurbished Phone Retail',
+      'Extended Weekend Hours',
+      'Part-Time Staffing Saving',
+      'Repair Membership (50 members)',
+      'Increased Avg Order Value',
+      'WhatsApp Broadcast List'
+    ],
+    datasets: [{
+      label: 'Min Monthly Revenue (£)',
+      data: [400, 400, 400, 800, 300, 200, 100],
+      backgroundColor: BLUE + 'cc',
+      borderRadius: 4
+    }, {
+      label: 'Max Monthly Revenue (£)',
+      data: [1000, 800, 800, 1000, 300, 600, 400],
+      backgroundColor: GREEN + 'cc',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 10 } } },
+      tooltip: { callbacks: { label: ctx => '£' + ctx.raw + '/month' } }
+    },
+    scales: {
+      x: { ticks: { callback: v => '£' + v }, title: { display: true, text: '£/month' } }
+    }
+  }
+});
+
+// ── 10. Priority Matrix Bubble
+new Chart(document.getElementById('priorityMatrixChart'), {
+  type: 'bubble',
+  data: {
+    datasets: [
+      { label: 'Fix Cash Flow', data: [{ x: 2, y: 10, r: 14 }], backgroundColor: RED + 'cc' },
+      { label: 'Google Business Profile', data: [{ x: 2, y: 9, r: 12 }], backgroundColor: GREEN + 'cc' },
+      { label: 'WhatsApp Broadcast', data: [{ x: 1, y: 8, r: 10 }], backgroundColor: TEAL + 'cc' },
+      { label: 'eBay Store', data: [{ x: 4, y: 7, r: 11 }], backgroundColor: GOLD + 'cc' },
+      { label: 'Repair Membership', data: [{ x: 5, y: 7, r: 10 }], backgroundColor: PURPLE + 'cc' },
+      { label: 'Refurbished Retail', data: [{ x: 6, y: 6, r: 12 }], backgroundColor: BLUE + 'cc' },
+      { label: 'Extend Hours', data: [{ x: 2, y: 6, r: 9 }], backgroundColor: GREY + 'cc' },
+      { label: 'Loyalty Card', data: [{ x: 1, y: 5, r: 8 }], backgroundColor: RED + '88' },
+      { label: 'Separate Finances', data: [{ x: 1, y: 9, r: 10 }], backgroundColor: GREEN + '88' },
+      { label: 'Part-Time Staffing', data: [{ x: 4, y: 8, r: 11 }], backgroundColor: TEAL + '88' },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 6 } } },
+    scales: {
+      x: {
+        min: 0, max: 10,
+        title: { display: true, text: 'Effort Required (1 = Low)' }
+      },
+      y: {
+        min: 0, max: 11,
+        title: { display: true, text: 'Revenue Impact (10 = High)' }
+      }
+    }
+  }
+});
+
+// ── 11. Roadmap Gantt-style
+new Chart(document.getElementById('roadmapChart'), {
+  type: 'bar',
+  data: {
+    labels: [
+      'Phase 1 — Immediate (Month 1)',
+      'Phase 2 — Quick Wins (Month 2–3)',
+      'Phase 3 — Growth (Month 3–6)',
+      'Phase 4 — Expansion (Month 6+)'
+    ],
+    datasets: [
+      {
+        label: 'Fix Cash Flow + Separate Finances',
+        data: [1, 0, 0, 0],
+        backgroundColor: RED,
+        borderRadius: 4
+      },
+      {
+        label: 'Google Business + WhatsApp Broadcast',
+        data: [0, 2, 0, 0],
+        backgroundColor: GREEN,
+        borderRadius: 4
+      },
+      {
+        label: 'AI Booking Bot + Status Updater + eBay Store',
+        data: [0, 0, 3, 0],
+        backgroundColor: BLUE,
+        borderRadius: 4
+      },
+      {
+        label: 'Membership + Refurb Retail + Second Location Planning',
+        data: [0, 0, 0, 4],
+        backgroundColor: GOLD,
+        borderRadius: 4
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 10 } } },
+      tooltip: { enabled: false }
+    },
+    scales: {
+      x: { display: false, stacked: true },
+      y: { stacked: true, ticks: { font: { size: 11 } } }
+    }
+  }
+});
+</script>
+
+</body>
+</html>
