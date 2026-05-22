@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apex Mortgage Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:   #0F1B2D;
+    --blue:   #1A3A5C;
+    --gold:   #C9A84C;
+    --gold-l: #E8C96A;
+    --light:  #F4F7FB;
+    --muted:  #6B7E94;
+    --border: #E2E8F0;
+    --white:  #FFFFFF;
+    --green:  #059669;
+    --red:    #DC2626;
+  }
+
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--light); color: #1A202C; height: 100dvh; display: flex; flex-direction: column; }
+
+  /* ── Header ── */
+  header {
+    background: var(--navy);
+    color: var(--white);
+    padding: 0 1.25rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.35);
+  }
+  .logo { display: flex; align-items: center; gap: .75rem; }
+  .logo-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text h1 { font-size: .95rem; font-weight: 600; line-height: 1.2; }
+  .logo-text p  { font-size: .7rem;  color: #93B3D4; }
+  .header-badges { display: flex; gap: .5rem; }
+  .badge {
+    font-size: .65rem; font-weight: 500;
+    padding: .2rem .55rem; border-radius: 20px;
+    background: rgba(201,168,76,.15); color: var(--gold);
+    border: 1px solid rgba(201,168,76,.3);
+  }
+
+  /* ── Disclosure bar ── */
+  .disclosure {
+    background: #1e3a5c;
+    border-bottom: 1px solid rgba(201,168,76,.25);
+    padding: .45rem 1.25rem;
+    font-size: .7rem;
+    color: #93B3D4;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-shrink: 0;
+  }
+  .disclosure span { color: var(--gold); font-weight: 600; }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 1.25rem;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .pipeline-inner {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-width: max-content;
+  }
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    font-size: .65rem;
+    font-weight: 500;
+    color: var(--muted);
+    padding: .3rem .5rem;
+    border-radius: 6px;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .stage.active { color: var(--navy); background: rgba(201,168,76,.12); }
+  .stage.done   { color: var(--green); }
+  .stage-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border);
+    transition: background .2s;
+  }
+  .stage.active .stage-dot { background: var(--gold); }
+  .stage.done   .stage-dot { background: var(--green); }
+  .stage-arrow { color: var(--border); font-size: .7rem; padding: 0 .15rem; }
+
+  /* ── Main chat area ── */
+  main { flex: 1; overflow: hidden; display: flex; justify-content: center; }
+  .chat-wrap { width: 100%; max-width: 860px; display: flex; flex-direction: column; height: 100%; }
+
+  /* ── Messages ── */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scroll-behavior: smooth;
+  }
+  .messages::-webkit-scrollbar { width: 4px; }
+  .messages::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+
+  /* ── Welcome screen ── */
+  .welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem 1rem;
+    gap: 1.5rem;
+  }
+  .welcome-logo {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px;
+    box-shadow: 0 4px 20px rgba(15,27,45,.3);
+  }
+  .welcome h2 { font-size: 1.35rem; font-weight: 600; color: var(--navy); }
+  .welcome p  { font-size: .85rem; color: var(--muted); max-width: 420px; line-height: 1.6; }
+  .starters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: .6rem;
+    width: 100%;
+    max-width: 680px;
+  }
+  .starter-btn {
+    text-align: left;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    font-size: .78rem;
+    color: #374151;
+    cursor: pointer;
+    transition: all .15s;
+    line-height: 1.45;
+  }
+  .starter-btn:hover { border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,76,.2); color: var(--navy); }
+
+  /* ── Message bubbles ── */
+  .msg { display: flex; gap: .6rem; max-width: 85%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.assistant { align-self: flex-start; }
+
+  .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold); font-weight: 700; font-size: .7rem;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .msg.user .avatar { background: var(--muted); color: var(--white); }
+
+  .bubble {
+    padding: .75rem 1rem;
+    border-radius: 16px;
+    font-size: .84rem;
+    line-height: 1.6;
+  }
+  .msg.user .bubble {
+    background: var(--navy);
+    color: var(--white);
+    border-bottom-right-radius: 4px;
+  }
+  .msg.assistant .bubble {
+    background: var(--white);
+    color: #1A202C;
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+
+  /* Markdown inside assistant bubble */
+  .bubble h2, .bubble h3 { font-size: .9rem; font-weight: 600; color: var(--navy); margin: .75rem 0 .35rem; }
+  .bubble ul, .bubble ol { padding-left: 1.2rem; margin: .4rem 0; }
+  .bubble li { margin: .2rem 0; }
+  .bubble strong { font-weight: 600; color: var(--navy); }
+  .bubble em { font-style: italic; }
+  .bubble code { background: #F1F5F9; padding: .1rem .35rem; border-radius: 4px; font-family: monospace; font-size: .8rem; }
+  .bubble table { border-collapse: collapse; width: 100%; margin: .6rem 0; font-size: .78rem; }
+  .bubble th { background: #F8FAFC; padding: .4rem .6rem; border: 1px solid var(--border); text-align: left; font-weight: 600; color: var(--navy); }
+  .bubble td { padding: .4rem .6rem; border: 1px solid var(--border); }
+  .bubble p  { margin: .35rem 0; }
+  .bubble hr { border: none; border-top: 1px solid var(--border); margin: .75rem 0; }
+  .bubble a  { color: var(--blue); text-decoration: underline; }
+
+  /* Compliance callout */
+  .compliance-note {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 8px;
+    padding: .5rem .75rem;
+    font-size: .72rem;
+    color: #92400E;
+    margin-top: .5rem;
+    display: flex;
+    gap: .35rem;
+    align-items: flex-start;
+  }
+
+  /* Typing indicator */
+  .typing { display: flex; align-items: center; gap: 4px; padding: .6rem .8rem; }
+  .typing span {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--muted); animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: .2s; }
+  .typing span:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+  /* ── Input area ── */
+  .input-area {
+    border-top: 1px solid var(--border);
+    background: var(--white);
+    padding: .75rem 1rem .85rem;
+    flex-shrink: 0;
+  }
+  .input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: .6rem;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: .65rem .9rem;
+    font-family: inherit;
+    font-size: .84rem;
+    line-height: 1.5;
+    background: var(--light);
+    color: #1A202C;
+    outline: none;
+    max-height: 140px;
+    transition: border-color .15s;
+  }
+  textarea:focus { border-color: var(--gold); background: var(--white); }
+  textarea::placeholder { color: var(--muted); }
+
+  .send-btn {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: var(--navy); color: var(--gold);
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover:not(:disabled) { background: var(--blue); }
+  .send-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .send-btn svg { width: 18px; height: 18px; }
+
+  .input-hint {
+    text-align: center;
+    font-size: .68rem;
+    color: var(--muted);
+    margin-top: .4rem;
+    max-width: 860px;
+    margin-left: auto; margin-right: auto;
+  }
+
+  @media (max-width: 600px) {
+    .header-badges { display: none; }
+    .msg { max-width: 95%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🏠</div>
+    <div class="logo-text">
+      <h1>Apex Mortgage Agent</h1>
+      <p>AI Mortgage Information Assistant</p>
+    </div>
+  </div>
+  <div class="header-badges">
+    <span class="badge">🇬🇧 UK Mortgages</span>
+    <span class="badge">FCA Aware</span>
+    <span class="badge">GBP £</span>
+  </div>
+</header>
+
+<!-- Disclosure bar -->
+<div class="disclosure">
+  <span>⚠️ Disclosure:</span>
+  This AI provides mortgage INFORMATION only — not regulated financial advice under FSMA 2000.
+  Speak with an FCA-authorised adviser for personal advice.
+</div>
+
+<!-- Pipeline progress -->
+<div class="pipeline">
+  <div class="pipeline-inner" id="pipeline">
+    <div class="stage active" data-stage="lead"><div class="stage-dot"></div>Enquiry</div>
+    <div class="stage-arrow">›</div>
+    <div class="stage" data-stage="qualified"><div class="stage-dot"></div>Qualified</div>
+    <div class="stage-arrow">›</div>
+    <div class="stage" data-stage="affordability_assessed"><div class="stage-dot"></div>Affordability</div>
+    <div class="stage-arrow">›</div>
+    <div class="stage" data-stage="products_presented"><div class="stage-dot"></div>Products</div>
+    <div class="stage-arrow">›</div>
+    <div class="stage" data-stage="documents_requested"><div class="stage-dot"></div>Documents</div>
+    <div class="stage-arrow">›</div>
+    <div class="stage" data-stage="dip_ready"><div class="stage-dot"></div>DIP Ready</div>
+    <div class="stage-arrow">›</div>
+    <div class="stage" data-stage="completion"><div class="stage-dot"></div>Completion</div>
+  </div>
+</div>
+
+<!-- Chat -->
+<main>
+  <div class="chat-wrap">
+    <div class="messages" id="messages">
+      <!-- Welcome screen -->
+      <div class="welcome" id="welcome">
+        <div class="welcome-logo">🏠</div>
+        <div>
+          <h2>Good day, I'm Apex</h2>
+          <p>Your AI mortgage information assistant. I can help you explore affordability, compare indicative rates, and prepare your documents — all in GBP.</p>
+        </div>
+        <div class="starters">
+          <button class="starter-btn" onclick="send('I\'m a first-time buyer looking to purchase a property for around £350,000 with a £35,000 deposit.')">🏡 First-time buyer — £350,000 purchase, £35,000 deposit</button>
+          <button class="starter-btn" onclick="send('I earn £65,000 a year. How much could I borrow for a mortgage?')">💷 How much can I borrow on a £65,000 salary?</button>
+          <button class="starter-btn" onclick="send('I\'d like to remortgage. My property is worth about £400,000 and I owe £220,000.')">🔄 Remortgage — £400k property, £220k outstanding</button>
+          <button class="starter-btn" onclick="send('I\'m self-employed and want to buy a buy-to-let property for £280,000.')">📋 Self-employed BTL purchase — £280,000</button>
+          <button class="starter-btn" onclick="send('What documents will I need for a mortgage application?')">📁 What documents do I need?</button>
+          <button class="starter-btn" onclick="send('Can you explain the difference between a fixed rate and a tracker mortgage?')">❓ Fixed rate vs tracker — what\'s the difference?</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-row">
+        <textarea
+          id="input"
+          rows="1"
+          placeholder="Ask about mortgages, affordability, rates, documents…"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="send-btn" id="sendBtn" onclick="send()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <p class="input-hint">Information only — not regulated financial advice &nbsp;·&nbsp; Press Enter to send, Shift+Enter for new line</p>
+    </div>
+  </div>
+</main>
+
+<script>
+  // ── Session ──────────────────────────────────────────────────────────
+  const SESSION_ID = 'sess_' + Math.random().toString(36).slice(2, 10);
+  let messages = [];
+  let loading = false;
+
+  const input    = document.getElementById('input');
+  const sendBtn  = document.getElementById('sendBtn');
+  const messagesEl = document.getElementById('messages');
+  const welcomeEl  = document.getElementById('welcome');
+
+  input.addEventListener('input', () => {
+    sendBtn.disabled = !input.value.trim() || loading;
+  });
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+  }
+
+  // ── Pipeline ─────────────────────────────────────────────────────────
+  const stageOrder = ['lead','qualified','affordability_assessed','products_presented','documents_requested','dip_ready','full_application','offer_received','completion'];
+
+  function updatePipeline(stage) {
+    if (!stage) return;
+    const idx = stageOrder.indexOf(stage);
+    document.querySelectorAll('.stage[data-stage]').forEach(el => {
+      const elIdx = stageOrder.indexOf(el.dataset.stage);
+      el.classList.remove('active', 'done');
+      if (elIdx < idx)       el.classList.add('done');
+      else if (elIdx === idx) el.classList.add('active');
+    });
+  }
+
+  // ── Simple Markdown ───────────────────────────────────────────────────
+  function md(text) {
+    return text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      // restore > for blockquotes after escaping
+      .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm,   '<h2>$1</h2>')
+      .replace(/^---$/gm, '<hr/>')
+      .replace(/^\* (.+)$/gm, '<li>$1</li>')
+      .replace(/^- (.+)$/gm,  '<li>$1</li>')
+      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br/>')
+      .replace(/^(?!<[hupbio])(.+)$/gm, m => m ? '<p>' + m + '</p>' : m);
+  }
+
+  // ── Append message ────────────────────────────────────────────────────
+  function appendMsg(role, content) {
+    if (welcomeEl) welcomeEl.remove();
+
+    const wrap = document.createElement('div');
+    wrap.className = `msg ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = role === 'user' ? 'You' : 'A';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    if (role === 'assistant') {
+      bubble.innerHTML = md(content);
+      // Add compliance note if products are mentioned
+      if (content.toLowerCase().includes('indicative') || content.toLowerCase().includes('product') || content.toLowerCase().includes('%')) {
+        const note = document.createElement('div');
+        note.className = 'compliance-note';
+        note.textContent = '⚠️ These are indicative figures only — not a personal recommendation. Rates change daily. Speak with an FCA-authorised adviser before making any decision.';
+        bubble.appendChild(note);
+      }
+    } else {
+      bubble.textContent = content;
+    }
+
+    wrap.appendChild(avatar);
+    wrap.appendChild(bubble);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // ── Typing indicator ─────────────────────────────────────────────────
+  let typingEl = null;
+  function showTyping() {
+    if (welcomeEl) welcomeEl.remove();
+    typingEl = document.createElement('div');
+    typingEl.className = 'msg assistant';
+    typingEl.innerHTML = `
+      <div class="avatar">A</div>
+      <div class="bubble">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>`;
+    messagesEl.appendChild(typingEl);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+  function hideTyping() {
+    if (typingEl) { typingEl.remove(); typingEl = null; }
+  }
+
+  // ── Send ──────────────────────────────────────────────────────────────
+  async function send(text) {
+    const content = (text ?? input.value).trim();
+    if (!content || loading) return;
+
+    messages.push({ role: 'user', content });
+    appendMsg('user', content);
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+    loading = true;
+    showTyping();
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: SESSION_ID, messages }),
+      });
+      if (!res.ok) throw new Error('Request failed');
+      const data = await res.json();
+      hideTyping();
+      messages.push({ role: 'assistant', content: data.message });
+      appendMsg('assistant', data.message);
+      if (data.stage) updatePipeline(data.stage);
+    } catch (err) {
+      hideTyping();
+      appendMsg('assistant', 'I\'m sorry, something went wrong. Please check your connection and try again.');
+    } finally {
+      loading = false;
+      sendBtn.disabled = !input.value.trim();
+    }
+  }
+</script>
+</body>
+</html>

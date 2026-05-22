@@ -1,4 +1,10 @@
 .env
 .env.local
-.next/
+__pycache__/
+*.pyc
+*.pyo
 node_modules/
+.next/
+memory/client_profiles/*.json
+memory/audit_logs/*.jsonl
+memory/product_cache/*.json
