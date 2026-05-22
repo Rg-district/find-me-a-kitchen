@@ -533,6 +533,137 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .toast.error { border-left: 4px solid #f56565; }
 .toast.info { border-left: 4px solid var(--gold); }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── Mobile hamburger button ──────────────────────────────────── */
+#hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 6px;
+  border-radius: 6px;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+#hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
+#hamburger:hover { background: rgba(255,255,255,.1); }
+
+/* Sidebar backdrop (mobile) */
+#sidebar-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 150;
+}
+#sidebar-backdrop.show { display: block; }
+
+/* Sidebar close button (mobile only) */
+#sidebar-close {
+  display: none;
+  position: absolute;
+  top: 14px; right: 12px;
+  background: none;
+  border: none;
+  color: #8fa5bf;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#sidebar-close:hover { color: #fff; }
+
+/* ── Responsive breakpoints ───────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Sidebar becomes a fixed drawer */
+  #sidebar {
+    position: fixed;
+    top: var(--topnav-h);
+    left: 0;
+    height: calc(100vh - var(--topnav-h));
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    width: min(var(--sidebar-w), 85vw);
+  }
+  #sidebar.open { transform: translateX(0); }
+  #sidebar-close { display: block; }
+
+  /* Show hamburger, hide badge and UK label */
+  #hamburger { display: flex; }
+  .nav-badge { display: none; }
+  .nav-uk { display: none; }
+
+  /* Content takes full width */
+  #content { width: 100%; }
+
+  /* Reduce tab pane padding */
+  .tab-pane { padding: 14px; }
+
+  /* Client panel header */
+  #client-panel-header { padding: 10px 14px 0; }
+  .client-panel-name { font-size: 15px; margin-bottom: 8px; }
+
+  /* Tabs scroll horizontally */
+  #tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  #tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 8px 12px; font-size: 12px; }
+
+  /* Overview 2-col grid → single col */
+  #tab-overview > div { grid-template-columns: 1fr !important; }
+
+  /* Form rows stack */
+  .form-row { grid-template-columns: 1fr !important; }
+
+  /* Cards */
+  .card { padding: 14px; }
+
+  /* Stat boxes — 2 across */
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-box { min-width: 0; }
+  .stat-value { font-size: 16px; }
+
+  /* Breakdown grid — single col */
+  .breakdown-grid { grid-template-columns: 1fr; }
+
+  /* Lender grid — single col */
+  .lender-grid { grid-template-columns: 1fr; }
+
+  /* Grade hero stack */
+  .grade-hero { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Tables — horizontal scroll */
+  .data-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; white-space: nowrap; }
+  .info-table { font-size: 13px; }
+  .info-table th { width: auto; min-width: 120px; }
+
+  /* Report iframe */
+  #report-frame { height: 400px; }
+
+  /* Chat tab height */
+  .tab-pane#tab-assistant { height: calc(100dvh - var(--topnav-h) - 100px); }
+  .chat-footer { padding: 10px 14px; }
+  .chat-messages { padding: 14px; }
+  .chat-msg { max-width: 95%; }
+
+  /* Upload zone */
+  .upload-zone { padding: 24px 16px; }
+
+  /* Toast — centre bottom */
+  #toast-container { left: 50%; right: auto; transform: translateX(-50%); align-items: center; }
+  .toast { max-width: 90vw; }
+
+  /* Modal */
+  .modal { width: 100%; max-width: 100vw; border-radius: 12px 12px 0 0; margin-top: auto; }
+  .modal-overlay { align-items: flex-end; }
+}
+
+@media (max-width: 400px) {
+  .stat-row { grid-template-columns: 1fr; }
+  .tab-btn { padding: 8px 10px; font-size: 11px; }
+}
 </style>
 </head>
 <body>
@@ -540,6 +671,9 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 
   <!-- TOP NAV -->
   <nav id="topnav">
+    <button id="hamburger" onclick="toggleSidebar()" aria-label="Toggle client list">
+      <span></span><span></span><span></span>
+    </button>
     <div class="nav-logo">
       <div class="nav-logo-mark">AM</div>
       <div class="nav-logo-text">
@@ -554,8 +688,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   <!-- MAIN LAYOUT -->
   <div id="main">
 
+    <!-- Sidebar backdrop (mobile) -->
+    <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
     <!-- SIDEBAR -->
     <aside id="sidebar">
+      <button id="sidebar-close" onclick="closeSidebar()" aria-label="Close">&#10005;</button>
       <div class="sidebar-header">
         <div class="sidebar-header-top">
           <span class="sidebar-title">Clients</span>
@@ -904,6 +1042,9 @@ function selectClient(clientId) {
   document.querySelectorAll('.client-item').forEach(function(el) {
     el.classList.toggle('active', el.getAttribute('data-id') === clientId);
   });
+
+  // Close drawer on mobile when client is selected
+  if (window.innerWidth <= 768) closeSidebar();
 
   showLoading('Loading client...');
   fetch('/api/clients/' + clientId)
@@ -1577,6 +1718,24 @@ function toast(message, type) {
 document.getElementById('new-client-modal').addEventListener('click', function(e) {
   if (e.target === this) closeNewClientModal();
 });
+
+// ── Mobile sidebar toggle ─────────────────────────────────────────────────────
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebar-backdrop');
+  var isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('show');
+  } else {
+    sidebar.classList.add('open');
+    backdrop.classList.add('show');
+  }
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('show');
+}
 </script>
 </body>
 </html>
