@@ -1,64 +1,330 @@
-"""Apex Mortgage Agent — FastAPI entry point."""
+"""Apex Mortgage Agent — FastAPI entry point (consultant dashboard rebuild)."""
 import os
-from fastapi import FastAPI, HTTPException
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
 load_dotenv()
 
+from memory.client_store import (
+    create_client,
+    get_client,
+    list_clients,
+    update_client,
+    save_analysis,
+    get_analysis,
+)
+from tools.bank_statement_analyser import analyse_statement
+from tools.grading_engine import grade_client
+from tools.adverse_lender_matcher import match_lenders
+from tools.report_generator import generate_report
 from orchestrator import Orchestrator
 
-app = FastAPI(title="Apex Mortgage Agent", version="1.0.0")
+app = FastAPI(title="Apex Mortgage Agent — Consultant Dashboard", version="2.0.0")
 orchestrator = Orchestrator()
 
 
-class Message(BaseModel):
+# ── Pydantic models ───────────────────────────────────────────────────────────
+
+class AdverseHistory(BaseModel):
+    ccj: bool = False
+    default: bool = False
+    iva: bool = False
+    bankruptcy: bool = False
+    dmp: bool = False
+    payday_loans: bool = False
+    months_since_most_recent: Optional[int] = None
+
+
+class CreateClientRequest(BaseModel):
+    name: str
+    mortgage_purpose: str  # purchase | remortgage | btl
+    loan_amount: float
+    property_value: float
+    declared_income: float  # monthly in £
+    employment_type: str    # employed | self_employed | contractor | retired
+    adverse_history: AdverseHistory = AdverseHistory()
+
+
+class UpdateClientRequest(BaseModel):
+    name: Optional[str] = None
+    mortgage_purpose: Optional[str] = None
+    loan_amount: Optional[float] = None
+    property_value: Optional[float] = None
+    declared_income: Optional[float] = None
+    employment_type: Optional[str] = None
+    adverse_history: Optional[AdverseHistory] = None
+
+
+class ChatMessage(BaseModel):
     role: str
     content: str
 
 
 class ChatRequest(BaseModel):
     session_id: str
-    messages: list[Message]
+    messages: list[ChatMessage]
+    client_id: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
     session_id: str
     message: str
-    stage: str | None = None
+    stage: Optional[str] = None
 
+
+# ── Health ────────────────────────────────────────────────────────────────────
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "service": "apex-mortgage-agent", "version": "2.0.0"}
+
+
+# ── Client endpoints ──────────────────────────────────────────────────────────
+
+@app.get("/api/clients")
+async def list_all_clients():
+    """Return all clients with basic profile data."""
+    clients = list_clients()
+    return {"clients": clients, "total": len(clients)}
+
+
+@app.post("/api/clients", status_code=201)
+async def create_new_client(req: CreateClientRequest):
+    """Create a new client record."""
+    data = {
+        "name": req.name,
+        "mortgage_purpose": req.mortgage_purpose,
+        "loan_amount": req.loan_amount,
+        "property_value": req.property_value,
+        "declared_income": req.declared_income,
+        "employment_type": req.employment_type,
+        "adverse_history": req.adverse_history.model_dump(),
+    }
+    client_id = create_client(data)
+    client = get_client(client_id)
+    return {"client_id": client_id, "client": client}
+
+
+@app.get("/api/clients/{client_id}")
+async def get_client_detail(client_id: str):
+    """Return full client detail including analysis results and grade."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    analysis = get_analysis(client_id)
+    return {
+        "client": client,
+        "analysis": analysis,
+        "has_analysis": analysis is not None,
+    }
+
+
+@app.patch("/api/clients/{client_id}")
+async def update_client_detail(client_id: str, req: UpdateClientRequest):
+    """Update client fields."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    updates = req.model_dump(exclude_none=True)
+    if "adverse_history" in updates and isinstance(updates["adverse_history"], dict):
+        pass  # already a dict via model_dump
+
+    updated = update_client(client_id, updates)
+    return {"client": updated}
+
+
+@app.post("/api/clients/{client_id}/upload-statement")
+async def upload_statement(client_id: str, file: UploadFile = File(...)):
+    """
+    Upload a bank statement PDF or image. Triggers AI analysis and grading.
+    Returns the full analysis result including grade.
+    """
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    # Validate file type
+    allowed_types = {
+        "application/pdf",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+    }
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {content_type}. Please upload a PDF or image.",
+        )
+
+    # Read file bytes
+    try:
+        file_bytes = await file.read()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not read file: {exc}")
+
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    declared_income = float(client.get("declared_income", 0))
+
+    # Run analysis (synchronous call — bank statement analyser uses sync client)
+    try:
+        analysis = analyse_statement(
+            file_bytes=file_bytes,
+            file_type=content_type,
+            declared_monthly_income=declared_income,
+            client_id=client_id,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {exc}")
+
+    # Grade the client
+    try:
+        grade_result = grade_client(analysis)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Grading failed: {exc}")
+
+    # Combine and persist
+    combined = {
+        "analysis": analysis,
+        "grade_result": grade_result,
+        "statement_filename": file.filename,
+    }
+    save_analysis(client_id, combined)
+
+    # Update client record with grade
+    update_client(client_id, {
+        "grade": grade_result["grade"],
+        "score": grade_result["score"],
+        "grade_label": grade_result.get("grade_label"),
+    })
+
+    return {
+        "success": True,
+        "client_id": client_id,
+        "grade": grade_result["grade"],
+        "score": grade_result["score"],
+        "grade_label": grade_result.get("grade_label"),
+        "summary": grade_result.get("summary"),
+        "analysis": analysis,
+        "grade_result": grade_result,
+    }
+
+
+@app.post("/api/clients/{client_id}/generate-report")
+async def generate_client_report(client_id: str):
+    """Generate and return an HTML report for the client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    stored = get_analysis(client_id)
+    if not stored:
+        raise HTTPException(
+            status_code=400,
+            detail="No bank statement analysis found. Please upload and analyse a statement first.",
+        )
+
+    analysis = stored.get("analysis", {})
+    grade_result = stored.get("grade_result", {})
+
+    # Get lender matches
+    adverse = client.get("adverse_history", {})
+    ltv = 0.0
+    if client.get("loan_amount") and client.get("property_value"):
+        try:
+            ltv = (float(client["loan_amount"]) / float(client["property_value"])) * 100
+        except (TypeError, ZeroDivisionError):
+            ltv = 75.0
+
+    matched_lenders = match_lenders(
+        grade=grade_result.get("grade", "F"),
+        ccjs=bool(adverse.get("ccj")),
+        defaults=bool(adverse.get("default")),
+        bankruptcy=bool(adverse.get("bankruptcy")),
+        months_since_adverse=int(adverse.get("months_since_most_recent") or 0),
+        ltv=ltv,
+        employment_type=client.get("employment_type", "employed"),
+    )
+
+    try:
+        html = generate_report(
+            client=client,
+            analysis=analysis,
+            grade_result=grade_result,
+            matched_lenders=matched_lenders,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Report generation failed: {exc}")
+
+    return HTMLResponse(content=html, media_type="text/html")
+
+
+@app.get("/api/clients/{client_id}/match-lenders")
+async def get_matched_lenders(client_id: str):
+    """Return matched lenders for a client based on their grade and adverse history."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    grade = client.get("grade", "F")
+    adverse = client.get("adverse_history", {})
+
+    ltv = 75.0
+    if client.get("loan_amount") and client.get("property_value"):
+        try:
+            ltv = (float(client["loan_amount"]) / float(client["property_value"])) * 100
+        except (TypeError, ZeroDivisionError):
+            pass
+
+    matched = match_lenders(
+        grade=grade,
+        ccjs=bool(adverse.get("ccj")),
+        defaults=bool(adverse.get("default")),
+        bankruptcy=bool(adverse.get("bankruptcy")),
+        months_since_adverse=int(adverse.get("months_since_most_recent") or 0),
+        ltv=ltv,
+        employment_type=client.get("employment_type", "employed"),
+    )
+
+    return {"client_id": client_id, "grade": grade, "lenders": matched, "count": len(matched)}
+
+
+# ── AI Assistant ──────────────────────────────────────────────────────────────
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
+    """AI assistant endpoint for consultant queries."""
     if not req.messages:
         raise HTTPException(status_code=400, detail="No messages provided")
+
     try:
+        # If a client_id is provided, inject client context into the session
+        session_id = req.session_id
+        if req.client_id:
+            session_id = f"{req.client_id}_{req.session_id}"
+
         text, stage = await orchestrator.process(
-            req.session_id,
+            session_id,
             [{"role": m.role, "content": m.content} for m in req.messages],
+            client_id=req.client_id,
         )
         return ChatResponse(session_id=req.session_id, message=text, stage=stage)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
 
-@app.get("/api/session/{session_id}")
-async def get_session(session_id: str):
-    from memory.client_store import get_profile
-    from memory.audit_log import get_log
-    return {
-        "session_id": session_id,
-        "profile": get_profile(session_id),
-        "audit_events": len(get_log(session_id)),
-    }
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok", "service": "apex-mortgage-agent"}
-
+# ── Static files ──────────────────────────────────────────────────────────────
 
 if os.path.exists("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")

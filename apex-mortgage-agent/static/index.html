@@ -1,530 +1,1582 @@
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Apex Mortgage Agent</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apex Mortgage Agent — Consultant Dashboard</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Reset & base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0F1B2D;
+  --navy-mid: #1a2e47;
+  --navy-light: #243b55;
+  --gold: #C9A84C;
+  --gold-light: #e8c96e;
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --border: #d1dce8;
+  --text: #1a1a2e;
+  --text-muted: #6b7a8e;
+  --grade-a: #1a7a3e;
+  --grade-b: #1a4e8a;
+  --grade-c: #b8760a;
+  --grade-d: #c05c0a;
+  --grade-e: #a01c1c;
+  --grade-f: #5c0a0a;
+  --danger: #c53030;
+  --success: #276749;
+  --sidebar-w: 268px;
+  --topnav-h: 56px;
+}
+html, body { height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
+a { color: var(--gold); text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; font-size: 14px; }
 
-  :root {
-    --navy:   #0F1B2D;
-    --blue:   #1A3A5C;
-    --gold:   #C9A84C;
-    --gold-l: #E8C96A;
-    --light:  #F4F7FB;
-    --muted:  #6B7E94;
-    --border: #E2E8F0;
-    --white:  #FFFFFF;
-    --green:  #059669;
-    --red:    #DC2626;
-  }
+/* ── Layout ───────────────────────────────────────────────────── */
+#app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--light); color: #1A202C; height: 100dvh; display: flex; flex-direction: column; }
+/* ── Top nav ──────────────────────────────────────────────────── */
+#topnav {
+  height: var(--topnav-h);
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; }
+.nav-logo-mark {
+  width: 34px; height: 34px;
+  background: var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 16px; color: var(--navy);
+  letter-spacing: -1px;
+}
+.nav-logo-text { color: #fff; }
+.nav-logo-text strong { display: block; font-size: 15px; letter-spacing: .5px; }
+.nav-logo-text span { font-size: 11px; color: #a0b0c0; }
+.nav-badge {
+  background: var(--navy-light);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+.nav-uk { margin-left: auto; color: #a0b0c0; font-size: 12px; display: flex; align-items: center; gap: 6px; }
 
-  /* ── Header ── */
-  header {
-    background: var(--navy);
-    color: var(--white);
-    padding: 0 1.25rem;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,.35);
-  }
-  .logo { display: flex; align-items: center; gap: .75rem; }
-  .logo-icon {
-    width: 36px; height: 36px; border-radius: 8px;
-    background: var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-  .logo-text h1 { font-size: .95rem; font-weight: 600; line-height: 1.2; }
-  .logo-text p  { font-size: .7rem;  color: #93B3D4; }
-  .header-badges { display: flex; gap: .5rem; }
-  .badge {
-    font-size: .65rem; font-weight: 500;
-    padding: .2rem .55rem; border-radius: 20px;
-    background: rgba(201,168,76,.15); color: var(--gold);
-    border: 1px solid rgba(201,168,76,.3);
-  }
+/* ── Main area ────────────────────────────────────────────────── */
+#main { display: flex; flex: 1; overflow: hidden; }
 
-  /* ── Disclosure bar ── */
-  .disclosure {
-    background: #1e3a5c;
-    border-bottom: 1px solid rgba(201,168,76,.25);
-    padding: .45rem 1.25rem;
-    font-size: .7rem;
-    color: #93B3D4;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    flex-shrink: 0;
-  }
-  .disclosure span { color: var(--gold); font-weight: 600; }
+/* ── Sidebar ──────────────────────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar-w);
+  background: var(--navy-mid);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+.sidebar-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.sidebar-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.sidebar-title { color: #8fa5bf; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+#btn-new-client {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; gap: 5px;
+  transition: background .15s;
+}
+#btn-new-client:hover { background: var(--gold-light); }
+#search-clients {
+  width: 100%;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 6px;
+  color: #e2e8f0;
+  padding: 7px 10px;
+  font-size: 13px;
+  outline: none;
+}
+#search-clients::placeholder { color: #5a7090; }
+#search-clients:focus { border-color: var(--gold); }
 
-  /* ── Pipeline ── */
-  .pipeline {
-    background: var(--white);
-    border-bottom: 1px solid var(--border);
-    padding: .6rem 1.25rem;
-    overflow-x: auto;
-    flex-shrink: 0;
-  }
-  .pipeline-inner {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    min-width: max-content;
-  }
-  .stage {
-    display: flex;
-    align-items: center;
-    gap: .35rem;
-    font-size: .65rem;
-    font-weight: 500;
-    color: var(--muted);
-    padding: .3rem .5rem;
-    border-radius: 6px;
-    transition: all .2s;
-    white-space: nowrap;
-  }
-  .stage.active { color: var(--navy); background: rgba(201,168,76,.12); }
-  .stage.done   { color: var(--green); }
-  .stage-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--border);
-    transition: background .2s;
-  }
-  .stage.active .stage-dot { background: var(--gold); }
-  .stage.done   .stage-dot { background: var(--green); }
-  .stage-arrow { color: var(--border); font-size: .7rem; padding: 0 .15rem; }
+#client-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+#client-list::-webkit-scrollbar { width: 4px; }
+#client-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
 
-  /* ── Main chat area ── */
-  main { flex: 1; overflow: hidden; display: flex; justify-content: center; }
-  .chat-wrap { width: 100%; max-width: 860px; display: flex; flex-direction: column; height: 100%; }
+.client-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background .12s, border-color .12s;
+}
+.client-item:hover { background: rgba(255,255,255,.06); }
+.client-item.active { background: rgba(201,168,76,.1); border-left-color: var(--gold); }
+.client-item-top { display: flex; justify-content: space-between; align-items: center; }
+.client-name { color: #e2e8f0; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.client-purpose { color: #7a9ab5; font-size: 11px; margin-top: 2px; }
+.grade-pill {
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.grade-A { background: var(--grade-a); }
+.grade-B { background: var(--grade-b); }
+.grade-C { background: var(--grade-c); }
+.grade-D { background: var(--grade-d); }
+.grade-E { background: var(--grade-e); }
+.grade-F { background: var(--grade-f); }
+.grade-none { background: #4a5568; }
 
-  /* ── Messages ── */
-  .messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1.25rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    scroll-behavior: smooth;
-  }
-  .messages::-webkit-scrollbar { width: 4px; }
-  .messages::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 2px; }
+.sidebar-empty { padding: 24px 16px; text-align: center; color: #5a7090; font-size: 13px; }
 
-  /* ── Welcome screen ── */
-  .welcome {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 2rem 1rem;
-    gap: 1.5rem;
-  }
-  .welcome-logo {
-    width: 64px; height: 64px; border-radius: 16px;
-    background: var(--navy);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 30px;
-    box-shadow: 0 4px 20px rgba(15,27,45,.3);
-  }
-  .welcome h2 { font-size: 1.35rem; font-weight: 600; color: var(--navy); }
-  .welcome p  { font-size: .85rem; color: var(--muted); max-width: 420px; line-height: 1.6; }
-  .starters {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: .6rem;
-    width: 100%;
-    max-width: 680px;
-  }
-  .starter-btn {
-    text-align: left;
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: .75rem 1rem;
-    font-size: .78rem;
-    color: #374151;
-    cursor: pointer;
-    transition: all .15s;
-    line-height: 1.45;
-  }
-  .starter-btn:hover { border-color: var(--gold); box-shadow: 0 2px 8px rgba(201,168,76,.2); color: var(--navy); }
+/* ── Content area ─────────────────────────────────────────────── */
+#content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
-  /* ── Message bubbles ── */
-  .msg { display: flex; gap: .6rem; max-width: 85%; }
-  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
-  .msg.assistant { align-self: flex-start; }
+/* Welcome screen */
+#welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #6b7a8e;
+  gap: 12px;
+}
+.welcome-icon { font-size: 48px; opacity: .3; }
+.welcome-text { font-size: 16px; }
 
-  .avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--navy);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--gold); font-weight: 700; font-size: .7rem;
-    flex-shrink: 0; margin-top: 2px;
-  }
-  .msg.user .avatar { background: var(--muted); color: var(--white); }
+/* ── Tabs ─────────────────────────────────────────────────────── */
+#client-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 
-  .bubble {
-    padding: .75rem 1rem;
-    border-radius: 16px;
-    font-size: .84rem;
-    line-height: 1.6;
-  }
-  .msg.user .bubble {
-    background: var(--navy);
-    color: var(--white);
-    border-bottom-right-radius: 4px;
-  }
-  .msg.assistant .bubble {
-    background: var(--white);
-    color: #1A202C;
-    border: 1px solid var(--border);
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
+#client-panel-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px 0;
+  flex-shrink: 0;
+}
+.client-panel-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.client-panel-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 20px;
+  color: #fff;
+}
 
-  /* Markdown inside assistant bubble */
-  .bubble h2, .bubble h3 { font-size: .9rem; font-weight: 600; color: var(--navy); margin: .75rem 0 .35rem; }
-  .bubble ul, .bubble ol { padding-left: 1.2rem; margin: .4rem 0; }
-  .bubble li { margin: .2rem 0; }
-  .bubble strong { font-weight: 600; color: var(--navy); }
-  .bubble em { font-style: italic; }
-  .bubble code { background: #F1F5F9; padding: .1rem .35rem; border-radius: 4px; font-family: monospace; font-size: .8rem; }
-  .bubble table { border-collapse: collapse; width: 100%; margin: .6rem 0; font-size: .78rem; }
-  .bubble th { background: #F8FAFC; padding: .4rem .6rem; border: 1px solid var(--border); text-align: left; font-weight: 600; color: var(--navy); }
-  .bubble td { padding: .4rem .6rem; border: 1px solid var(--border); }
-  .bubble p  { margin: .35rem 0; }
-  .bubble hr { border: none; border-top: 1px solid var(--border); margin: .75rem 0; }
-  .bubble a  { color: var(--blue); text-decoration: underline; }
+#tabs { display: flex; gap: 0; }
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color .12s, border-color .12s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--navy); }
+.tab-btn.active { color: var(--navy); border-bottom-color: var(--gold); }
 
-  /* Compliance callout */
-  .compliance-note {
-    background: #FFFBEB;
-    border: 1px solid #FDE68A;
-    border-radius: 8px;
-    padding: .5rem .75rem;
-    font-size: .72rem;
-    color: #92400E;
-    margin-top: .5rem;
-    display: flex;
-    gap: .35rem;
-    align-items: flex-start;
-  }
+#tab-content { flex: 1; overflow-y: auto; }
+.tab-pane { display: none; padding: 24px; }
+.tab-pane.active { display: block; }
 
-  /* Typing indicator */
-  .typing { display: flex; align-items: center; gap: 4px; padding: .6rem .8rem; }
-  .typing span {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--muted); animation: bounce 1.2s infinite;
-  }
-  .typing span:nth-child(2) { animation-delay: .2s; }
-  .typing span:nth-child(3) { animation-delay: .4s; }
-  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+/* ── Cards & sections ─────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  /* ── Input area ── */
-  .input-area {
-    border-top: 1px solid var(--border);
-    background: var(--white);
-    padding: .75rem 1rem .85rem;
-    flex-shrink: 0;
-  }
-  .input-row {
-    display: flex;
-    align-items: flex-end;
-    gap: .6rem;
-    max-width: 860px;
-    margin: 0 auto;
-  }
-  textarea {
-    flex: 1;
-    resize: none;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: .65rem .9rem;
-    font-family: inherit;
-    font-size: .84rem;
-    line-height: 1.5;
-    background: var(--light);
-    color: #1A202C;
-    outline: none;
-    max-height: 140px;
-    transition: border-color .15s;
-  }
-  textarea:focus { border-color: var(--gold); background: var(--white); }
-  textarea::placeholder { color: var(--muted); }
+/* Grade hero */
+.grade-hero { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.grade-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-weight: 900; font-size: 32px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 3px 12px rgba(0,0,0,.2);
+}
+.grade-circle .gc-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; margin-top: -2px; }
+.grade-detail { flex: 1; min-width: 200px; }
+.grade-detail h3 { font-size: 16px; font-weight: 700; }
+.grade-detail p { color: var(--text-muted); font-size: 13px; margin: 4px 0 10px; }
 
-  .send-btn {
-    width: 42px; height: 42px; border-radius: 10px;
-    background: var(--navy); color: var(--gold);
-    border: none; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
-    flex-shrink: 0;
-  }
-  .send-btn:hover:not(:disabled) { background: var(--blue); }
-  .send-btn:disabled { opacity: .4; cursor: not-allowed; }
-  .send-btn svg { width: 18px; height: 18px; }
+/* Progress bar */
+.prog-bar { background: #e8ecf0; border-radius: 6px; height: 10px; overflow: hidden; margin: 4px 0; }
+.prog-fill { height: 10px; border-radius: 6px; transition: width .3s; }
 
-  .input-hint {
-    text-align: center;
-    font-size: .68rem;
-    color: var(--muted);
-    margin-top: .4rem;
-    max-width: 860px;
-    margin-left: auto; margin-right: auto;
-  }
+/* Breakdown grid */
+.breakdown-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.breakdown-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+}
+.bi-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.bi-label { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .5px; }
+.bi-score { font-size: 16px; font-weight: 700; }
+.bi-note { font-size: 11px; color: #777; margin-top: 4px; line-height: 1.4; }
 
-  @media (max-width: 600px) {
-    .header-badges { display: none; }
-    .msg { max-width: 95%; }
-  }
+/* Info table */
+.info-table { width: 100%; border-collapse: collapse; }
+.info-table th { text-align: left; font-weight: 600; color: #555; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; padding: 7px 10px; background: #f0f4f8; width: 38%; }
+.info-table td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+.info-table tr:last-child td { border-bottom: none; }
+
+/* Data table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table thead th { background: var(--navy); color: var(--gold); font-weight: 600; padding: 9px 12px; text-align: left; }
+.data-table tbody tr:nth-child(even) { background: #f8fafc; }
+.data-table tbody td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+.data-table tfoot td { font-weight: 700; background: #eef3f8; padding: 8px 12px; }
+
+/* ── Red flags ────────────────────────────────────────────────── */
+.flag-card {
+  background: #fff5f5;
+  border: 1.5px solid #f56565;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.flag-card-title { font-weight: 700; color: var(--danger); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.flag-card-body { font-size: 13px; color: #555; }
+.flag-tag {
+  display: inline-block;
+  background: #fed7d7;
+  color: var(--danger);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  margin: 2px;
+}
+.no-flags {
+  background: #f0fff4;
+  border: 1.5px solid #68d391;
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: var(--success);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Upload area ──────────────────────────────────────────────── */
+.upload-zone {
+  border: 2.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: rgba(201,168,76,.04); }
+.upload-zone-icon { font-size: 36px; margin-bottom: 10px; }
+.upload-zone-text { color: var(--text-muted); font-size: 14px; }
+.upload-zone-text strong { color: var(--gold); }
+.upload-zone-hint { font-size: 12px; color: #a0aec0; margin-top: 6px; }
+
+/* ── Buttons ──────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  transition: all .15s;
+}
+.btn-primary { background: var(--gold); color: var(--navy); }
+.btn-primary:hover { background: var(--gold-light); }
+.btn-secondary { background: var(--navy); color: #fff; }
+.btn-secondary:hover { background: var(--navy-light); }
+.btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
+.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Analysis results ─────────────────────────────────────────── */
+.stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.stat-box { flex: 1; min-width: 120px; background: #f0f4f8; border-radius: 8px; padding: 12px 14px; }
+.stat-label { font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600; letter-spacing: .4px; }
+.stat-value { font-size: 20px; font-weight: 700; color: var(--navy); margin-top: 3px; }
+
+/* ── Lender cards ─────────────────────────────────────────────── */
+.lender-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.lender-card { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.lender-card-hdr { padding: 14px 16px; color: #fff; display: flex; align-items: center; gap: 12px; }
+.lender-initial {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 13px; flex-shrink: 0;
+}
+.lender-card-body { padding: 14px 16px; }
+.lender-card-body ul { padding-left: 16px; font-size: 12px; color: #555; }
+.lender-card-body ul li { margin-bottom: 3px; }
+.lender-notes { font-size: 11px; color: #888; font-style: italic; margin-top: 8px; }
+.lender-contact { font-size: 12px; color: #666; margin-top: 6px; }
+.suitability-bar { margin: 8px 0 4px; }
+
+/* ── Chat ─────────────────────────────────────────────────────── */
+.tab-pane#tab-assistant { height: calc(100vh - var(--topnav-h) - 94px); display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.chat-msg { display: flex; gap: 12px; max-width: 85%; }
+.chat-msg.user { flex-direction: row-reverse; align-self: flex-end; }
+.chat-msg.assistant { align-self: flex-start; }
+.msg-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.msg-avatar.user-av { background: var(--gold); color: var(--navy); }
+.msg-avatar.bot-av { background: var(--navy); color: #fff; }
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+.msg-bubble.user { background: var(--navy); color: #fff; border-bottom-right-radius: 3px; }
+.msg-bubble.assistant { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 3px; white-space: pre-wrap; }
+
+.chat-footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+#chat-input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 13px;
+  resize: none;
+  outline: none;
+  min-height: 42px;
+  max-height: 120px;
+  font-size: 13px;
+  transition: border-color .15s;
+}
+#chat-input:focus { border-color: var(--gold); }
+#chat-send { height: 42px; min-width: 42px; padding: 0 14px; }
+
+/* ── Spinning loader ──────────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(201,168,76,.3);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,27,45,.55);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 14px;
+  color: #fff;
+  font-size: 15px;
+}
+.loading-overlay.show { display: flex; }
+.loading-spinner { width: 40px; height: 40px; border-width: 4px; }
+
+/* ── Modal ────────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,27,45,.6);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: 12px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal-header {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-title { font-size: 16px; font-weight: 700; color: var(--navy); }
+.modal-close { background: none; border: none; font-size: 20px; color: #999; line-height: 1; }
+.modal-close:hover { color: var(--danger); }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 14px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* Form styles */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 12px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 6px; }
+.form-control {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+.form-control:focus { border-color: var(--gold); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
+.checkbox-label input[type=checkbox] { accent-color: var(--gold); width: 15px; height: 15px; }
+.adverse-section { background: #fff8f0; border: 1px solid #fbd38d; border-radius: 8px; padding: 14px; }
+
+/* ── Report tab ───────────────────────────────────────────────── */
+.report-frame-wrap { margin-top: 12px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+#report-frame { width: 100%; height: 600px; border: none; display: block; }
+.report-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+/* ── Notifications ────────────────────────────────────────────── */
+#toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideIn .2s ease;
+  max-width: 320px;
+}
+.toast.success { border-left: 4px solid #68d391; }
+.toast.error { border-left: 4px solid #f56565; }
+.toast.info { border-left: 4px solid var(--gold); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 </style>
 </head>
 <body>
+<div id="app">
 
-<!-- Header -->
-<header>
-  <div class="logo">
-    <div class="logo-icon">🏠</div>
-    <div class="logo-text">
-      <h1>Apex Mortgage Agent</h1>
-      <p>AI Mortgage Information Assistant</p>
+  <!-- TOP NAV -->
+  <nav id="topnav">
+    <div class="nav-logo">
+      <div class="nav-logo-mark">AM</div>
+      <div class="nav-logo-text">
+        <strong>APEX MORTGAGE</strong>
+        <span>Consultant Dashboard</span>
+      </div>
     </div>
-  </div>
-  <div class="header-badges">
-    <span class="badge">🇬🇧 UK Mortgages</span>
-    <span class="badge">FCA Aware</span>
-    <span class="badge">GBP £</span>
-  </div>
-</header>
+    <div class="nav-badge">Adverse Credit Specialist</div>
+    <div class="nav-uk">&#127468;&#127463; UK Dashboard</div>
+  </nav>
 
-<!-- Disclosure bar -->
-<div class="disclosure">
-  <span>⚠️ Disclosure:</span>
-  This AI provides mortgage INFORMATION only — not regulated financial advice under FSMA 2000.
-  Speak with an FCA-authorised adviser for personal advice.
-</div>
+  <!-- MAIN LAYOUT -->
+  <div id="main">
 
-<!-- Pipeline progress -->
-<div class="pipeline">
-  <div class="pipeline-inner" id="pipeline">
-    <div class="stage active" data-stage="lead"><div class="stage-dot"></div>Enquiry</div>
-    <div class="stage-arrow">›</div>
-    <div class="stage" data-stage="qualified"><div class="stage-dot"></div>Qualified</div>
-    <div class="stage-arrow">›</div>
-    <div class="stage" data-stage="affordability_assessed"><div class="stage-dot"></div>Affordability</div>
-    <div class="stage-arrow">›</div>
-    <div class="stage" data-stage="products_presented"><div class="stage-dot"></div>Products</div>
-    <div class="stage-arrow">›</div>
-    <div class="stage" data-stage="documents_requested"><div class="stage-dot"></div>Documents</div>
-    <div class="stage-arrow">›</div>
-    <div class="stage" data-stage="dip_ready"><div class="stage-dot"></div>DIP Ready</div>
-    <div class="stage-arrow">›</div>
-    <div class="stage" data-stage="completion"><div class="stage-dot"></div>Completion</div>
-  </div>
-</div>
-
-<!-- Chat -->
-<main>
-  <div class="chat-wrap">
-    <div class="messages" id="messages">
-      <!-- Welcome screen -->
-      <div class="welcome" id="welcome">
-        <div class="welcome-logo">🏠</div>
-        <div>
-          <h2>Good day, I'm Apex</h2>
-          <p>Your AI mortgage information assistant. I can help you explore affordability, compare indicative rates, and prepare your documents — all in GBP.</p>
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-header-top">
+          <span class="sidebar-title">Clients</span>
+          <button id="btn-new-client" onclick="openNewClientModal()">+ New</button>
         </div>
-        <div class="starters">
-          <button class="starter-btn" onclick="send('I\'m a first-time buyer looking to purchase a property for around £350,000 with a £35,000 deposit.')">🏡 First-time buyer — £350,000 purchase, £35,000 deposit</button>
-          <button class="starter-btn" onclick="send('I earn £65,000 a year. How much could I borrow for a mortgage?')">💷 How much can I borrow on a £65,000 salary?</button>
-          <button class="starter-btn" onclick="send('I\'d like to remortgage. My property is worth about £400,000 and I owe £220,000.')">🔄 Remortgage — £400k property, £220k outstanding</button>
-          <button class="starter-btn" onclick="send('I\'m self-employed and want to buy a buy-to-let property for £280,000.')">📋 Self-employed BTL purchase — £280,000</button>
-          <button class="starter-btn" onclick="send('What documents will I need for a mortgage application?')">📁 What documents do I need?</button>
-          <button class="starter-btn" onclick="send('Can you explain the difference between a fixed rate and a tracker mortgage?')">❓ Fixed rate vs tracker — what\'s the difference?</button>
+        <input id="search-clients" type="search" placeholder="Search clients..." oninput="filterClients(this.value)">
+      </div>
+      <div id="client-list">
+        <div class="sidebar-empty">Loading clients...</div>
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- Welcome -->
+      <div id="welcome">
+        <div class="welcome-icon">&#127968;</div>
+        <div class="welcome-text">Select a client or create a new case</div>
+      </div>
+
+      <!-- Client panel (hidden until client selected) -->
+      <div id="client-panel" style="display:none">
+
+        <div id="client-panel-header">
+          <div class="client-panel-name">
+            <span id="panel-client-name">&#8212;</span>
+            <span id="panel-grade-badge" class="client-panel-grade grade-none" style="display:none"></span>
+          </div>
+          <div id="tabs">
+            <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">&#128203; Overview</button>
+            <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
+            <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128221; Report</button>
+            <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
+            <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">&#129302; AI Assistant</button>
+          </div>
+        </div>
+
+        <div id="tab-content">
+
+          <!-- OVERVIEW TAB -->
+          <div id="tab-overview" class="tab-pane active">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1100px">
+
+              <div class="card">
+                <div class="card-title">&#128100; Client Profile</div>
+                <table class="info-table"><tbody id="profile-body"></tbody></table>
+              </div>
+
+              <div class="card">
+                <div class="card-title">&#128200; Grade Summary</div>
+                <div id="grade-summary-placeholder" style="color:#a0aec0;font-size:13px;padding:16px 0">
+                  No bank statement analysis yet. Upload a statement in the Bank Statements tab to generate a grade.
+                </div>
+                <div id="grade-summary" style="display:none">
+                  <div class="grade-hero" style="margin-bottom:16px">
+                    <div id="grade-circle" class="grade-circle"></div>
+                    <div class="grade-detail">
+                      <h3 id="grade-title"></h3>
+                      <p id="grade-desc"></p>
+                      <div class="prog-bar">
+                        <div id="grade-prog" class="prog-fill"></div>
+                      </div>
+                      <div style="font-size:11px;color:#888;text-align:right;margin-top:2px"><span id="grade-score"></span>/100</div>
+                    </div>
+                  </div>
+                  <p id="grade-summary-text" style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.5"></p>
+                  <div class="breakdown-grid" id="breakdown-grid"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- BANK STATEMENTS TAB -->
+          <div id="tab-statements" class="tab-pane">
+            <div style="max-width:900px">
+
+              <div class="card">
+                <div class="card-title">&#128196; Upload Bank Statement</div>
+                <div class="upload-zone" id="upload-zone"
+                     onclick="document.getElementById('file-input').click()"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event)">
+                  <div class="upload-zone-icon">&#128196;</div>
+                  <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
+                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; bank statement in original format</div>
+                </div>
+                <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handleFileSelect(event)">
+                <div id="selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
+                  <span id="selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
+                  <button class="btn btn-primary" onclick="uploadAndAnalyse()" id="btn-analyse">Analyse Statement</button>
+                </div>
+              </div>
+
+              <div id="analysis-results" style="display:none">
+
+                <div class="card">
+                  <div class="card-title">&#163; Income Analysis</div>
+                  <div class="stat-row" id="income-stats"></div>
+                  <table class="data-table" id="income-table">
+                    <thead>
+                      <tr>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Frequency</th>
+                        <th style="text-align:right">Avg Monthly</th>
+                        <th style="text-align:center">Consistency</th>
+                      </tr>
+                    </thead>
+                    <tbody id="income-tbody"></tbody>
+                    <tfoot id="income-tfoot"></tfoot>
+                  </table>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#9888;&#65039; Red Flags</div>
+                  <div id="red-flags-container"></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#128184; Expenditure</div>
+                  <div class="stat-row" id="exp-stats"></div>
+                  <div id="exp-commitments"></div>
+                </div>
+
+                <div class="card" id="underwriter-notes-card" style="display:none">
+                  <div class="card-title">&#128221; Underwriter Notes</div>
+                  <p id="underwriter-notes-text" style="font-size:13px;color:#555;line-height:1.6"></p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- REPORT TAB -->
+          <div id="tab-report" class="tab-pane">
+            <div style="max-width:960px">
+              <div id="report-no-analysis" class="card" style="text-align:center;padding:36px;color:#a0aec0">
+                <div style="font-size:36px;margin-bottom:12px">&#128221;</div>
+                <p>No report available yet. Analyse a bank statement to generate a report.</p>
+              </div>
+              <div id="report-content" style="display:none">
+                <div class="report-toolbar">
+                  <button class="btn btn-primary" onclick="generateReport()">&#8635; Regenerate Report</button>
+                  <button class="btn btn-outline" onclick="downloadReport()">&#8681; Download HTML</button>
+                </div>
+                <div class="report-frame-wrap">
+                  <iframe id="report-frame" src="about:blank"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LENDERS TAB -->
+          <div id="tab-lenders" class="tab-pane">
+            <div style="max-width:1100px">
+              <div id="lenders-no-grade" class="card" style="text-align:center;padding:36px;color:#a0aec0">
+                <div style="font-size:36px;margin-bottom:12px">&#127970;</div>
+                <p>No grade assigned. Analyse a bank statement to generate lender recommendations.</p>
+              </div>
+              <div id="lenders-content" style="display:none">
+                <div class="card" style="margin-bottom:20px">
+                  <div class="card-title">&#127970; Matched Lenders</div>
+                  <p id="lenders-summary" style="font-size:13px;color:#555;margin-bottom:16px"></p>
+                  <div class="lender-grid" id="lender-grid"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI ASSISTANT TAB -->
+          <div id="tab-assistant" class="tab-pane">
+            <div class="chat-messages" id="chat-messages">
+              <div class="chat-msg assistant">
+                <div class="msg-avatar bot-av">A</div>
+                <div class="msg-bubble assistant">Welcome. I'm Apex AI, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client.
+
+What would you like to know?</div>
+              </div>
+            </div>
+            <div class="chat-footer">
+              <textarea id="chat-input" placeholder="Ask about this client's case..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+              <button class="btn btn-primary" id="chat-send" onclick="sendChat()">Send</button>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- Input -->
-    <div class="input-area">
-      <div class="input-row">
-        <textarea
-          id="input"
-          rows="1"
-          placeholder="Ask about mortgages, affordability, rates, documents…"
-          onkeydown="handleKey(event)"
-          oninput="autoResize(this)"
-        ></textarea>
-        <button class="send-btn" id="sendBtn" onclick="send()" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-        </button>
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner loading-spinner"></div>
+  <span id="loading-text">Analysing statement...</span>
+</div>
+
+<!-- NEW CLIENT MODAL -->
+<div class="modal-overlay" id="new-client-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">+ New Client Case</span>
+      <button class="modal-close" onclick="closeNewClientModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input class="form-control" id="nc-name" type="text" placeholder="e.g. James Wilson">
       </div>
-      <p class="input-hint">Information only — not regulated financial advice &nbsp;·&nbsp; Press Enter to send, Shift+Enter for new line</p>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mortgage Purpose *</label>
+          <select class="form-control" id="nc-purpose">
+            <option value="purchase">Purchase</option>
+            <option value="remortgage">Remortgage</option>
+            <option value="btl">Buy to Let</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Employment Type *</label>
+          <select class="form-control" id="nc-employment">
+            <option value="employed">Employed (PAYE)</option>
+            <option value="self_employed">Self-Employed</option>
+            <option value="contractor">Contractor</option>
+            <option value="retired">Retired</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Loan Amount (GBP) *</label>
+          <input class="form-control" id="nc-loan" type="number" placeholder="e.g. 180000" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Property Value (GBP) *</label>
+          <input class="form-control" id="nc-property" type="number" placeholder="e.g. 250000" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Declared Monthly Income (GBP) *</label>
+        <input class="form-control" id="nc-income" type="number" placeholder="e.g. 3200" min="0">
+      </div>
+      <div class="form-group" style="margin-top:8px">
+        <div class="adverse-section">
+          <div style="font-size:12px;font-weight:700;color:#7d4e0a;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Adverse Credit History</div>
+          <div class="checkbox-group">
+            <label class="checkbox-label"><input type="checkbox" id="nc-ccj"> CCJ</label>
+            <label class="checkbox-label"><input type="checkbox" id="nc-default"> Default</label>
+            <label class="checkbox-label"><input type="checkbox" id="nc-iva"> IVA</label>
+            <label class="checkbox-label"><input type="checkbox" id="nc-bankruptcy"> Bankruptcy</label>
+            <label class="checkbox-label"><input type="checkbox" id="nc-dmp"> DMP</label>
+            <label class="checkbox-label"><input type="checkbox" id="nc-payday"> Payday Loans</label>
+          </div>
+          <div class="form-group" style="margin-top:12px;margin-bottom:0">
+            <label class="form-label" style="color:#7d4e0a">Months Since Most Recent Adverse Event</label>
+            <input class="form-control" id="nc-months-adverse" type="number" placeholder="e.g. 18 (leave blank if current)" min="0">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeNewClientModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createClient()">Create Client</button>
     </div>
   </div>
-</main>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
 
 <script>
-  // ── Session ──────────────────────────────────────────────────────────
-  const SESSION_ID = 'sess_' + Math.random().toString(36).slice(2, 10);
-  let messages = [];
-  let loading = false;
+// ── State ─────────────────────────────────────────────────────────────────────
+var allClients = [];
+var selectedClientId = null;
+var currentAnalysis = null;
+var currentGrade = null;
+var chatSessionId = 'session_' + Date.now();
+var chatHistory = [];
+var reportHtml = null;
+var selectedFile = null;
 
-  const input    = document.getElementById('input');
-  const sendBtn  = document.getElementById('sendBtn');
-  const messagesEl = document.getElementById('messages');
-  const welcomeEl  = document.getElementById('welcome');
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  loadClients();
+  var saved = sessionStorage.getItem('selectedClientId');
+  if (saved) {
+    setTimeout(function() { selectClient(saved); }, 400);
+  }
+});
 
-  input.addEventListener('input', () => {
-    sendBtn.disabled = !input.value.trim() || loading;
+// ── Client list ───────────────────────────────────────────────────────────────
+function loadClients() {
+  fetch('/api/clients')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allClients = data.clients || [];
+      renderClientList(allClients);
+    })
+    .catch(function() {
+      document.getElementById('client-list').innerHTML =
+        '<div class="sidebar-empty">Could not load clients</div>';
+    });
+}
+
+function renderClientList(clients) {
+  var el = document.getElementById('client-list');
+  if (!clients.length) {
+    el.innerHTML = '<div class="sidebar-empty">No clients yet.<br>Create your first case.</div>';
+    return;
+  }
+  var purposeLabels = { purchase: 'Purchase', remortgage: 'Remortgage', btl: 'BTL' };
+  el.innerHTML = clients.map(function(c) {
+    var grade = c.grade || null;
+    var gradeClass = grade ? 'grade-' + grade : 'grade-none';
+    var gradeText = grade ? 'Grade ' + grade : 'Ungraded';
+    var purpose = purposeLabels[c.mortgage_purpose] || c.mortgage_purpose || 'Unknown';
+    var activeClass = c.client_id === selectedClientId ? 'active' : '';
+    var empType = c.employment_type ? c.employment_type.replace('_', ' ') : '';
+    return '<div class="client-item ' + activeClass + '" data-id="' + c.client_id + '" onclick="selectClient(\'' + c.client_id + '\')">' +
+      '<div class="client-item-top">' +
+        '<span class="client-name">' + esc(c.name || 'Unnamed') + '</span>' +
+        '<span class="grade-pill ' + gradeClass + '">' + gradeText + '</span>' +
+      '</div>' +
+      '<div class="client-purpose">' + esc(purpose) + ' &middot; ' + esc(empType) + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function filterClients(query) {
+  var q = query.toLowerCase();
+  var filtered = q
+    ? allClients.filter(function(c) { return (c.name || '').toLowerCase().indexOf(q) >= 0; })
+    : allClients;
+  renderClientList(filtered);
+}
+
+// ── Select client ─────────────────────────────────────────────────────────────
+function selectClient(clientId) {
+  selectedClientId = clientId;
+  sessionStorage.setItem('selectedClientId', clientId);
+
+  // Update active state
+  document.querySelectorAll('.client-item').forEach(function(el) {
+    el.classList.toggle('active', el.getAttribute('data-id') === clientId);
   });
 
-  function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-  }
-
-  function autoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 140) + 'px';
-  }
-
-  // ── Pipeline ─────────────────────────────────────────────────────────
-  const stageOrder = ['lead','qualified','affordability_assessed','products_presented','documents_requested','dip_ready','full_application','offer_received','completion'];
-
-  function updatePipeline(stage) {
-    if (!stage) return;
-    const idx = stageOrder.indexOf(stage);
-    document.querySelectorAll('.stage[data-stage]').forEach(el => {
-      const elIdx = stageOrder.indexOf(el.dataset.stage);
-      el.classList.remove('active', 'done');
-      if (elIdx < idx)       el.classList.add('done');
-      else if (elIdx === idx) el.classList.add('active');
+  showLoading('Loading client...');
+  fetch('/api/clients/' + clientId)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Not found');
+      return r.json();
+    })
+    .then(function(data) {
+      hideLoading();
+      renderClientPanel(data);
+    })
+    .catch(function() {
+      hideLoading();
+      toast('Failed to load client', 'error');
     });
+}
+
+function renderClientPanel(data) {
+  var client = data.client;
+  var stored = data.analysis;
+
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('client-panel').style.display = 'flex';
+
+  document.getElementById('panel-client-name').textContent = client.name || 'Unnamed';
+
+  var gradeBadge = document.getElementById('panel-grade-badge');
+  if (client.grade) {
+    gradeBadge.style.display = 'inline-flex';
+    gradeBadge.textContent = 'Grade ' + client.grade + ' — ' + (client.grade_label || '');
+    gradeBadge.className = 'client-panel-grade grade-' + client.grade;
+  } else {
+    gradeBadge.style.display = 'none';
   }
 
-  // ── Simple Markdown ───────────────────────────────────────────────────
-  function md(text) {
-    return text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      // restore > for blockquotes after escaping
-      .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
-      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/`([^`]+)`/g, '<code>$1</code>')
-      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-      .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
-      .replace(/^# (.+)$/gm,   '<h2>$1</h2>')
-      .replace(/^---$/gm, '<hr/>')
-      .replace(/^\* (.+)$/gm, '<li>$1</li>')
-      .replace(/^- (.+)$/gm,  '<li>$1</li>')
-      .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
-      .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
-      .replace(/\n\n/g, '</p><p>')
-      .replace(/\n/g, '<br/>')
-      .replace(/^(?!<[hupbio])(.+)$/gm, m => m ? '<p>' + m + '</p>' : m);
+  chatSessionId = 'session_' + Date.now() + '_' + client.client_id;
+  chatHistory = [];
+  resetChat();
+
+  renderProfile(client);
+
+  if (stored && stored.grade_result) {
+    currentAnalysis = stored.analysis;
+    currentGrade = stored.grade_result;
+    renderGradeSummary(stored.grade_result);
+    renderAnalysisResults(stored.analysis, stored.grade_result);
+  } else {
+    currentAnalysis = null;
+    currentGrade = null;
+    document.getElementById('grade-summary').style.display = 'none';
+    document.getElementById('grade-summary-placeholder').style.display = 'block';
+    document.getElementById('analysis-results').style.display = 'none';
   }
 
-  // ── Append message ────────────────────────────────────────────────────
-  function appendMsg(role, content) {
-    if (welcomeEl) welcomeEl.remove();
+  document.getElementById('report-content').style.display = 'none';
+  document.getElementById('report-no-analysis').style.display = 'block';
+  reportHtml = null;
 
-    const wrap = document.createElement('div');
-    wrap.className = `msg ${role}`;
+  switchTab('overview');
+}
 
-    const avatar = document.createElement('div');
-    avatar.className = 'avatar';
-    avatar.textContent = role === 'user' ? 'You' : 'A';
+function renderProfile(client) {
+  var adverse = client.adverse_history || {};
+  var adverseItems = [];
+  var adverseMap = {ccj:'CCJ', 'default':'Default', iva:'IVA', bankruptcy:'Bankruptcy', dmp:'DMP', payday_loans:'Payday Loans'};
+  Object.keys(adverseMap).forEach(function(k) {
+    if (adverse[k]) adverseItems.push(adverseMap[k]);
+  });
 
-    const bubble = document.createElement('div');
-    bubble.className = 'bubble';
+  var purposeMap = {purchase:'Purchase', remortgage:'Remortgage', btl:'Buy to Let'};
+  var ltv = 'N/A';
+  if (client.loan_amount && client.property_value) {
+    ltv = ((client.loan_amount / client.property_value) * 100).toFixed(1) + '%';
+  }
+  var empDisplay = (client.employment_type || 'N/A').replace('_', ' ');
+  empDisplay = empDisplay.replace(/\b\w/g, function(c) { return c.toUpperCase(); });
 
-    if (role === 'assistant') {
-      bubble.innerHTML = md(content);
-      // Add compliance note if products are mentioned
-      if (content.toLowerCase().includes('indicative') || content.toLowerCase().includes('product') || content.toLowerCase().includes('%')) {
-        const note = document.createElement('div');
-        note.className = 'compliance-note';
-        note.textContent = '⚠️ These are indicative figures only — not a personal recommendation. Rates change daily. Speak with an FCA-authorised adviser before making any decision.';
-        bubble.appendChild(note);
+  var adverseHtml = adverseItems.length
+    ? '<span style="color:var(--danger);font-weight:600">' + adverseItems.join(', ') + '</span>'
+    : '<span style="color:var(--success)">None declared</span>';
+
+  var rows = [
+    ['Mortgage Purpose', purposeMap[client.mortgage_purpose] || client.mortgage_purpose || 'N/A'],
+    ['Employment Type', empDisplay],
+    ['Declared Monthly Income', gbp(client.declared_income)],
+    ['Loan Amount', gbp(client.loan_amount)],
+    ['Property Value', gbp(client.property_value)],
+    ['LTV', ltv],
+    ['Adverse History', adverseHtml],
+    ['Months Since Adverse', adverse.months_since_most_recent != null ? adverse.months_since_most_recent + ' months' : 'N/A'],
+  ];
+
+  document.getElementById('profile-body').innerHTML = rows.map(function(row) {
+    return '<tr><th>' + row[0] + '</th><td>' + row[1] + '</td></tr>';
+  }).join('');
+}
+
+// ── Grade summary ─────────────────────────────────────────────────────────────
+function renderGradeSummary(gradeResult) {
+  document.getElementById('grade-summary-placeholder').style.display = 'none';
+  document.getElementById('grade-summary').style.display = 'block';
+
+  var grade = gradeResult.grade;
+  var score = gradeResult.score;
+  var colour = gradeColour(grade);
+
+  var circle = document.getElementById('grade-circle');
+  circle.style.background = colour;
+  circle.innerHTML = grade + '<span class="gc-label">' + esc(gradeResult.grade_label || '') + '</span>';
+
+  document.getElementById('grade-title').textContent = 'Grade ' + grade + ' — ' + (gradeResult.grade_label || '');
+  document.getElementById('grade-desc').textContent = gradeResult.grade_description || '';
+  var progEl = document.getElementById('grade-prog');
+  progEl.style.width = score + '%';
+  progEl.style.background = colour;
+  document.getElementById('grade-score').textContent = score;
+  document.getElementById('grade-summary-text').textContent = gradeResult.summary || '';
+
+  var breakdown = gradeResult.breakdown || {};
+  var labelMap = {
+    income_consistency: 'Income Consistency',
+    income_vs_declaration: 'Income vs Declaration',
+    gambling: 'Gambling Activity',
+    payday_loans: 'Payday Loans',
+    returned_dds: 'Returned DDs',
+    overdraft_usage: 'Overdraft Usage',
+  };
+
+  var grid = '';
+  Object.keys(breakdown).forEach(function(key) {
+    var data = breakdown[key];
+    var raw = data.raw_score || 0;
+    var col = scoreColour(raw);
+    var lbl = labelMap[key] || key;
+    grid += '<div class="breakdown-item">' +
+      '<div class="bi-header">' +
+        '<span class="bi-label">' + esc(lbl) + ' <span style="color:#aaa;font-weight:400">(' + (data.weight_pct || 0) + '%)</span></span>' +
+        '<span class="bi-score" style="color:' + col + '">' + raw + '</span>' +
+      '</div>' +
+      '<div class="prog-bar"><div class="prog-fill" style="width:' + raw + '%;background:' + col + '"></div></div>' +
+      '<div class="bi-note">' + esc(data.note || '') + '</div>' +
+    '</div>';
+  });
+  document.getElementById('breakdown-grid').innerHTML = grid;
+}
+
+// ── Analysis results ──────────────────────────────────────────────────────────
+function renderAnalysisResults(analysis, gradeResult) {
+  document.getElementById('analysis-results').style.display = 'block';
+
+  var income = analysis.income_analysis || {};
+  var avgIncome = income.total_average_monthly_income || 0;
+  var cv = income.income_coefficient_of_variation || 0;
+  var discrepancy = income.declared_income_discrepancy_pct || 0;
+  var declared = (analysis._meta || {}).declared_monthly_income || 0;
+  var discColour = Math.abs(discrepancy) <= 10 ? 'var(--success)' : 'var(--danger)';
+  var discSign = discrepancy >= 0 ? '+' : '';
+
+  document.getElementById('income-stats').innerHTML =
+    '<div class="stat-box"><div class="stat-label">Avg Monthly Income</div><div class="stat-value">' + gbp(avgIncome) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Declared Monthly</div><div class="stat-value">' + gbp(declared) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Income CV</div><div class="stat-value">' + parseFloat(cv).toFixed(1) + '%</div></div>' +
+    '<div class="stat-box"><div class="stat-label">vs Declaration</div><div class="stat-value" style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</div></div>';
+
+  var credits = income.credits_identified || [];
+  document.getElementById('income-tbody').innerHTML = credits.length
+    ? credits.slice(0, 10).map(function(c) {
+        var cat = (c.category || 'N/A').replace('_', ' ');
+        return '<tr>' +
+          '<td>' + esc(c.description || 'N/A') + '</td>' +
+          '<td>' + esc(cat) + '</td>' +
+          '<td>' + esc(c.frequency || 'N/A') + '</td>' +
+          '<td style="text-align:right">' + gbp(c.average_monthly) + '</td>' +
+          '<td style="text-align:center">' + (c.consistency_score != null ? c.consistency_score : 'N/A') + '</td>' +
+        '</tr>';
+      }).join('')
+    : '<tr><td colspan="5" style="color:#888;text-align:center;padding:16px">No credits identified</td></tr>';
+
+  document.getElementById('income-tfoot').innerHTML =
+    '<tr><td colspan="3"><strong>Total Average Monthly</strong></td>' +
+    '<td style="text-align:right;font-size:15px"><strong>' + gbp(avgIncome) + '</strong></td><td></td></tr>';
+
+  renderRedFlags(analysis.red_flags || {});
+
+  var exp = analysis.expenditure_analysis || {};
+  var aff = analysis.affordability_indicators || {};
+  document.getElementById('exp-stats').innerHTML =
+    '<div class="stat-box"><div class="stat-label">Fixed Monthly</div><div class="stat-value">' + gbp(exp.total_fixed_monthly) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Variable Monthly</div><div class="stat-value">' + gbp(exp.total_variable_monthly_avg) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Total Outgoings</div><div class="stat-value">' + gbp(exp.total_monthly_outgoings_avg) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Disposable Income</div><div class="stat-value">' + gbp(aff.net_disposable_income_monthly) + '</div></div>';
+
+  var commitments = exp.fixed_commitments || [];
+  document.getElementById('exp-commitments').innerHTML = commitments.length
+    ? '<table class="data-table"><thead><tr><th>Commitment</th><th>Category</th><th style="text-align:right">Monthly</th></tr></thead><tbody>' +
+      commitments.map(function(c) {
+        var cat = (c.category || '').replace('_', ' ');
+        return '<tr><td>' + esc(c.description || '') + '</td><td>' + esc(cat) + '</td><td style="text-align:right">' + gbp(c.monthly_amount) + '</td></tr>';
+      }).join('') + '</tbody></table>'
+    : '<p style="color:#a0aec0;font-size:13px">No fixed commitments identified</p>';
+
+  var notes = analysis.underwriter_notes;
+  if (notes) {
+    document.getElementById('underwriter-notes-card').style.display = 'block';
+    document.getElementById('underwriter-notes-text').textContent = notes;
+  }
+}
+
+function renderRedFlags(flags) {
+  var container = document.getElementById('red-flags-container');
+  var html = '';
+  var hasFlags = false;
+
+  var gambling = flags.gambling || {};
+  if (gambling.detected) {
+    hasFlags = true;
+    var merchants = (gambling.merchants || []).map(function(m) {
+      return '<span class="flag-tag">' + esc(m) + '</span>';
+    }).join('');
+    var pct = (gambling.percentage_of_income || 0).toFixed(1);
+    html += '<div class="flag-card">' +
+      '<div class="flag-card-title">&#9888;&#65039; Gambling Activity &mdash; ' + esc((gambling.severity || '').toUpperCase()) + '</div>' +
+      '<div class="flag-card-body">Average monthly: <strong>' + gbp(gambling.total_amount_per_month_avg) + '</strong> (' + pct + '% of income)<br>Merchants: ' + (merchants || '<em>unspecified</em>') + '</div>' +
+    '</div>';
+  }
+
+  var payday = flags.payday_loans || {};
+  if (payday.detected) {
+    hasFlags = true;
+    var lenders = (payday.lenders_identified || []).map(function(l) {
+      return '<span class="flag-tag">' + esc(l) + '</span>';
+    }).join('');
+    var monthsStr = payday.months_ago != null ? payday.months_ago + ' months ago' : 'unknown';
+    html += '<div class="flag-card">' +
+      '<div class="flag-card-title">&#9888;&#65039; Payday Loan Activity &mdash; ' + esc((payday.severity || '').toUpperCase()) + '</div>' +
+      '<div class="flag-card-body">Most recent: <strong>' + monthsStr + '</strong><br>Lenders: ' + (lenders || '<em>unspecified</em>') + '</div>' +
+    '</div>';
+  }
+
+  var rdd = flags.returned_direct_debits || {};
+  if ((rdd.count || 0) > 0) {
+    hasFlags = true;
+    var descs = (rdd.descriptions || []).slice(0, 4).join(', ') || 'unspecified';
+    html += '<div class="flag-card">' +
+      '<div class="flag-card-title">&#9888;&#65039; Returned Direct Debits &mdash; ' + rdd.count + ' instance' + (rdd.count > 1 ? 's' : '') + '</div>' +
+      '<div class="flag-card-body">' + esc(descs) + '</div>' +
+    '</div>';
+  }
+
+  var od = flags.overdraft_usage || {};
+  if (od.severity && od.severity !== 'none' && (od.times_in_overdraft || 0) > 0) {
+    hasFlags = true;
+    html += '<div class="flag-card">' +
+      '<div class="flag-card-title">&#9888;&#65039; Overdraft Usage &mdash; ' + esc((od.severity || '').toUpperCase()) + '</div>' +
+      '<div class="flag-card-body">In overdraft <strong>' + od.times_in_overdraft + '</strong> times | Max depth: <strong>' + gbp(od.maximum_overdraft_depth) + '</strong></div>' +
+    '</div>';
+  }
+
+  var cash = flags.large_unexplained_cash_withdrawals || {};
+  if (cash.detected) {
+    hasFlags = true;
+    var instRows = (cash.instances || []).map(function(i) {
+      return '<tr><td>' + esc(i.date || '') + '</td><td>' + gbp(i.amount) + '</td><td>' + esc(i.description || '') + '</td></tr>';
+    }).join('');
+    html += '<div class="flag-card">' +
+      '<div class="flag-card-title">&#9888;&#65039; Large Cash Withdrawals &mdash; Total: ' + gbp(cash.total_amount) + '</div>' +
+      '<div class="flag-card-body"><table class="data-table" style="margin-top:8px">' +
+        '<thead><tr><th>Date</th><th>Amount</th><th>Description</th></tr></thead>' +
+        '<tbody>' + instRows + '</tbody></table></div>' +
+    '</div>';
+  }
+
+  if (!hasFlags) {
+    html = '<div class="no-flags">&#10003; No adverse markers detected in statement analysis</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ── Upload & analysis ─────────────────────────────────────────────────────────
+function handleDragOver(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.add('drag-over');
+}
+function handleDragLeave() {
+  document.getElementById('upload-zone').classList.remove('drag-over');
+}
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  var file = e.dataTransfer.files[0];
+  if (file) setSelectedFile(file);
+}
+function handleFileSelect(e) {
+  var file = e.target.files[0];
+  if (file) setSelectedFile(file);
+}
+function setSelectedFile(file) {
+  selectedFile = file;
+  document.getElementById('selected-filename').textContent = file.name;
+  var sf = document.getElementById('selected-file');
+  sf.style.display = 'flex';
+}
+
+function uploadAndAnalyse() {
+  if (!selectedFile || !selectedClientId) return;
+
+  showLoading('Uploading and analysing statement with AI...\nThis may take 30-60 seconds.');
+  document.getElementById('btn-analyse').disabled = true;
+
+  var formData = new FormData();
+  formData.append('file', selectedFile);
+
+  fetch('/api/clients/' + selectedClientId + '/upload-statement', {
+    method: 'POST',
+    body: formData,
+  })
+  .then(function(res) {
+    return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+  })
+  .then(function(result) {
+    hideLoading();
+    document.getElementById('btn-analyse').disabled = false;
+
+    if (!result.ok) {
+      toast(result.data.detail || 'Analysis failed', 'error');
+      return;
+    }
+
+    var data = result.data;
+    currentAnalysis = data.analysis;
+    currentGrade = data.grade_result;
+
+    renderGradeSummary(data.grade_result);
+    renderAnalysisResults(data.analysis, data.grade_result);
+
+    allClients.forEach(function(c) {
+      if (c.client_id === selectedClientId) {
+        c.grade = data.grade;
+        c.grade_label = data.grade_label;
       }
-    } else {
-      bubble.textContent = content;
+    });
+    renderClientList(allClients);
+
+    var badge = document.getElementById('panel-grade-badge');
+    badge.style.display = 'inline-flex';
+    badge.textContent = 'Grade ' + data.grade + ' — ' + (data.grade_label || '');
+    badge.className = 'client-panel-grade grade-' + data.grade;
+
+    toast('Analysis complete — Grade ' + data.grade + ' (' + data.score + '/100)', 'success');
+
+    selectedFile = null;
+    document.getElementById('selected-file').style.display = 'none';
+    document.getElementById('file-input').value = '';
+  })
+  .catch(function() {
+    hideLoading();
+    document.getElementById('btn-analyse').disabled = false;
+    toast('Network error during analysis', 'error');
+  });
+}
+
+// ── Report ────────────────────────────────────────────────────────────────────
+function generateReport() {
+  if (!selectedClientId) return;
+  showLoading('Generating report...');
+  fetch('/api/clients/' + selectedClientId + '/generate-report', { method: 'POST' })
+    .then(function(res) {
+      if (!res.ok) {
+        return res.json().then(function(e) { throw new Error(e.detail || 'Report failed'); });
+      }
+      return res.text();
+    })
+    .then(function(html) {
+      reportHtml = html;
+      hideLoading();
+      document.getElementById('report-no-analysis').style.display = 'none';
+      document.getElementById('report-content').style.display = 'block';
+      var frame = document.getElementById('report-frame');
+      frame.srcdoc = reportHtml;
+      toast('Report generated', 'success');
+    })
+    .catch(function(e) {
+      hideLoading();
+      toast(e.message || 'Failed to generate report', 'error');
+    });
+}
+
+function downloadReport() {
+  if (!reportHtml) return;
+  var blob = new Blob([reportHtml], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'apex-report-' + (selectedClientId || 'client') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Lenders ───────────────────────────────────────────────────────────────────
+function loadLenders() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/match-lenders')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderLenders(data); })
+    .catch(function() { toast('Failed to load lenders', 'error'); });
+}
+
+function renderLenders(data) {
+  var lenders = data.lenders || [];
+  if (!lenders.length || !data.grade) {
+    document.getElementById('lenders-no-grade').style.display = 'block';
+    document.getElementById('lenders-content').style.display = 'none';
+    return;
+  }
+  document.getElementById('lenders-no-grade').style.display = 'none';
+  document.getElementById('lenders-content').style.display = 'block';
+  document.getElementById('lenders-summary').textContent =
+    'Grade ' + data.grade + ' — ' + lenders.length + ' lender' + (lenders.length !== 1 ? 's' : '') + ' matched for this profile.';
+
+  document.getElementById('lender-grid').innerHTML = lenders.slice(0, 8).map(function(l) {
+    var colour = l.colour || '#333';
+    var criteriaItems = (l.headline_criteria || []).slice(0, 5).map(function(c) {
+      return '<li>' + esc(c) + '</li>';
+    }).join('');
+    var suitability = l.suitability_score || 0;
+    var reasons = (l.match_reasons || []).join(' &middot; ');
+    return '<div class="lender-card">' +
+      '<div class="lender-card-hdr" style="background:' + colour + '">' +
+        '<div class="lender-initial">' + esc(l.logo_initial || '??') + '</div>' +
+        '<div>' +
+          '<div style="font-weight:700;font-size:14px">' + esc(l.name || '') + '</div>' +
+          '<div style="font-size:11px;opacity:.8">Max LTV: ' + (l.max_ltv || 'N/A') + '% &middot; Tier ' + esc(l.tier || '') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="lender-card-body">' +
+        '<div class="suitability-bar">' +
+          '<div style="font-size:11px;color:#666;margin-bottom:3px">Suitability: ' + suitability + '/100</div>' +
+          '<div class="prog-bar"><div class="prog-fill" style="width:' + suitability + '%;background:' + colour + '"></div></div>' +
+        '</div>' +
+        '<ul>' + criteriaItems + '</ul>' +
+        (l.notes ? '<p class="lender-notes">' + esc(l.notes) + '</p>' : '') +
+        (reasons ? '<div class="lender-contact" style="margin-top:6px;font-style:italic">&#10003; ' + reasons + '</div>' : '') +
+        '<div class="lender-contact">Tel: ' + esc(l.contact || 'N/A') + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+
+  var pane = document.getElementById('tab-' + tabId);
+  if (pane) pane.classList.add('active');
+
+  document.querySelectorAll('.tab-btn').forEach(function(b) {
+    if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+  });
+
+  if (tabId === 'lenders') loadLenders();
+  if (tabId === 'report' && !reportHtml && currentAnalysis) generateReport();
+  if (tabId === 'assistant') setTimeout(scrollChat, 100);
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+function resetChat() {
+  document.getElementById('chat-messages').innerHTML =
+    '<div class="chat-msg assistant">' +
+      '<div class="msg-avatar bot-av">A</div>' +
+      '<div class="msg-bubble assistant">Welcome. I\'m Apex AI, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client.\n\nWhat would you like to know?</div>' +
+    '</div>';
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function sendChat() {
+  var input = document.getElementById('chat-input');
+  var text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  addChatMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  var typingId = 'typing-' + Date.now();
+  document.getElementById('chat-messages').insertAdjacentHTML('beforeend',
+    '<div class="chat-msg assistant" id="' + typingId + '">' +
+      '<div class="msg-avatar bot-av">A</div>' +
+      '<div class="msg-bubble assistant"><span class="spinner"></span></div>' +
+    '</div>');
+  scrollChat();
+
+  var payload = {
+    session_id: chatSessionId,
+    messages: chatHistory,
+    client_id: selectedClientId,
+  };
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+  .then(function(result) {
+    var typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+
+    if (!result.ok) {
+      addChatMessage('assistant', 'Error: ' + (result.data.detail || 'Unknown error'));
+      return;
     }
 
-    wrap.appendChild(avatar);
-    wrap.appendChild(bubble);
-    messagesEl.appendChild(wrap);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+    var reply = result.data.message;
+    chatHistory.push({ role: 'assistant', content: reply });
+    addChatMessage('assistant', reply);
+  })
+  .catch(function() {
+    var typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    addChatMessage('assistant', 'Network error. Please try again.');
+  });
+}
+
+function addChatMessage(role, text) {
+  var isUser = role === 'user';
+  var html = '<div class="chat-msg ' + role + '">' +
+    '<div class="msg-avatar ' + (isUser ? 'user-av' : 'bot-av') + '">' + (isUser ? 'C' : 'A') + '</div>' +
+    '<div class="msg-bubble ' + role + '">' + esc(text) + '</div>' +
+  '</div>';
+  document.getElementById('chat-messages').insertAdjacentHTML('beforeend', html);
+  scrollChat();
+}
+
+function scrollChat() {
+  var el = document.getElementById('chat-messages');
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+// ── New client modal ──────────────────────────────────────────────────────────
+function openNewClientModal() {
+  document.getElementById('new-client-modal').classList.add('show');
+  setTimeout(function() { document.getElementById('nc-name').focus(); }, 100);
+}
+function closeNewClientModal() {
+  document.getElementById('new-client-modal').classList.remove('show');
+  ['nc-name','nc-loan','nc-property','nc-income','nc-months-adverse'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  ['nc-ccj','nc-default','nc-iva','nc-bankruptcy','nc-dmp','nc-payday'].forEach(function(id) {
+    document.getElementById(id).checked = false;
+  });
+}
+
+function createClient() {
+  var name = document.getElementById('nc-name').value.trim();
+  var loan = parseFloat(document.getElementById('nc-loan').value);
+  var property = parseFloat(document.getElementById('nc-property').value);
+  var income = parseFloat(document.getElementById('nc-income').value);
+
+  if (!name || !loan || !property || !income) {
+    toast('Please fill in all required fields', 'error');
+    return;
   }
 
-  // ── Typing indicator ─────────────────────────────────────────────────
-  let typingEl = null;
-  function showTyping() {
-    if (welcomeEl) welcomeEl.remove();
-    typingEl = document.createElement('div');
-    typingEl.className = 'msg assistant';
-    typingEl.innerHTML = `
-      <div class="avatar">A</div>
-      <div class="bubble">
-        <div class="typing"><span></span><span></span><span></span></div>
-      </div>`;
-    messagesEl.appendChild(typingEl);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-  function hideTyping() {
-    if (typingEl) { typingEl.remove(); typingEl = null; }
-  }
+  var monthsStr = document.getElementById('nc-months-adverse').value;
+  var payload = {
+    name: name,
+    mortgage_purpose: document.getElementById('nc-purpose').value,
+    loan_amount: loan,
+    property_value: property,
+    declared_income: income,
+    employment_type: document.getElementById('nc-employment').value,
+    adverse_history: {
+      ccj: document.getElementById('nc-ccj').checked,
+      'default': document.getElementById('nc-default').checked,
+      iva: document.getElementById('nc-iva').checked,
+      bankruptcy: document.getElementById('nc-bankruptcy').checked,
+      dmp: document.getElementById('nc-dmp').checked,
+      payday_loans: document.getElementById('nc-payday').checked,
+      months_since_most_recent: monthsStr ? parseInt(monthsStr) : null,
+    },
+  };
 
-  // ── Send ──────────────────────────────────────────────────────────────
-  async function send(text) {
-    const content = (text ?? input.value).trim();
-    if (!content || loading) return;
-
-    messages.push({ role: 'user', content });
-    appendMsg('user', content);
-    input.value = '';
-    input.style.height = 'auto';
-    sendBtn.disabled = true;
-    loading = true;
-    showTyping();
-
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: SESSION_ID, messages }),
-      });
-      if (!res.ok) throw new Error('Request failed');
-      const data = await res.json();
-      hideTyping();
-      messages.push({ role: 'assistant', content: data.message });
-      appendMsg('assistant', data.message);
-      if (data.stage) updatePipeline(data.stage);
-    } catch (err) {
-      hideTyping();
-      appendMsg('assistant', 'I\'m sorry, something went wrong. Please check your connection and try again.');
-    } finally {
-      loading = false;
-      sendBtn.disabled = !input.value.trim();
+  fetch('/api/clients', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+  .then(function(result) {
+    if (!result.ok) {
+      toast(result.data.detail || 'Failed to create client', 'error');
+      return;
     }
-  }
+    var data = result.data;
+    closeNewClientModal();
+    allClients.unshift(data.client);
+    renderClientList(allClients);
+    toast('Client "' + name + '" created', 'success');
+    selectClient(data.client_id);
+  })
+  .catch(function() { toast('Network error', 'error'); });
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str && str !== 0) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function gbp(value) {
+  if (value == null || value === '') return 'N/A';
+  var n = parseFloat(value);
+  if (isNaN(n)) return 'N/A';
+  return '£' + n.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function gradeColour(grade) {
+  var map = { A: '#1a7a3e', B: '#1a4e8a', C: '#b8760a', D: '#c05c0a', E: '#a01c1c', F: '#5c0a0a' };
+  return map[grade] || '#4a5568';
+}
+
+function scoreColour(score) {
+  if (score >= 85) return '#1a7a3e';
+  if (score >= 70) return '#1a4e8a';
+  if (score >= 55) return '#b8760a';
+  if (score >= 40) return '#c05c0a';
+  if (score >= 25) return '#a01c1c';
+  return '#5c0a0a';
+}
+
+function showLoading(text) {
+  document.getElementById('loading-text').textContent = text || 'Loading...';
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('show');
+}
+
+function toast(message, type) {
+  type = type || 'info';
+  var container = document.getElementById('toast-container');
+  var icons = { success: '&#10003;', error: '&#10005;', info: '&#8505;' };
+  var el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = '<span>' + (icons[type] || '') + '</span><span>' + esc(message) + '</span>';
+  container.appendChild(el);
+  setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 4000);
+}
+
+// Close modal on overlay click
+document.getElementById('new-client-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeNewClientModal();
+});
 </script>
 </body>
 </html>

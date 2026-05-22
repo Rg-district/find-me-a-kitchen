@@ -1,332 +1,476 @@
 """
-Apex Mortgage Agent — main orchestrator.
-Uses Claude with tool use to drive a fully FCA-aware UK mortgage advisory conversation.
+Apex Mortgage Agent — Consultant-facing orchestrator.
+This agent assists a UK mortgage consultant (not the end customer) who specialises
+in adverse credit / bad-credit mortgage cases.
 """
 import json
 import os
+from typing import Optional
+
 import anthropic
 
-from tools.affordability_calculator import run_full_affordability, calculate_stamp_duty
-from tools.lender_api_connector import search_products
-from tools.document_checker import generate_checklist
-from tools.credit_search import assess_credit_profile
-from tools.crm_connector import upsert_contact, update_stage, flag_for_adviser as crm_flag
-from memory.client_store import save_profile, get_profile
-from memory.audit_log import log_event
+from memory.client_store import get_client, get_analysis
+from tools.grading_engine import grade_client, GRADE_METADATA
+from tools.adverse_lender_matcher import match_lenders, LENDER_DATABASE
 
-SYSTEM_PROMPT = """You are Apex, an AI mortgage information assistant operated by Apex Mortgage Group (UK).
+SYSTEM_PROMPT = """You are Apex AI, an expert back-office assistant for a UK mortgage consultant who specialises in adverse credit and bad-credit mortgage cases.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️  MANDATORY — state this at the START of every new session:
-"I'm Apex, an AI mortgage information assistant. I provide mortgage INFORMATION only — I am
-NOT a regulated financial adviser and nothing I say constitutes regulated financial advice under
-the Financial Services and Markets Act 2000 (FSMA). For personalised mortgage advice, you should
-speak with one of Apex Mortgage Group's FCA-authorised advisers. I can arrange that handoff any time."
+IMPORTANT: THE USER IS THE CONSULTANT — NOT THE CLIENT
+You are talking directly to an experienced UK mortgage consultant/broker.
+Use technical, professional language. They know the industry. Do not over-explain basics.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-YOUR ROLE — what you CAN do:
-• Collect and store client financial profile
-• Calculate indicative affordability and maximum borrowing
-• Present indicative mortgage products (information only — not a personal recommendation)
-• Generate tailored document checklists
-• Calculate Stamp Duty Land Tax (England/NI) or signpost for Scotland/Wales
-• Track pipeline stage and flag clients for adviser handoff
-• Detect and escalate vulnerable customer situations
+YOUR ROLE:
+• Assist the consultant in reviewing bank statement analysis results
+• Explain red flags and what they mean to specific lenders
+• Advise on lender strategy — which lenders to approach and in what order
+• Interpret grading scores and what each component means for the application
+• Advise on adverse credit markers: CCJs, defaults, IVAs, bankruptcies, DMPs, payday loans
+• Identify application readiness and outstanding requirements
+• Help structure the case narrative for underwriter packs
+• Answer questions about MCOB compliance considerations (information only)
+• Advise on credit rehabilitation strategies for clients who need to wait
 
-WHAT YOU MUST NEVER DO:
-❌ Say "I recommend [product]" or "the best mortgage for you is..."
-❌ Give personalised regulated financial advice
-❌ Guarantee any rate, product, lender decision, or outcome
-❌ Submit a real application or access real credit files
-❌ Collect payment card details
+UK ADVERSE CREDIT EXPERTISE:
+• CCJs (County Court Judgements): Date registered, amount, satisfied/unsatisfied, time since — critical factors
+• Defaults: Similar to CCJs — date, amount, satisfied status, time since
+• IVA (Individual Voluntary Arrangement): Must be fully discharged for most lenders; some consider active IVAs
+• Bankruptcy: Discharge date is key — most lenders need 3-6 years post-discharge; Norton and Bluestone from Day 1
+• DMP (Debt Management Plan): Conduct matters — 12+ months clean DMP conduct usually required
+• Payday loans: Most adverse lenders require 12-24 months clean from last payday loan
+• Missed/returned payments: Pattern matters more than isolated instances
 
-FCA / MCOB COMPLIANCE:
-• You operate under MCOB 4.4A (non-advised mortgage sales — information only)
-• Every time you present products add: "These are indicative — not a personal recommendation"
-• Maintain audit trail: call log_interaction at session_start, after affordability, after products, on handoff
-• If a client expresses financial distress, mentions bereavement, seems confused or pressured — STOP and call flag_for_adviser immediately with urgency "immediate"
-• Data retention: sessions logged for 5 years (MCOB requirement)
+LENDER LANDSCAPE (UK Adverse Specialists):
+• Grade C (Adverse Light): Precise Mortgages, Kensington Mortgages
+• Grade D (Adverse): Aldermore, Together Money, Pepper Money, Vida Homeloans
+• Grade E (Heavy Adverse): Norton Home Loans, Bluestone Mortgages, MBS Lending
+• Key BTL adverse lenders: Precise, Keystone, Paragon (for portfolio landlords)
+• Self-employed adverse: Aldermore, Kensington, Vida — strongest on SE criteria
 
-━━━━━━━━ UK MORTGAGE KNOWLEDGE ━━━━━━━━
+LENDER-SPECIFIC QUIRKS (useful intelligence):
+• Precise: Satisfied CCJs ≤ £2,500 on standard criteria; BDM pre-submission call recommended for complex cases
+• Kensington: More flexible on unsatisfied adverse than most; strong on IVAs post-discharge
+• Aldermore: Best for complex self-employed — will consider 1-year accounts; check current product guide for adverse tiers
+• Together Money: Will look at unusual properties AND heavy adverse — good for dual-complexity cases
+• Pepper: Good tiered pricing — rate reflects adverse severity which helps on mid-range adverse
+• Norton: The primary day-1 bankruptcy lender — know the discharge date precisely
+• Bluestone: Australian-backed, aggressive criteria — good to have in the panel
+• MBS: Manual underwriting on everything — suitable for truly complex or declined cases
 
-AFFORDABILITY (all figures in GBP £):
-• Standard: 4–4.5× sole gross annual income
-• Joint: 3.5–4× combined gross annual income
-• Self-employed: lower of last 2 years' net profit (or average); need SA302 + tax year overview
-• Contractor: day rate × 5 days × 46 weeks = annualised income
-• Agency/zero-hours: 12+ months continuous history usually required
-• Stress test: lenders add ~3% to the current rate for affordability assessment
-• DTI cap: most lenders want housing costs ≤ 35–45% of net monthly income
+MCOB COMPLIANCE CONTEXT:
+• This tool is for internal consultant use — not direct client communication
+• The consultant is FCA-authorised and understands regulated advice boundaries
+• Document all basis for lender recommendations in the case file
+• Treat gambling, payday loans, and undisclosed adverse as material facts for disclosure
 
-LTV BANDS & RATE IMPACT:
-• ≤60%: best rates available (lowest tier)
-• 61–75%: good rates
-• 76–80%: slightly higher
-• 81–85%: limited lenders, notably higher
-• 86–90%: fewer lenders, significantly higher; 10% deposit required
-• 91–95%: limited options, premium rates; government schemes may help
-• 100%: Skipton Track Record Mortgage (renters only, no deposit)
+TONE:
+• Professional, direct, efficient
+• Technical mortgage language is appropriate
+• Use bullet points for complex comparisons
+• Flag critical issues clearly (e.g., potential misrepresentation, compliance concerns)
+• All monetary values in GBP (£)
+• UK spellings throughout
 
-PRODUCT TYPES:
-• Fixed rate (2yr / 5yr / 10yr): payment certainty; Early Repayment Charges (ERCs) apply in fixed period
-• Tracker: Bank of England Base Rate + margin; usually no ERCs; payments can rise/fall
-• Discounted variable: discount off lender's SVR; less predictable
-• Offset: link savings to mortgage; pay interest on the net balance
-• Standard Variable Rate (SVR): lender's default rate after product term — usually uncompetitive
-
-STAMP DUTY (England & Northern Ireland — from April 2025):
-• First-time buyers: 0% up to £425,000; 5% on £425,001–£625,000; standard rates above £625,000
-• Standard: 0% £0–£250k | 5% £250,001–£925k | 10% £925,001–£1.5m | 12% above £1.5m
-• Additional property (BTL / second home): +3% surcharge on ALL bands
-• Scotland: LBTT — signpost to revenue.scot
-• Wales: LTT — signpost to gov.wales/land-transaction-tax
-
-UK LENDERS (context — do not say "use this lender" — that's advice):
-• High street: Halifax, NatWest, Nationwide, Barclays, HSBC, Santander, Lloyds, Virgin Money
-• Building societies: Yorkshire BS, Coventry BS, Leeds BS, Skipton
-• Platform/intermediary-only: Platform, Accord, BM Solutions (BTL), The Mortgage Works (BTL)
-• Specialist/adverse: Precise, Kensington, Aldermore, Together, Pepper Money
-• New build friendly: Nationwide, Halifax, Barclays (accept higher LTV on new builds)
-
-GOVERNMENT SCHEMES:
-• Shared Ownership (England): buy 25–75% share, staircase up; separate mortgage on share
-• First Homes: 30–50% discount for key workers and first-time buyers; England only
-• Right to Buy: council tenants purchasing their home; discount depends on tenure
-• Forces Help to Buy: interest-free loan up to 50% of salary for armed forces
-• Help to Build: self-build equity loan
-
-CONVERSATION FLOW:
-1. DISCLOSURE → state AI disclaimer + ask purpose (purchase/remortgage/BTL/other)
-2. INTAKE → collect profile step by step (income, employment, deposit, property, credit)
-3. AFFORDABILITY → run calculate_affordability, show borrowing range + monthly estimate + SDLT
-4. PRODUCTS → run search_mortgage_products, present 3–5 indicative options with true cost
-5. DOCUMENTS → run generate_document_checklist, tailored to profile
-6. PIPELINE → update_pipeline_stage, offer adviser call or DIP guidance
-7. HANDOFF → flag_for_adviser if requested or triggered
-
-TOOL DISCIPLINE:
-• save_client_profile — call whenever new client data is collected
-• log_interaction — MUST call at: session_start, affordability_calculated, products_presented, adviser_handoff
-• check_compliance — call if client seems distressed, asks for "advice", or scenario is complex
-• flag_for_adviser — call immediately for: vulnerable customer, request for regulated advice, client asks for human
-
-COMMUNICATION STYLE:
-• Warm, professional, plain English — avoid jargon or explain it when used
-• Use £ (GBP) — never $ or other currencies
-• Ask 1–2 questions at a time — never bombard the client
-• Use UK spellings (colour, cheque, licence, etc.)
-• Keep messages concise; use bullet points and headers where helpful
-"""
-
+TOOLS AVAILABLE:
+Use get_client_summary to pull client data before answering client-specific questions.
+Use explain_red_flag to provide detailed lender impact analysis for specific flags.
+Use lender_strategy to generate a structured lender approach plan.
+Use check_application_readiness to produce a readiness checklist."""
 
 TOOLS: list[dict] = [
     {
-        "name": "save_client_profile",
-        "description": "Save or update the client's profile. Call whenever new financial or personal information is collected.",
+        "name": "get_client_summary",
+        "description": "Retrieve the full profile, bank statement analysis, and grade for a specific client. Use this before answering any client-specific question.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "session_id": {"type": "string"},
-                "full_name": {"type": "string"},
-                "email": {"type": "string"},
-                "phone": {"type": "string"},
-                "mortgage_purpose": {"type": "string", "enum": ["purchase", "remortgage", "btl", "equity_release", "shared_ownership"]},
-                "employment_type": {"type": "string", "enum": ["employed", "self_employed", "contractor", "retired", "benefits"]},
-                "annual_income": {"type": "number"},
-                "partner_income": {"type": "number"},
-                "monthly_debts": {"type": "number"},
-                "property_value": {"type": "number"},
-                "deposit_amount": {"type": "number"},
-                "credit_score_range": {"type": "string", "enum": ["excellent", "good", "fair", "poor", "very_poor"]},
-                "has_defaults": {"type": "boolean"},
-                "has_ccjs": {"type": "boolean"},
-                "has_bankruptcy": {"type": "boolean"},
-                "is_first_time_buyer": {"type": "boolean"},
-                "is_new_build": {"type": "boolean"},
-                "has_partner": {"type": "boolean"},
-                "preferred_term_years": {"type": "integer"},
-                "preferred_product_type": {"type": "string", "enum": ["fixed_2yr", "fixed_5yr", "fixed_10yr", "tracker", "offset", "any"]},
-                "country": {"type": "string", "enum": ["england", "scotland", "wales", "northern_ireland"]},
+                "client_id": {
+                    "type": "string",
+                    "description": "The client's UUID",
+                },
             },
-            "required": ["session_id"],
+            "required": ["client_id"],
         },
     },
     {
-        "name": "calculate_affordability",
-        "description": "Calculate maximum borrowing capacity, indicative monthly payment, LTV, DTI, and stamp duty for the client. Returns full affordability assessment.",
+        "name": "explain_red_flag",
+        "description": "Provide a detailed explanation of how a specific red flag affects lender appetite and what the consultant should do about it.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "annual_income": {"type": "number", "description": "Primary applicant gross annual income in £"},
-                "partner_income": {"type": "number", "description": "Second applicant gross annual income in £ (0 if sole)"},
-                "monthly_debts": {"type": "number", "description": "Total monthly debt repayments in £ (loans, cards, HP)"},
-                "employment_type": {"type": "string", "enum": ["employed", "self_employed", "contractor", "retired"]},
-                "property_value": {"type": "number"},
-                "deposit_amount": {"type": "number"},
-                "term_years": {"type": "integer"},
-                "is_first_time_buyer": {"type": "boolean"},
-                "is_additional_property": {"type": "boolean"},
-                "country": {"type": "string", "enum": ["england", "scotland", "wales", "northern_ireland"]},
+                "flag_type": {
+                    "type": "string",
+                    "enum": ["gambling", "payday_loans", "returned_dds", "overdraft", "income_discrepancy", "ccj", "default", "iva", "bankruptcy", "dmp"],
+                    "description": "The type of red flag to explain",
+                },
+                "context": {
+                    "type": "string",
+                    "description": "Specific context: amounts, dates, frequency, lenders involved",
+                },
+                "client_grade": {
+                    "type": "string",
+                    "enum": ["A", "B", "C", "D", "E", "F"],
+                    "description": "The client's current grade",
+                },
             },
-            "required": ["annual_income", "property_value", "deposit_amount", "term_years"],
+            "required": ["flag_type"],
         },
     },
     {
-        "name": "search_mortgage_products",
-        "description": "Search indicative UK mortgage products based on client profile. Returns 3–5 products ranked by total cost. NOT a personal recommendation.",
+        "name": "lender_strategy",
+        "description": "Generate a structured lender approach strategy for a client, including primary recommendation, fallback options, and BDM engagement advice.",
         "input_schema": {
             "type": "object",
             "properties": {
+                "client_id": {
+                    "type": "string",
+                    "description": "Client ID to pull profile from store",
+                },
+                "grade": {
+                    "type": "string",
+                    "enum": ["A", "B", "C", "D", "E", "F"],
+                    "description": "Client grade (if client_id not provided)",
+                },
+                "ccjs": {"type": "boolean"},
+                "defaults": {"type": "boolean"},
+                "bankruptcy": {"type": "boolean"},
+                "iva": {"type": "boolean"},
+                "months_since_adverse": {"type": "integer"},
+                "ltv": {"type": "number"},
+                "employment_type": {"type": "string"},
                 "loan_amount": {"type": "number"},
-                "property_value": {"type": "number"},
-                "mortgage_type": {"type": "string", "enum": ["purchase", "remortgage", "btl"]},
-                "product_preference": {"type": "string", "enum": ["fixed_2yr", "fixed_5yr", "fixed_10yr", "tracker", "offset", "any"]},
-                "is_first_time_buyer": {"type": "boolean"},
-                "credit_score_range": {"type": "string", "enum": ["excellent", "good", "fair", "poor", "very_poor"]},
-                "term_years": {"type": "integer"},
+                "notes": {"type": "string", "description": "Any additional case context"},
             },
-            "required": ["loan_amount", "property_value", "mortgage_type"],
         },
     },
     {
-        "name": "generate_document_checklist",
-        "description": "Generate a tailored document checklist based on employment status and mortgage type.",
+        "name": "check_application_readiness",
+        "description": "Assess whether a client's application is ready to submit. Returns a structured checklist of outstanding items.",
         "input_schema": {
             "type": "object",
             "properties": {
-                "employment_type": {"type": "string", "enum": ["employed", "self_employed", "contractor", "retired"]},
-                "mortgage_type": {"type": "string", "enum": ["purchase", "remortgage", "btl"]},
-                "is_first_time_buyer": {"type": "boolean"},
-                "is_new_build": {"type": "boolean"},
-                "has_partner": {"type": "boolean"},
-            },
-            "required": ["employment_type", "mortgage_type"],
-        },
-    },
-    {
-        "name": "assess_credit_profile",
-        "description": "Indicative credit assessment — NOT a real credit check. Helps set expectations on lender accessibility and max LTV.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "credit_score_range": {"type": "string", "enum": ["excellent", "good", "fair", "poor", "very_poor"]},
-                "has_defaults": {"type": "boolean"},
-                "has_ccjs": {"type": "boolean"},
-                "has_bankruptcy": {"type": "boolean"},
-                "months_since_issues": {"type": "integer", "description": "Months since most recent adverse event (0 if current/unknown)"},
-            },
-            "required": ["credit_score_range"],
-        },
-    },
-    {
-        "name": "update_pipeline_stage",
-        "description": "Update the client's pipeline stage as they progress through the mortgage journey.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "session_id": {"type": "string"},
-                "stage": {
+                "client_id": {
                     "type": "string",
-                    "enum": ["lead", "qualified", "affordability_assessed", "products_presented", "documents_requested", "dip_ready", "full_application", "offer_received", "completion"],
+                    "description": "Client ID",
                 },
-                "notes": {"type": "string"},
             },
-            "required": ["session_id", "stage"],
-        },
-    },
-    {
-        "name": "flag_for_adviser",
-        "description": "Flag this client for human adviser intervention. Use for: regulated advice needed, vulnerable customer detected, complex case, or client requests human.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "session_id": {"type": "string"},
-                "reason": {"type": "string"},
-                "urgency": {"type": "string", "enum": ["normal", "urgent", "immediate"]},
-                "case_summary": {"type": "string", "description": "Brief summary of the client's situation for the adviser"},
-            },
-            "required": ["session_id", "reason", "urgency"],
-        },
-    },
-    {
-        "name": "log_interaction",
-        "description": "Log a significant interaction for FCA audit trail. Required at: session_start, affordability_calculated, products_presented, adviser_handoff.",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "session_id": {"type": "string"},
-                "event_type": {
-                    "type": "string",
-                    "enum": ["session_start", "profile_collected", "affordability_calculated", "products_presented", "documents_sent", "compliance_check", "vulnerable_customer_flagged", "adviser_handoff", "session_end"],
-                },
-                "data": {"type": "object", "description": "Relevant data to log with the event"},
-            },
-            "required": ["session_id", "event_type"],
+            "required": ["client_id"],
         },
     },
 ]
 
 
 def _execute_tool(name: str, inp: dict) -> dict:
-    if name == "save_client_profile":
-        sid = inp.pop("session_id")
-        result = save_profile(sid, inp)
-        upsert_contact(sid, inp)
-        return result
+    """Execute a consultant assistant tool."""
 
-    elif name == "calculate_affordability":
-        return run_full_affordability(
-            annual_income=inp.get("annual_income", 0),
-            partner_income=inp.get("partner_income", 0),
-            monthly_debts=inp.get("monthly_debts", 0),
-            employment_type=inp.get("employment_type", "employed"),
-            property_value=inp.get("property_value", 0),
-            deposit_amount=inp.get("deposit_amount", 0),
-            term_years=inp.get("term_years", 25),
-            is_first_time_buyer=inp.get("is_first_time_buyer", False),
-            is_additional_property=inp.get("is_additional_property", False),
-            country=inp.get("country", "england"),
+    if name == "get_client_summary":
+        client_id = inp["client_id"]
+        client = get_client(client_id)
+        if not client:
+            return {"error": f"Client {client_id} not found"}
+
+        stored = get_analysis(client_id)
+        analysis = stored.get("analysis") if stored else None
+        grade_result = stored.get("grade_result") if stored else None
+
+        return {
+            "client": client,
+            "analysis_available": analysis is not None,
+            "analysis_summary": {
+                "avg_monthly_income": analysis.get("income_analysis", {}).get("total_average_monthly_income") if analysis else None,
+                "income_cv": analysis.get("income_analysis", {}).get("income_coefficient_of_variation") if analysis else None,
+                "gambling_detected": analysis.get("red_flags", {}).get("gambling", {}).get("detected") if analysis else None,
+                "payday_loans_detected": analysis.get("red_flags", {}).get("payday_loans", {}).get("detected") if analysis else None,
+                "returned_dds": analysis.get("red_flags", {}).get("returned_direct_debits", {}).get("count") if analysis else None,
+                "overdraft_severity": analysis.get("red_flags", {}).get("overdraft_usage", {}).get("severity") if analysis else None,
+                "balance_trend": analysis.get("balance_trend", {}).get("trend") if analysis else None,
+                "underwriter_notes": analysis.get("underwriter_notes") if analysis else None,
+            },
+            "grade_result": grade_result,
+        }
+
+    elif name == "explain_red_flag":
+        flag_type = inp["flag_type"]
+        context = inp.get("context", "")
+        grade = inp.get("client_grade", "D")
+
+        explanations = {
+            "gambling": {
+                "impact": "Gambling is viewed by lenders as a discretionary spend that indicates poor financial management and impulse control. It creates concerns about future payment priority — will the client pay their mortgage or place bets?",
+                "lender_positions": {
+                    "Mainstream (Halifax, NatWest etc)": "Typically decline any visible gambling activity. No exceptions.",
+                    "Near-prime (Platform, Accord)": "Will decline or heavily scrutinise regular gambling spend.",
+                    "Specialist (Precise, Kensington)": "Case-by-case. Historical and minimal amounts may be acceptable with explanation. Current/significant gambling: decline.",
+                    "Adverse (Aldermore, Pepper, Together)": "More flexible but still a concern. Amount as % of income is the key metric. < 1% income may be acceptable.",
+                    "Heavy adverse (Norton, MBS)": "Will consider but will request client explanation letter. Gambling must not be ongoing at point of application.",
+                },
+                "advice": "Obtain a written explanation from the client. They should demonstrate gambling has ceased and accounts are now clean. 3-6 months' clean statements may be required before submission. Consider whether client needs to wait.",
+                "mcob_note": "Gambling is a material fact that must be disclosed. Do not present a case without flagging this to the lender."
+            },
+            "payday_loans": {
+                "impact": "Payday loans signal financial distress and inability to manage to next payday. This is one of the most serious adverse markers — it suggests the client cannot manage their finances without high-cost credit.",
+                "lender_positions": {
+                    "Mainstream lenders": "Automatic decline in most cases.",
+                    "Near-prime": "Typically decline even for historical payday loans within 24 months.",
+                    "Precise Mortgages": "Historical only (> 12 months) — case by case.",
+                    "Kensington": "Historical considered (> 12 months) with explanation.",
+                    "Aldermore/Pepper/Together": "More flexible but most require 12 months clean minimum.",
+                    "Norton/Bluestone/MBS": "Most flexible — will consider recent history with explanation.",
+                },
+                "advice": "Establish the exact date of the most recent payday loan. If within 12 months, advise client to wait before applying. If historical, prepare a full explanation letter. Check credit report to confirm all payday lenders are listed.",
+                "mcob_note": "All payday loan history must be disclosed in full to the lender."
+            },
+            "returned_dds": {
+                "impact": "Returned (bounced) direct debits demonstrate a failure to maintain adequate funds for committed payments. This is a primary indicator of cash flow stress and payment management issues.",
+                "lender_positions": {
+                    "1 returned DD": "Manageable with explanation if isolated incident. Most adverse lenders will consider.",
+                    "2 returned DDs": "Requires explanation and supporting context. Specialist lenders only.",
+                    "3+ returned DDs": "Significant concern — heavy adverse lenders only, and not guaranteed.",
+                },
+                "advice": "Obtain a satisfactory explanation for each returned DD. Bank error? Timing issue? If preventable, note if the situation has since been resolved. Request a clean period of 3-6 months before submission if possible.",
+                "mcob_note": "Returned DDs within the statement period are likely to be visible to underwriters — do not omit them from the case narrative."
+            },
+            "overdraft": {
+                "impact": "Regular overdraft use — especially end-of-month patterns — suggests the client is living beyond their means and cannot comfortably service existing commitments, let alone a mortgage.",
+                "lender_positions": {
+                    "Occasional use": "Usually acceptable with adverse lenders if the client is clearly within an agreed facility.",
+                    "Frequent/monthly": "Concern — will require explanation of cash flow. Some adverse lenders will decline.",
+                    "Always overdrawn": "Very serious. Most lenders will decline. Client needs to demonstrate improved financial management.",
+                },
+                "advice": "Establish whether the overdraft is authorised and within the agreed limit. If the client has improved their position, more recent clean statements will strengthen the case. For always-overdrawn situations, advise client to wait for 3+ clean months.",
+                "mcob_note": None
+            },
+            "income_discrepancy": {
+                "impact": "Where verified income (from statements) differs significantly from declared income, this raises concerns about misrepresentation — which has serious legal and compliance implications.",
+                "lender_positions": {
+                    "Overstated income (actual < declared)": "CRITICAL — this is potential mortgage fraud. If actual income is more than 15-20% below declared, this must be addressed before submission. Some lenders have mandatory reporting requirements.",
+                    "Understated income (actual > declared)": "Generally acceptable — client being conservative. Verify source of additional credits.",
+                },
+                "advice": "If income is overstated: discuss with client immediately. Amend the declared income figure. If there are genuine additional income sources not visible on statements (e.g., cash income, benefits paid separately), ensure these are evidenced properly. Do not submit with a known material discrepancy.",
+                "mcob_note": "MCOB 4.4A and the FCA's responsible lending requirements mean this must be investigated. Potential POCA implications if income misrepresentation is suspected."
+            },
+            "ccj": {
+                "impact": "A CCJ is a court order confirming a debt was not paid. Lenders treat this as a significant adverse marker. Key factors: date registered, original amount, whether satisfied (paid off), and time since.",
+                "lender_positions": {
+                    "Mainstream": "Will decline all CCJs in most cases. Some allow satisfied CCJs > 3 years old at low LTV.",
+                    "Precise": "Satisfied CCJs ≤ £2,500 on standard; larger on bespoke criteria. Time since matters.",
+                    "Kensington": "Unsatisfied CCJs considered — one of few lenders to do so.",
+                    "Aldermore/Pepper": "Multiple CCJs considered — case by case.",
+                    "Norton/Bluestone/MBS": "No hard limits on number or amount — always consider.",
+                },
+                "advice": "Obtain full CCJ details: date registered, court, original amount, date satisfied (if applicable). Get copy of satisfaction letter. Confirm on credit report. Prepare case narrative explaining circumstances.",
+                "mcob_note": None
+            },
+            "default": {
+                "impact": "A default is registered when a creditor marks an account as unpaid after a defined missed payment period. Similar impact to CCJs but slightly less severe in lender scoring.",
+                "lender_positions": {
+                    "Mainstream": "Most decline all defaults registered within the last 3-6 years.",
+                    "Specialist adverse lenders": "All will consider — criteria vary by amount, date, and satisfied status.",
+                },
+                "advice": "Confirm exact date(s) of default registration, original creditor, amount, and whether satisfied. Time since registration is the critical factor for most lenders.",
+                "mcob_note": None
+            },
+            "iva": {
+                "impact": "An IVA (Individual Voluntary Arrangement) is a formal insolvency process — it stays on the credit file for 6 years from start date. Mainstream lenders will not consider active IVAs. Post-discharge options exist.",
+                "lender_positions": {
+                    "Mainstream": "Decline — will not consider active or recently discharged IVA.",
+                    "Kensington": "Post-discharge IVA considered — strong option.",
+                    "Together, Pepper, Aldermore": "Post-discharge considered.",
+                    "Norton/MBS": "Most flexible — will consider shorter post-discharge periods.",
+                },
+                "advice": "Obtain Certificate of Completion of IVA. Confirm exact discharge date. Any breach of IVA terms? Prepare a full explanation of what led to the IVA and how the client's financial position has improved.",
+                "mcob_note": None
+            },
+            "bankruptcy": {
+                "impact": "Bankruptcy is the most severe adverse marker. It remains on the credit file for 6 years from order date. The discharge date (typically 12 months from order) is the key starting point for lenders.",
+                "lender_positions": {
+                    "Mainstream": "Will not consider. Full stop.",
+                    "Most specialist lenders": "Require 3-6 years post-discharge.",
+                    "Kensington, Aldermore, Pepper": "Typically 3+ years post-discharge.",
+                    "Norton Home Loans": "Day 1 from discharge — primary lender for this situation.",
+                    "Bluestone": "Also day 1 from discharge.",
+                    "MBS": "Very flexible — will consider.",
+                },
+                "advice": "Obtain Certificate of Discharge — confirm exact date. Confirm no current insolvency proceedings. Check for any assets included in bankruptcy estate. Client must have a satisfactory explanation of circumstances.",
+                "mcob_note": None
+            },
+            "dmp": {
+                "impact": "A DMP (Debt Management Plan) — an informal arrangement to repay debts via a third party (e.g., StepChange). Less severe than IVA but still adverse. Lenders look at conduct during the DMP period.",
+                "lender_positions": {
+                    "Mainstream": "Generally decline if DMP active.",
+                    "Specialist lenders": "Most require the DMP to have been running for 12+ months with good conduct.",
+                    "Together, Pepper, Norton": "Most flexible — active DMPs may be considered.",
+                },
+                "advice": "Obtain a conduct statement from the DMP provider. How long has the plan been running? Are payments up to date? What is the outstanding balance? Is the client in a position to exit the DMP on completion of the mortgage?",
+                "mcob_note": None
+            },
+        }
+
+        flag_info = explanations.get(flag_type, {"impact": "No detailed information available for this flag type.", "lender_positions": {}, "advice": ""})
+
+        return {
+            "flag_type": flag_type,
+            "context_provided": context,
+            "client_grade": grade,
+            "impact_summary": flag_info.get("impact"),
+            "lender_positions": flag_info.get("lender_positions", {}),
+            "consultant_advice": flag_info.get("advice"),
+            "mcob_note": flag_info.get("mcob_note"),
+        }
+
+    elif name == "lender_strategy":
+        # If client_id provided, pull from store
+        client_id = inp.get("client_id")
+        if client_id:
+            client = get_client(client_id)
+            if client:
+                adverse = client.get("adverse_history", {})
+                grade = client.get("grade") or inp.get("grade", "D")
+                ccjs = bool(adverse.get("ccj"))
+                defaults = bool(adverse.get("default"))
+                bankruptcy = bool(adverse.get("bankruptcy"))
+                months_since = int(adverse.get("months_since_most_recent") or 0)
+                employment_type = client.get("employment_type", "employed")
+                loan_amount = float(client.get("loan_amount", 0))
+                ltv = 75.0
+                if client.get("loan_amount") and client.get("property_value"):
+                    try:
+                        ltv = (float(client["loan_amount"]) / float(client["property_value"])) * 100
+                    except (TypeError, ZeroDivisionError):
+                        pass
+            else:
+                return {"error": f"Client {client_id} not found"}
+        else:
+            grade = inp.get("grade", "D")
+            ccjs = inp.get("ccjs", False)
+            defaults = inp.get("defaults", False)
+            bankruptcy = inp.get("bankruptcy", False)
+            months_since = int(inp.get("months_since_adverse", 0))
+            ltv = float(inp.get("ltv", 75.0))
+            employment_type = inp.get("employment_type", "employed")
+            loan_amount = float(inp.get("loan_amount", 0))
+
+        matched = match_lenders(
+            grade=grade,
+            ccjs=ccjs,
+            defaults=defaults,
+            bankruptcy=bankruptcy,
+            months_since_adverse=months_since,
+            ltv=ltv,
+            employment_type=employment_type,
         )
 
-    elif name == "search_mortgage_products":
-        return {"products": search_products(
-            loan_amount=inp["loan_amount"],
-            property_value=inp["property_value"],
-            mortgage_type=inp.get("mortgage_type", "purchase"),
-            product_preference=inp.get("product_preference", "any"),
-            is_first_time_buyer=inp.get("is_first_time_buyer", False),
-            credit_score_range=inp.get("credit_score_range", "good"),
-            term_years=inp.get("term_years", 25),
-        )}
+        grade_info = GRADE_METADATA.get(grade, {})
 
-    elif name == "generate_document_checklist":
-        return generate_checklist(
-            employment_type=inp["employment_type"],
-            mortgage_type=inp["mortgage_type"],
-            is_first_time_buyer=inp.get("is_first_time_buyer", False),
-            is_new_build=inp.get("is_new_build", False),
-            has_partner=inp.get("has_partner", False),
-        )
+        primary = matched[0] if matched else None
+        fallbacks = matched[1:3] if len(matched) > 1 else []
 
-    elif name == "assess_credit_profile":
-        return assess_credit_profile(
-            credit_score_range=inp["credit_score_range"],
-            has_defaults=inp.get("has_defaults", False),
-            has_ccjs=inp.get("has_ccjs", False),
-            has_bankruptcy=inp.get("has_bankruptcy", False),
-            months_since_issues=inp.get("months_since_issues", 0),
-        )
+        return {
+            "grade": grade,
+            "grade_description": grade_info.get("description"),
+            "primary_recommendation": {
+                "lender": primary["name"] if primary else "None identified",
+                "suitability_score": primary.get("suitability_score") if primary else 0,
+                "max_ltv": primary.get("max_ltv") if primary else None,
+                "match_reasons": primary.get("match_reasons", []) if primary else [],
+                "contact": primary.get("contact") if primary else None,
+                "notes": primary.get("notes") if primary else None,
+            } if primary else None,
+            "fallback_lenders": [
+                {
+                    "lender": l["name"],
+                    "suitability_score": l.get("suitability_score"),
+                    "max_ltv": l.get("max_ltv"),
+                    "contact": l.get("contact"),
+                }
+                for l in fallbacks
+            ],
+            "all_matched_count": len(matched),
+            "strategy_notes": f"Grade {grade} case with LTV {ltv:.1f}%. {len(matched)} lenders matched. Recommend pre-submission BDM call for Grade D/E cases.",
+            "bdm_recommendation": grade in ("C", "D", "E"),
+        }
 
-    elif name == "update_pipeline_stage":
-        return update_stage(inp["session_id"], inp["stage"], inp.get("notes", ""))
+    elif name == "check_application_readiness":
+        client_id = inp["client_id"]
+        client = get_client(client_id)
+        if not client:
+            return {"error": f"Client {client_id} not found"}
 
-    elif name == "flag_for_adviser":
-        crm_flag(inp["session_id"], inp["reason"], inp["urgency"], inp.get("case_summary", ""))
-        log_event(inp["session_id"], "adviser_handoff", inp)
-        return {"flagged": True, "urgency": inp["urgency"], "message": "An FCA-authorised adviser from Apex Mortgage Group will contact this client."}
+        stored = get_analysis(client_id)
+        analysis = stored.get("analysis") if stored else None
+        grade_result = stored.get("grade_result") if stored else None
 
-    elif name == "log_interaction":
-        return log_event(inp["session_id"], inp["event_type"], inp.get("data", {}))
+        checklist = []
+        blockers = []
+
+        # Analysis complete?
+        if not analysis:
+            blockers.append("Bank statement analysis not yet completed — upload statements first")
+        else:
+            checklist.append({"item": "Bank statement analysis", "status": "complete"})
+
+        # Grade?
+        if not grade_result:
+            blockers.append("Client grading not completed")
+        else:
+            grade = grade_result.get("grade", "F")
+            checklist.append({"item": f"Client grade: {grade} ({grade_result.get('grade_label', '')})", "status": "complete"})
+            if grade == "F":
+                blockers.append("Grade F — application not viable. Client requires credit rehabilitation.")
+
+        # Adverse history
+        adverse = client.get("adverse_history", {})
+        if adverse.get("bankruptcy") and not adverse.get("months_since_most_recent"):
+            blockers.append("Bankruptcy noted but discharge date not confirmed — obtain Certificate of Discharge")
+
+        if adverse.get("ccj"):
+            checklist.append({"item": "CCJ details — obtain full registry extract + satisfaction letter", "status": "outstanding"})
+
+        if adverse.get("iva"):
+            checklist.append({"item": "IVA — obtain Certificate of Completion", "status": "outstanding"})
+
+        if adverse.get("dmp"):
+            checklist.append({"item": "DMP — obtain conduct statement from provider", "status": "outstanding"})
+
+        # Red flags from analysis
+        if analysis:
+            rf = analysis.get("red_flags", {})
+            if rf.get("gambling", {}).get("detected"):
+                blockers.append("Gambling detected — client explanation letter required before submission")
+
+            payday = rf.get("payday_loans", {})
+            if payday.get("detected") and payday.get("severity") not in ("historical", "none"):
+                blockers.append("Recent payday loan activity — advise client to wait 12+ months clean before submission")
+
+            rdd_count = rf.get("returned_direct_debits", {}).get("count", 0)
+            if rdd_count >= 3:
+                blockers.append(f"{rdd_count} returned DDs — prepare explanation letter and check for clean period")
+
+        # Standard docs
+        checklist.append({"item": "3 months most recent bank statements", "status": "outstanding"})
+        checklist.append({"item": "Proof of identity (passport/driving licence)", "status": "outstanding"})
+        checklist.append({"item": "Proof of address (utility bill/council tax < 3 months)", "status": "outstanding"})
+        checklist.append({"item": "Proof of deposit (3 months statements showing accumulation)", "status": "outstanding"})
+
+        emp_type = client.get("employment_type", "employed")
+        if emp_type in ("self_employed", "contractor"):
+            checklist.append({"item": "SA302 + Tax Year Overview (last 2 years)", "status": "outstanding"})
+            checklist.append({"item": "Accountant's certificate (if required by lender)", "status": "outstanding"})
+        else:
+            checklist.append({"item": "Last 3 months payslips", "status": "outstanding"})
+            checklist.append({"item": "Latest P60", "status": "outstanding"})
+
+        ready = len(blockers) == 0
+
+        return {
+            "client_id": client_id,
+            "client_name": client.get("name"),
+            "ready_to_submit": ready,
+            "blockers": blockers,
+            "checklist": checklist,
+            "recommendation": "Ready for DIP submission — proceed with chosen lender." if ready else f"Not ready — {len(blockers)} blocker(s) must be resolved first.",
+        }
 
     return {"error": f"Unknown tool: {name}"}
 
@@ -339,13 +483,33 @@ class Orchestrator:
     def __init__(self):
         self.client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-    async def process(self, session_id: str, messages: list[dict]) -> tuple[str, str | None]:
+    async def process(
+        self,
+        session_id: str,
+        messages: list[dict],
+        client_id: Optional[str] = None,
+    ) -> tuple[str, str | None]:
         history = _sessions.get(session_id, [])
 
-        # Only add the last user message to avoid duplicating history
+        # Optionally inject client context on first message of session
         last_user = messages[-1]
-        history.append({"role": last_user["role"], "content": last_user["content"]})
+        content = last_user["content"]
 
+        # If this is the start of a session and a client_id is provided, inject summary
+        if not history and client_id:
+            client = get_client(client_id)
+            if client:
+                stored = get_analysis(client_id)
+                grade_result = stored.get("grade_result") if stored else None
+                grade_str = f"Grade {grade_result['grade']} (score {grade_result['score']}/100)" if grade_result else "Not yet graded"
+                context_prefix = (
+                    f"[CONTEXT — Client: {client.get('name', 'Unknown')} | {grade_str} | "
+                    f"Purpose: {client.get('mortgage_purpose', 'N/A')} | "
+                    f"Income declared: £{client.get('declared_income', 0):,.0f}/mo]\n\n"
+                )
+                content = context_prefix + content
+
+        history.append({"role": "user", "content": content})
         current = list(history)
 
         while True:
@@ -361,11 +525,7 @@ class Orchestrator:
                 text = next((b.text for b in response.content if hasattr(b, "text")), "")
                 history.append({"role": "assistant", "content": text})
                 _sessions[session_id] = history
-
-                # Detect current stage from profile
-                profile = get_profile(session_id)
-                stage = profile.get("pipeline_stage") if profile else None
-                return text, stage
+                return text, None
 
             if response.stop_reason == "tool_use":
                 tool_blocks = [b for b in response.content if b.type == "tool_use"]
