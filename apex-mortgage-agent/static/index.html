@@ -631,6 +631,9 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   /* Lender grid — single col */
   .lender-grid { grid-template-columns: 1fr; }
 
+  /* Market commentary grid — single col */
+  .market-commentary-grid { grid-template-columns: 1fr !important; }
+
   /* Grade hero stack */
   .grade-hero { flex-direction: column; align-items: flex-start; gap: 12px; }
 
@@ -728,6 +731,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
             <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
             <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128221; Report</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
+            <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
             <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">&#129302; AI Assistant</button>
           </div>
         </div>
@@ -857,12 +861,134 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
                 <p>No grade assigned. Analyse a bank statement to generate lender recommendations.</p>
               </div>
               <div id="lenders-content" style="display:none">
+
+                <!-- Risk Assessment Card -->
+                <div class="card" id="risk-assessment-card" style="margin-bottom:20px">
+                  <div class="card-title">&#128683; Client Risk Assessment</div>
+                  <div id="risk-assessment-body"></div>
+                </div>
+
+                <!-- Matched Lenders -->
                 <div class="card" style="margin-bottom:20px">
                   <div class="card-title">&#127970; Matched Lenders</div>
                   <p id="lenders-summary" style="font-size:13px;color:#555;margin-bottom:16px"></p>
                   <div class="lender-grid" id="lender-grid"></div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- MARKET TAB -->
+          <div id="tab-market" class="tab-pane">
+            <div style="max-width:1100px">
+
+              <!-- Live data note -->
+              <div style="background:#fffbeb;border:1px solid #f6d860;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#7d5a00;display:flex;gap:8px;align-items:flex-start">
+                <span style="font-size:16px">&#9888;</span>
+                <div><strong>Indicative data shown below.</strong> Connect live APIs (see recommendations at the bottom) to pull real-time rates, HPI, and lender news automatically.</div>
+              </div>
+
+              <!-- Key rate indicators -->
+              <div class="card">
+                <div class="card-title">&#127881; UK Mortgage Market Snapshot — May 2026</div>
+                <div class="stat-row" id="market-stats" style="margin-bottom:0">
+                  <div class="stat-box"><div class="stat-label">BoE Base Rate</div><div class="stat-value">4.25%</div><div style="font-size:11px;color:#888;margin-top:2px">↓ from 5.25% peak (Aug 2023)</div></div>
+                  <div class="stat-box"><div class="stat-label">Avg 2-Yr Fixed</div><div class="stat-value">4.52%</div><div style="font-size:11px;color:#888;margin-top:2px">All LTVs — Moneyfacts avg</div></div>
+                  <div class="stat-box"><div class="stat-label">Avg 5-Yr Fixed</div><div class="stat-value">4.41%</div><div style="font-size:11px;color:#888;margin-top:2px">All LTVs — Moneyfacts avg</div></div>
+                  <div class="stat-box"><div class="stat-label">Avg SVR</div><div class="stat-value">7.85%</div><div style="font-size:11px;color:#888;margin-top:2px">High street average</div></div>
+                </div>
+              </div>
+
+              <!-- Rate trend by LTV -->
+              <div class="card">
+                <div class="card-title">&#128200; Best-Buy Rates by LTV Band — 2-Year Fixed (May 2026)</div>
+                <table class="data-table">
+                  <thead><tr><th>LTV Band</th><th>Best Rate</th><th>Typical Lender</th><th>Arrangement Fee</th><th>Movement (3m)</th></tr></thead>
+                  <tbody>
+                    <tr><td>≤60%</td><td><strong>4.19%</strong></td><td>Nationwide / HSBC</td><td>£999</td><td style="color:#1a7a3e">↓ 0.12%</td></tr>
+                    <tr><td>≤75%</td><td><strong>4.44%</strong></td><td>NatWest / Barclays</td><td>£995</td><td style="color:#1a7a3e">↓ 0.10%</td></tr>
+                    <tr><td>≤80%</td><td><strong>4.69%</strong></td><td>Halifax / Santander</td><td>£999</td><td style="color:#1a7a3e">↓ 0.08%</td></tr>
+                    <tr><td>≤85%</td><td><strong>4.99%</strong></td><td>Halifax / Nationwide</td><td>£995</td><td style="color:#888">→ 0.00%</td></tr>
+                    <tr><td>≤90%</td><td><strong>5.39%</strong></td><td>Barclays / NatWest</td><td>£999</td><td style="color:#c05c0a">↑ 0.05%</td></tr>
+                    <tr><td>≤95%</td><td><strong>5.89%</strong></td><td>Nationwide / Skipton</td><td>£0–£999</td><td style="color:#c05c0a">↑ 0.09%</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Adverse specialist rates -->
+              <div class="card">
+                <div class="card-title">&#127987; Adverse Credit Specialist Rates — May 2026</div>
+                <table class="data-table">
+                  <thead><tr><th>Lender</th><th>Adverse Tier</th><th>Rate From</th><th>Max LTV</th><th>Notes</th></tr></thead>
+                  <tbody>
+                    <tr><td>Precise Mortgages</td><td>Light–Moderate</td><td>5.49%</td><td>85%</td><td>Satisfied CCJs ≤ £2,500 on standard criteria</td></tr>
+                    <tr><td>Kensington</td><td>Light–Moderate</td><td>5.69%</td><td>90%</td><td>Flexible on unsatisfied adverse; strong IVA post-discharge</td></tr>
+                    <tr><td>Aldermore</td><td>Moderate</td><td>5.89%</td><td>85%</td><td>Best for complex SE + adverse combination</td></tr>
+                    <tr><td>Pepper Money</td><td>Moderate–Heavy</td><td>6.19%</td><td>80%</td><td>Tiered pricing reflects severity — good mid-adverse</td></tr>
+                    <tr><td>Together Money</td><td>Heavy</td><td>6.49%</td><td>75%</td><td>Complex property + heavy adverse dual cases</td></tr>
+                    <tr><td>Norton Home Loans</td><td>Very Heavy</td><td>6.99%</td><td>75%</td><td>Day 1 post-bankruptcy discharge</td></tr>
+                    <tr><td>Bluestone</td><td>Very Heavy</td><td>7.19%</td><td>70%</td><td>Australian-backed; aggressive criteria</td></tr>
+                    <tr><td>MBS Lending</td><td>Extreme</td><td>7.99%</td><td>65%</td><td>Manual underwriting; last resort</td></tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- UK HPI -->
+              <div class="card">
+                <div class="card-title">&#127968; UK House Price Index — Key Indicators (Apr 2026)</div>
+                <div class="stat-row" style="margin-bottom:16px">
+                  <div class="stat-box"><div class="stat-label">UK Avg Price</div><div class="stat-value">£295,400</div><div style="font-size:11px;color:#1a7a3e;margin-top:2px">↑ 3.1% YoY</div></div>
+                  <div class="stat-box"><div class="stat-label">London Avg</div><div class="stat-value">£524,600</div><div style="font-size:11px;color:#1a7a3e;margin-top:2px">↑ 1.8% YoY</div></div>
+                  <div class="stat-box"><div class="stat-label">NW England Avg</div><div class="stat-value">£214,200</div><div style="font-size:11px;color:#1a7a3e;margin-top:2px">↑ 4.7% YoY</div></div>
+                  <div class="stat-box"><div class="stat-label">Monthly Transactions</div><div class="stat-value">~86,000</div><div style="font-size:11px;color:#888;margin-top:2px">HMRC estimate</div></div>
+                </div>
+              </div>
+
+              <!-- Market commentary -->
+              <div class="card">
+                <div class="card-title">&#128240; Market Commentary — Adverse Sector</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="market-commentary-grid">
+                  <div>
+                    <p style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">&#128200; Rate Direction</p>
+                    <p style="font-size:13px;color:#555;line-height:1.6">Following the BoE's gradual easing cycle, adverse specialist lenders have begun reducing headline rates. Precise, Kensington and Pepper have all cut by 0.15–0.25% since Q1 2026. Trackers are increasingly competitive for clients without ERC concerns.</p>
+                  </div>
+                  <div>
+                    <p style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">&#127919; Lender Appetite</p>
+                    <p style="font-size:13px;color:#555;line-height:1.6">Adverse specialist appetite remains strong. Kensington and Aldermore have loosened criteria on satisfied defaults (now considering ≤24 months vs previous ≤36 months threshold). BTL adverse criteria has tightened slightly with the EPC C requirement coming into focus.</p>
+                  </div>
+                  <div>
+                    <p style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">&#9888; Watch Points</p>
+                    <p style="font-size:13px;color:#555;line-height:1.6">Gambling flags are receiving increased scrutiny across all lender tiers — even Precise and Kensington are requesting 12-month clean periods for moderate gambling activity. Payday loan thresholds remain at 24 months for most specialist lenders.</p>
+                  </div>
+                  <div>
+                    <p style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">&#128196; Regulatory Update</p>
+                    <p style="font-size:13px;color:#555;line-height:1.6">FCA Consumer Duty now fully embedded. All lenders conducting enhanced affordability checks. MCOB 11.6 stress testing requires lenders to stress at 3% above initial rate. Vulnerable customer frameworks are under active supervisory review.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- API Recommendations -->
+              <div class="card" style="border:2px solid var(--gold)">
+                <div class="card-title" style="color:var(--gold)">&#128279; Live Data API Recommendations</div>
+                <p style="font-size:13px;color:#555;margin-bottom:16px">To replace the indicative data above with live, real-time figures, integrate the following APIs:</p>
+                <table class="data-table">
+                  <thead><tr><th>Data Type</th><th>API / Source</th><th>Cost</th><th>Authentication</th><th>Notes</th></tr></thead>
+                  <tbody>
+                    <tr><td><strong>BoE Base Rate</strong></td><td>Bank of England Interactive Database (IDBW)</td><td style="color:#1a7a3e">Free</td><td>None (public REST)</td><td><code>https://www.bankofengland.co.uk/boeapps/database/</code> — series IUMABEDR</td></tr>
+                    <tr><td><strong>Live Mortgage Rates / Best Buys</strong></td><td>Moneyfacts API</td><td style="color:#c05c0a">Paid</td><td>API key</td><td>Industry-standard UK mortgage data; contact moneyfacts.co.uk/api</td></tr>
+                    <tr><td><strong>Live Rate Sourcing</strong></td><td>Twenty7Tec / Trigold / Aire</td><td style="color:#c05c0a">Paid (broker licence)</td><td>OAuth2</td><td>Full live product search including adverse; requires FCA authorisation</td></tr>
+                    <tr><td><strong>House Price Index</strong></td><td>HM Land Registry HPI API</td><td style="color:#1a7a3e">Free</td><td>None (public REST)</td><td><code>https://landregistry.data.gov.uk/app/ppd</code></td></tr>
+                    <tr><td><strong>Property Valuations</strong></td><td>Zoopla AVM / Rightmove Data</td><td style="color:#c05c0a">Paid</td><td>API key</td><td>Automated Valuation Model; useful for remote affordability screening</td></tr>
+                    <tr><td><strong>Credit Reference</strong></td><td>Experian / Equifax / TransUnion</td><td style="color:#c05c0a">Paid + FCA required</td><td>OAuth2 + FCA licence</td><td>Soft search APIs; requires consumer credit permissions</td></tr>
+                    <tr><td><strong>Companies House</strong></td><td>Companies House API (GOV.UK)</td><td style="color:#1a7a3e">Free</td><td>API key (free)</td><td>Verify SE directors, ltd company structure, filing history</td></tr>
+                    <tr><td><strong>HMRC Income</strong></td><td>HMRC Making Tax Digital API</td><td style="color:#1a7a3e">Free (with client consent)</td><td>OAuth2 + client authorisation</td><td>Verify SA302 figures directly; requires client to authenticate</td></tr>
+                    <tr><td><strong>Market News</strong></td><td>Financial Times API / Reuters Connect</td><td style="color:#c05c0a">Paid</td><td>API key</td><td>Lender news, rate announcements, regulatory updates</td></tr>
+                    <tr><td><strong>UK Finance Stats</strong></td><td>UK Finance Mortgage Trends</td><td style="color:#1a7a3e">Free (registration)</td><td>None</td><td>Monthly lending volumes, arrears data, repossession stats</td></tr>
+                  </tbody>
+                </table>
+                <p style="font-size:12px;color:#888;margin-top:12px;font-style:italic">The BoE, Land Registry, and Companies House APIs are available immediately at no cost. Moneyfacts and Twenty7Tec are the priority paid integrations for live rate data.</p>
+              </div>
+
             </div>
           </div>
 
@@ -905,6 +1031,38 @@ What would you like to know?</div>
       <div class="form-group">
         <label class="form-label">Full Name *</label>
         <input class="form-control" id="nc-name" type="text" placeholder="e.g. James Wilson">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input class="form-control" id="nc-dob" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input class="form-control" id="nc-phone" type="tel" placeholder="e.g. 07700 900123">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-control" id="nc-email" type="email" placeholder="e.g. james@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address Line 1</label>
+        <input class="form-control" id="nc-addr1" type="text" placeholder="e.g. 14 Church Street">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address Line 2 <span style="color:#a0aec0;font-weight:400;text-transform:none">(optional)</span></label>
+        <input class="form-control" id="nc-addr2" type="text" placeholder="e.g. Apartment 3">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">City / Town</label>
+          <input class="form-control" id="nc-city" type="text" placeholder="e.g. Manchester">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Postcode</label>
+          <input class="form-control" id="nc-postcode" type="text" placeholder="e.g. M1 1AE">
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -977,6 +1135,7 @@ var chatSessionId = 'session_' + Date.now();
 var chatHistory = [];
 var reportHtml = null;
 var selectedFile = null;
+var currentClient = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
@@ -1064,6 +1223,7 @@ function selectClient(clientId) {
 
 function renderClientPanel(data) {
   var client = data.client;
+  currentClient = client;
   var stored = data.analysis;
 
   document.getElementById('welcome').style.display = 'none';
@@ -1126,8 +1286,33 @@ function renderProfile(client) {
     ? '<span style="color:var(--danger);font-weight:600">' + adverseItems.join(', ') + '</span>'
     : '<span style="color:var(--success)">None declared</span>';
 
+  // Date of birth
+  var dobDisplay = 'N/A';
+  if (client.date_of_birth) {
+    try {
+      var dob = new Date(client.date_of_birth + 'T00:00:00');
+      dobDisplay = dob.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    } catch(e) { dobDisplay = esc(client.date_of_birth); }
+  }
+
+  // Address
+  var addrParts = [];
+  if (client.address_line1) addrParts.push(client.address_line1);
+  if (client.address_line2) addrParts.push(client.address_line2);
+  if (client.city) addrParts.push(client.city);
+  if (client.postcode) addrParts.push(client.postcode);
+  var addrHtml = addrParts.length ? addrParts.map(function(p) { return esc(p); }).join(', ') : 'N/A';
+
+  var emailHtml = client.email
+    ? '<a href="mailto:' + esc(client.email) + '" style="color:var(--gold)">' + esc(client.email) + '</a>'
+    : 'N/A';
+
   var rows = [
-    ['Mortgage Purpose', purposeMap[client.mortgage_purpose] || client.mortgage_purpose || 'N/A'],
+    ['Date of Birth', dobDisplay],
+    ['Phone', client.phone ? esc(client.phone) : 'N/A'],
+    ['Email', emailHtml],
+    ['Address', addrHtml],
+    ['Mortgage Purpose', purposeMap[client.mortgage_purpose] || esc(client.mortgage_purpose) || 'N/A'],
     ['Employment Type', empDisplay],
     ['Declared Monthly Income', gbp(client.declared_income)],
     ['Loan Amount', gbp(client.loan_amount)],
@@ -1444,6 +1629,137 @@ function downloadReport() {
   URL.revokeObjectURL(url);
 }
 
+// ── Risk Assessment ───────────────────────────────────────────────────────────
+function renderRiskAssessment(client) {
+  var container = document.getElementById('risk-assessment-body');
+  if (!container || !client || !client.client_id) return;
+
+  var adverse = client.adverse_history || {};
+  var grade = client.grade || null;
+
+  // Credit grade risk (0–100)
+  var gradeRiskMap = { A: 0, B: 15, C: 35, D: 60, E: 80, F: 100 };
+  var creditScore = grade && gradeRiskMap[grade] !== undefined ? gradeRiskMap[grade] : 50;
+
+  // LTV risk (0–100)
+  var ltvRisk = 0, ltvPct = 0;
+  if (client.loan_amount && client.property_value) {
+    ltvPct = (parseFloat(client.loan_amount) / parseFloat(client.property_value)) * 100;
+    if (ltvPct <= 60) ltvRisk = 0;
+    else if (ltvPct <= 70) ltvRisk = 15;
+    else if (ltvPct <= 75) ltvRisk = 25;
+    else if (ltvPct <= 80) ltvRisk = 40;
+    else if (ltvPct <= 85) ltvRisk = 60;
+    else if (ltvPct <= 90) ltvRisk = 75;
+    else if (ltvPct <= 95) ltvRisk = 90;
+    else ltvRisk = 100;
+  }
+
+  // Adverse history risk (0–100)
+  var adverseScore = 0;
+  if (adverse.bankruptcy) adverseScore += 50;
+  else if (adverse.iva) adverseScore += 40;
+  if (adverse.ccj) adverseScore += 20;
+  if (adverse['default']) adverseScore += 20;
+  if (adverse.dmp) adverseScore += 15;
+  if (adverse.payday_loans) adverseScore += 10;
+  var hasAnyAdverse = adverse.ccj || adverse['default'] || adverse.iva || adverse.bankruptcy || adverse.dmp || adverse.payday_loans;
+  if (hasAnyAdverse && adverse.months_since_most_recent != null) {
+    var mo = adverse.months_since_most_recent;
+    if (mo <= 6) adverseScore += 25;
+    else if (mo <= 12) adverseScore += 15;
+    else if (mo <= 24) adverseScore += 8;
+    else if (mo <= 36) adverseScore += 3;
+  }
+  adverseScore = Math.min(100, adverseScore);
+
+  // Employment risk (0–100)
+  var empRiskMap = { employed: 0, contractor: 20, self_employed: 35, retired: 25 };
+  var empScore = empRiskMap[client.employment_type] !== undefined ? empRiskMap[client.employment_type] : 20;
+
+  // Weighted overall
+  var overall = Math.round(creditScore * 0.40 + ltvRisk * 0.25 + adverseScore * 0.25 + empScore * 0.10);
+
+  // Rating bands
+  var rating, ratingBg, narrative;
+  if (overall < 25) {
+    rating = 'Low Risk'; ratingBg = '#1a7a3e';
+    narrative = 'This client presents a low overall risk profile. Credit grade, LTV, and adverse history are all within manageable parameters. Standard specialist lender criteria should be achievable.';
+  } else if (overall < 45) {
+    rating = 'Medium Risk'; ratingBg = '#1a4e8a';
+    narrative = 'Moderate risk profile. Some concerns exist but the application is likely viable with the right specialist lender. Thorough packaging and a well-structured case will be key to successful placement.';
+  } else if (overall < 65) {
+    rating = 'High Risk'; ratingBg = '#b8760a';
+    narrative = 'High risk — this case requires careful lender selection. Near-prime and specialist lenders will be necessary. A strong broker narrative and comprehensive supporting documentation are essential.';
+  } else if (overall < 80) {
+    rating = 'Very High Risk'; ratingBg = '#a01c1c';
+    narrative = 'Very high risk profile. Lender options are limited to heavy adverse specialists only. Carefully assess whether the client meets minimum thresholds. Consider remediation steps (debt clearance, credit rebuild) before application.';
+  } else {
+    rating = 'Extreme Risk'; ratingBg = '#5c0a0a';
+    narrative = 'Extreme risk — this client may not currently meet any lender\'s criteria. A period of credit repair and income stabilisation is strongly recommended before proceeding to application.';
+  }
+
+  // Per-factor colour
+  function factorColour(s) {
+    if (s < 25) return '#1a7a3e';
+    if (s < 45) return '#1a4e8a';
+    if (s < 65) return '#b8760a';
+    if (s < 80) return '#a01c1c';
+    return '#5c0a0a';
+  }
+  function riskRow(label, score, detail) {
+    var c = factorColour(score);
+    return '<tr>' +
+      '<td style="padding:8px 10px;font-weight:600;width:38%;border-bottom:1px solid #eee">' + label + '</td>' +
+      '<td style="padding:8px 10px;width:30%;border-bottom:1px solid #eee">' +
+        '<div class="prog-bar"><div class="prog-fill" style="width:' + score + '%;background:' + c + '"></div></div>' +
+        '<div style="font-size:11px;color:' + c + ';font-weight:700;margin-top:2px">' + score + '/100</div>' +
+      '</td>' +
+      '<td style="padding:8px 10px;color:#555;font-size:12px;border-bottom:1px solid #eee">' + detail + '</td>' +
+    '</tr>';
+  }
+
+  var creditDetail = grade ? ('Grade ' + grade + (client.grade_label ? ' — ' + esc(client.grade_label) : '')) : 'No grade yet — upload a statement';
+  var ltvDetail = ltvPct > 0 ? ltvPct.toFixed(1) + '% LTV' : 'N/A';
+  var adverseList = [];
+  if (adverse.bankruptcy) adverseList.push('Bankruptcy');
+  if (adverse.iva) adverseList.push('IVA');
+  if (adverse.ccj) adverseList.push('CCJ');
+  if (adverse['default']) adverseList.push('Default');
+  if (adverse.dmp) adverseList.push('DMP');
+  if (adverse.payday_loans) adverseList.push('Payday Loans');
+  var adverseDetail = adverseList.length ? adverseList.join(', ') : 'None declared';
+  if (hasAnyAdverse && adverse.months_since_most_recent != null) {
+    adverseDetail += ' (' + adverse.months_since_most_recent + ' months ago)';
+  }
+  var empLabels = { employed: 'PAYE Employed', contractor: 'Contractor', self_employed: 'Self-Employed', retired: 'Retired' };
+  var empDetail = empLabels[client.employment_type] || esc(client.employment_type || 'Unknown');
+
+  container.innerHTML =
+    '<div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;flex-wrap:wrap">' +
+      '<div style="background:' + ratingBg + ';color:#fff;border-radius:8px;padding:12px 20px;font-size:17px;font-weight:900;flex-shrink:0;min-width:130px;text-align:center">' +
+        rating + '<div style="font-size:11px;font-weight:600;opacity:.85;margin-top:3px">Score: ' + overall + '/100</div>' +
+      '</div>' +
+      '<div style="flex:1;min-width:200px">' +
+        '<div style="font-size:13px;font-weight:600;color:var(--navy);margin-bottom:6px">Risk Assessment Summary</div>' +
+        '<div style="font-size:13px;color:#555;line-height:1.55">' + narrative + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<table style="width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:8px;overflow:hidden">' +
+      '<thead><tr style="background:var(--navy)">' +
+        '<th style="padding:8px 10px;text-align:left;color:var(--gold);font-size:12px;font-weight:600">Risk Factor</th>' +
+        '<th style="padding:8px 10px;text-align:left;color:var(--gold);font-size:12px;font-weight:600">Risk Level</th>' +
+        '<th style="padding:8px 10px;text-align:left;color:var(--gold);font-size:12px;font-weight:600">Detail</th>' +
+      '</tr></thead>' +
+      '<tbody>' +
+        riskRow('Credit Grade', creditScore, creditDetail) +
+        riskRow('LTV', ltvRisk, ltvDetail) +
+        riskRow('Adverse History', adverseScore, adverseDetail) +
+        riskRow('Employment Type', empScore, empDetail) +
+      '</tbody>' +
+    '</table>';
+}
+
 // ── Lenders ───────────────────────────────────────────────────────────────────
 function loadLenders() {
   if (!selectedClientId) return;
@@ -1464,6 +1780,8 @@ function renderLenders(data) {
   document.getElementById('lenders-content').style.display = 'block';
   document.getElementById('lenders-summary').textContent =
     'Grade ' + data.grade + ' — ' + lenders.length + ' lender' + (lenders.length !== 1 ? 's' : '') + ' matched for this profile.';
+
+  renderRiskAssessment(currentClient || {});
 
   document.getElementById('lender-grid').innerHTML = lenders.slice(0, 8).map(function(l) {
     var colour = l.colour || '#333';
@@ -1605,7 +1923,8 @@ function openNewClientModal() {
 }
 function closeNewClientModal() {
   document.getElementById('new-client-modal').classList.remove('show');
-  ['nc-name','nc-loan','nc-property','nc-income','nc-months-adverse'].forEach(function(id) {
+  ['nc-name','nc-dob','nc-phone','nc-email','nc-addr1','nc-addr2','nc-city','nc-postcode',
+   'nc-loan','nc-property','nc-income','nc-months-adverse'].forEach(function(id) {
     document.getElementById(id).value = '';
   });
   ['nc-ccj','nc-default','nc-iva','nc-bankruptcy','nc-dmp','nc-payday'].forEach(function(id) {
@@ -1627,6 +1946,13 @@ function createClient() {
   var monthsStr = document.getElementById('nc-months-adverse').value;
   var payload = {
     name: name,
+    date_of_birth: document.getElementById('nc-dob').value || null,
+    phone: document.getElementById('nc-phone').value.trim() || null,
+    email: document.getElementById('nc-email').value.trim() || null,
+    address_line1: document.getElementById('nc-addr1').value.trim() || null,
+    address_line2: document.getElementById('nc-addr2').value.trim() || null,
+    city: document.getElementById('nc-city').value.trim() || null,
+    postcode: document.getElementById('nc-postcode').value.trim() || null,
     mortgage_purpose: document.getElementById('nc-purpose').value,
     loan_amount: loan,
     property_value: property,

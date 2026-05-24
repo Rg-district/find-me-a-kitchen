@@ -42,6 +42,13 @@ class AdverseHistory(BaseModel):
 
 class CreateClientRequest(BaseModel):
     name: str
+    date_of_birth: Optional[str] = None          # ISO date: YYYY-MM-DD
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
     mortgage_purpose: str  # purchase | remortgage | btl
     loan_amount: float
     property_value: float
@@ -52,6 +59,13 @@ class CreateClientRequest(BaseModel):
 
 class UpdateClientRequest(BaseModel):
     name: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    postcode: Optional[str] = None
     mortgage_purpose: Optional[str] = None
     loan_amount: Optional[float] = None
     property_value: Optional[float] = None
@@ -98,6 +112,13 @@ async def create_new_client(req: CreateClientRequest):
     """Create a new client record."""
     data = {
         "name": req.name,
+        "date_of_birth": req.date_of_birth,
+        "phone": req.phone,
+        "email": req.email,
+        "address_line1": req.address_line1,
+        "address_line2": req.address_line2,
+        "city": req.city,
+        "postcode": req.postcode,
         "mortgage_purpose": req.mortgage_purpose,
         "loan_amount": req.loan_amount,
         "property_value": req.property_value,
