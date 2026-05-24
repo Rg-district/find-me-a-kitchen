@@ -159,18 +159,45 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   flex-direction: column;
 }
 
-/* Welcome screen */
+/* Welcome screen — global AI assistant */
 #welcome {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #6b7a8e;
-  gap: 12px;
+  overflow: hidden;
 }
-.welcome-icon { font-size: 48px; opacity: .3; }
-.welcome-text { font-size: 16px; }
+.welcome-header {
+  padding: 14px 24px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.welcome-header-icon {
+  width: 40px; height: 40px;
+  background: var(--navy);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0; color: #fff;
+}
+.welcome-header-text strong { display: block; font-size: 15px; font-weight: 700; color: var(--navy); }
+.welcome-header-text span { font-size: 12px; color: var(--text-muted); line-height: 1.4; display: block; margin-top: 1px; }
+#welcome-chat-input {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 13px;
+  resize: none;
+  outline: none;
+  min-height: 42px;
+  max-height: 120px;
+  font-size: 13px;
+  transition: border-color .15s;
+  font-family: inherit;
+}
+#welcome-chat-input:focus { border-color: var(--gold); }
 
 /* ── Tabs ─────────────────────────────────────────────────────── */
 #client-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
@@ -608,6 +635,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   /* Reduce tab pane padding */
   .tab-pane { padding: 14px; }
 
+  /* Welcome header on mobile */
+  .welcome-header { padding: 10px 14px; gap: 10px; }
+  .welcome-header-text strong { font-size: 13px; }
+  .welcome-header-text span { font-size: 11px; }
+
   /* Client panel header */
   #client-panel-header { padding: 10px 14px 0; }
   .client-panel-name { font-size: 15px; margin-bottom: 8px; }
@@ -724,10 +756,29 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
     <!-- CONTENT -->
     <div id="content">
 
-      <!-- Welcome -->
+      <!-- Welcome — global AI assistant (visible when no client selected) -->
       <div id="welcome">
-        <div class="welcome-icon">&#127968;</div>
-        <div class="welcome-text">Select a client or create a new case</div>
+        <div class="welcome-header">
+          <div class="welcome-header-icon">&#129302;</div>
+          <div class="welcome-header-text">
+            <strong>Apex AI &#8212; Adverse Credit Specialist</strong>
+            <span>Ask general questions below, or select a client from the sidebar to access the full dashboard</span>
+          </div>
+        </div>
+        <div id="welcome-chat-messages" class="chat-messages">
+          <div class="chat-msg assistant">
+            <div class="msg-avatar bot-av">A</div>
+            <div class="msg-bubble assistant">Welcome to Apex Mortgage Agent. I'm your specialist adverse credit assistant.
+
+You can ask me general questions about UK adverse credit mortgages, lender criteria, MCOB compliance, case strategy, or red flag implications — no client selection needed.
+
+To analyse a bank statement, generate a grade, match lenders, or produce client documents, select or create a client from the sidebar on the left.</div>
+          </div>
+        </div>
+        <div class="chat-footer">
+          <textarea id="welcome-chat-input" placeholder="Ask about adverse credit, lender criteria, MCOB, red flags..." rows="1" onkeydown="handleWelcomeChatKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="btn btn-primary" id="welcome-send" onclick="sendWelcomeChat()" style="height:42px;min-width:42px;padding:0 14px">Send</button>
+        </div>
       </div>
 
       <!-- Client panel (hidden until client selected) -->
@@ -2155,6 +2206,83 @@ function addChatMessage(role, text) {
 
 function scrollChat() {
   var el = document.getElementById('chat-messages');
+  if (el) el.scrollTop = el.scrollHeight;
+}
+
+// ── Welcome / global AI chat ─────────────────────────────────────────────────
+var welcomeSessionId = 'global_' + Date.now();
+var welcomeChatHistory = [];
+
+function handleWelcomeChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendWelcomeChat();
+  }
+}
+
+function sendWelcomeChat() {
+  var input = document.getElementById('welcome-chat-input');
+  var text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  addWelcomeChatMessage('user', text);
+  welcomeChatHistory.push({ role: 'user', content: text });
+
+  var typingId = 'wt-' + Date.now();
+  document.getElementById('welcome-chat-messages').insertAdjacentHTML('beforeend',
+    '<div class="chat-msg assistant" id="' + typingId + '">' +
+      '<div class="msg-avatar bot-av">A</div>' +
+      '<div class="msg-bubble assistant"><span class="spinner"></span></div>' +
+    '</div>');
+  scrollWelcomeChat();
+
+  document.getElementById('welcome-send').disabled = true;
+
+  fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      session_id: welcomeSessionId,
+      messages: welcomeChatHistory,
+      client_id: null,
+    }),
+  })
+  .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+  .then(function(result) {
+    var typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    document.getElementById('welcome-send').disabled = false;
+    if (!result.ok) {
+      addWelcomeChatMessage('assistant', 'Error: ' + (result.data.detail || 'Unknown error'));
+      return;
+    }
+    var reply = result.data.message;
+    welcomeChatHistory.push({ role: 'assistant', content: reply });
+    addWelcomeChatMessage('assistant', reply);
+  })
+  .catch(function() {
+    var typing = document.getElementById(typingId);
+    if (typing) typing.remove();
+    document.getElementById('welcome-send').disabled = false;
+    addWelcomeChatMessage('assistant', 'Network error. Please try again.');
+  });
+}
+
+function addWelcomeChatMessage(role, text) {
+  var isUser = role === 'user';
+  var html = '<div class="chat-msg ' + role + '">' +
+    '<div class="msg-avatar ' + (isUser ? 'user-av' : 'bot-av') + '">' + (isUser ? 'C' : 'A') + '</div>' +
+    '<div class="msg-bubble ' + role + '">' + esc(text) + '</div>' +
+  '</div>';
+  document.getElementById('welcome-chat-messages').insertAdjacentHTML('beforeend', html);
+  scrollWelcomeChat();
+}
+
+function scrollWelcomeChat() {
+  var el = document.getElementById('welcome-chat-messages');
   if (el) el.scrollTop = el.scrollHeight;
 }
 
