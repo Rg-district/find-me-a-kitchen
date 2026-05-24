@@ -51,7 +51,7 @@ def generate_document(
 Generate a professional, FCA-compliant {doc_name} as a complete, self-contained HTML document.
 
 TODAY'S DATE: {today}
-FIRM NAME: Apex Mortgage Solutions
+FIRM NAME: Mortgages Are Us
 FCA REFERENCE NUMBER: [FCA NUMBER — consultant to insert]
 FIRM ADDRESS: [FIRM ADDRESS — consultant to insert]
 FIRM TELEPHONE: [FIRM TELEPHONE — consultant to insert]
@@ -185,7 +185,7 @@ PRIVACY NOTICE / TERMS OF BUSINESS CONTENT:
 """,
         "esis": """
 ESIS / KFI-SPECIFIC CONTENT (UK MCOB / EU Mortgage Credit Directive):
-- Section 1: Lender and intermediary details — [LENDER NAME to be confirmed], Apex Mortgage Solutions as intermediary, FCA numbers
+- Section 1: Lender and intermediary details — [LENDER NAME to be confirmed], Mortgages Are Us as intermediary, FCA numbers
 - Section 2: Main loan features — loan amount, loan term (use 25 years unless otherwise specified), repayment type (Capital Repayment), purpose, property address [if known]
 - Section 3: Interest rate — [INDICATIVE RATE]% fixed for [TERM] years, then reverts to lender SVR of [SVR]%; note this is indicative based on the client's grade
 - Section 4: APRC — [INDICATIVE APRC]% (note: actual APRC confirmed by lender on full offer)
@@ -202,7 +202,7 @@ ESIS / KFI-SPECIFIC CONTENT (UK MCOB / EU Mortgage Credit Directive):
         "aip": """
 AIP-SPECIFIC CONTENT:
 - Document header: "AGREEMENT IN PRINCIPLE — CONDITIONAL MORTGAGE DECISION" with a clear visual decision box
-- Issued by: Apex Mortgage Solutions (on behalf of [LENDER — to be confirmed after product selection])
+- Issued by: Mortgages Are Us (on behalf of [LENDER — to be confirmed after product selection])
 - Section 1: Applicant details — full name, date of birth, address (all from client data)
 - Section 2: Property details — property type [to be confirmed], estimated value (from client data), postcode [if known]
 - Section 3: Mortgage details:

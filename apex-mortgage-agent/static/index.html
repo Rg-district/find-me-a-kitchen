@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apex Mortgage Agent — Consultant Dashboard</title>
+<title>MAU — Mortgage Consultant Dashboard</title>
 <style>
 /* ── Reset & base ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -11,8 +11,9 @@
   --navy: #0F1B2D;
   --navy-mid: #1a2e47;
   --navy-light: #243b55;
-  --gold: #C9A84C;
-  --gold-light: #e8c96e;
+  --brand: #8B1C2A;
+  --brand-light: #a52535;
+  --brand-pale: rgba(139,28,42,.09);
   --bg: #f0f4f8;
   --surface: #ffffff;
   --border: #d1dce8;
@@ -30,7 +31,7 @@
   --topnav-h: 56px;
 }
 html, body { height: 100%; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 14px; color: var(--text); background: var(--bg); }
-a { color: var(--gold); text-decoration: none; }
+a { color: var(--brand); text-decoration: none; }
 button { cursor: pointer; font-family: inherit; }
 input, select, textarea { font-family: inherit; font-size: 14px; }
 
@@ -49,22 +50,44 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   z-index: 100;
   box-shadow: 0 2px 8px rgba(0,0,0,.25);
 }
-.nav-logo { display: flex; align-items: center; gap: 10px; }
-.nav-logo-mark {
-  width: 34px; height: 34px;
-  background: var(--gold);
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 900; font-size: 16px; color: var(--navy);
-  letter-spacing: -1px;
+.nav-logo { display: flex; align-items: center; }
+
+/* MAU wordmark (white-on-dark version for the nav) */
+.mau-wordmark-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+  gap: 0;
 }
-.nav-logo-text { color: #fff; }
-.nav-logo-text strong { display: block; font-size: 15px; letter-spacing: .5px; }
-.nav-logo-text span { font-size: 11px; color: #a0b0c0; }
+.mau-wm-text {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 700;
+  font-style: italic;
+  color: #fff;
+  letter-spacing: -0.5px;
+  line-height: 0.95;
+}
+.mau-wm-rule {
+  width: 100%;
+  height: 1.5px;
+  background: rgba(255,255,255,.55);
+  margin: 3px 0 2px;
+}
+.mau-wm-sub {
+  font-size: 7px;
+  font-weight: 700;
+  font-style: normal;
+  color: rgba(255,255,255,.75);
+  letter-spacing: 2.8px;
+  text-transform: uppercase;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
 .nav-badge {
-  background: var(--navy-light);
-  color: var(--gold);
-  border: 1px solid var(--gold);
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,255,255,.18);
   border-radius: 20px;
   padding: 3px 12px;
   font-size: 11px;
@@ -94,8 +117,8 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .sidebar-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .sidebar-title { color: #8fa5bf; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 #btn-new-client {
-  background: var(--gold);
-  color: var(--navy);
+  background: var(--brand);
+  color: #fff;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -104,7 +127,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   display: flex; align-items: center; gap: 5px;
   transition: background .15s;
 }
-#btn-new-client:hover { background: var(--gold-light); }
+#btn-new-client:hover { background: var(--brand-light); }
 #search-clients {
   width: 100%;
   background: rgba(255,255,255,.07);
@@ -116,7 +139,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   outline: none;
 }
 #search-clients::placeholder { color: #5a7090; }
-#search-clients:focus { border-color: var(--gold); }
+#search-clients:focus { border-color: var(--brand); }
 
 #client-list { flex: 1; overflow-y: auto; padding: 8px 0; }
 #client-list::-webkit-scrollbar { width: 4px; }
@@ -129,7 +152,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   transition: background .12s, border-color .12s;
 }
 .client-item:hover { background: rgba(255,255,255,.06); }
-.client-item.active { background: rgba(201,168,76,.1); border-left-color: var(--gold); }
+.client-item.active { background: var(--brand-pale); border-left-color: var(--brand); }
 .client-item-top { display: flex; justify-content: space-between; align-items: center; }
 .client-name { color: #e2e8f0; font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
 .client-purpose { color: #7a9ab5; font-size: 11px; margin-top: 2px; }
@@ -197,7 +220,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   transition: border-color .15s;
   font-family: inherit;
 }
-#welcome-chat-input:focus { border-color: var(--gold); }
+#welcome-chat-input:focus { border-color: var(--brand); }
 
 /* ── Tabs ─────────────────────────────────────────────────────── */
 #client-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
@@ -241,7 +264,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   white-space: nowrap;
 }
 .tab-btn:hover { color: var(--navy); }
-.tab-btn.active { color: var(--navy); border-bottom-color: var(--gold); }
+.tab-btn.active { color: var(--navy); border-bottom-color: var(--brand); }
 
 #tab-content { flex: 1; overflow-y: auto; }
 .tab-pane { display: none; padding: 24px; }
@@ -309,7 +332,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 
 /* Data table */
 .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.data-table thead th { background: var(--navy); color: var(--gold); font-weight: 600; padding: 9px 12px; text-align: left; }
+.data-table thead th { background: var(--navy); color: #fff; font-weight: 600; padding: 9px 12px; text-align: left; }
 .data-table tbody tr:nth-child(even) { background: #f8fafc; }
 .data-table tbody td { padding: 8px 12px; border-bottom: 1px solid #eee; }
 .data-table tfoot td { font-weight: 700; background: #eef3f8; padding: 8px 12px; }
@@ -355,10 +378,10 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   cursor: pointer;
   transition: border-color .15s, background .15s;
 }
-.upload-zone:hover, .upload-zone.drag-over { border-color: var(--gold); background: rgba(201,168,76,.04); }
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--brand); background: rgba(201,168,76,.04); }
 .upload-zone-icon { font-size: 36px; margin-bottom: 10px; }
 .upload-zone-text { color: var(--text-muted); font-size: 14px; }
-.upload-zone-text strong { color: var(--gold); }
+.upload-zone-text strong { color: var(--brand); }
 .upload-zone-hint { font-size: 12px; color: #a0aec0; margin-top: 6px; }
 
 /* ── Buttons ──────────────────────────────────────────────────── */
@@ -371,12 +394,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   border: none;
   transition: all .15s;
 }
-.btn-primary { background: var(--gold); color: var(--navy); }
-.btn-primary:hover { background: var(--gold-light); }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-light); }
 .btn-secondary { background: var(--navy); color: #fff; }
 .btn-secondary:hover { background: var(--navy-light); }
 .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
-.btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+.btn-outline:hover { border-color: var(--brand); color: var(--brand); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -422,7 +445,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   display: flex; align-items: center; justify-content: center;
   font-size: 14px; font-weight: 700; flex-shrink: 0;
 }
-.msg-avatar.user-av { background: var(--gold); color: var(--navy); }
+.msg-avatar.user-av { background: var(--brand); color: var(--navy); }
 .msg-avatar.bot-av { background: var(--navy); color: #fff; }
 .msg-bubble {
   padding: 10px 14px;
@@ -456,15 +479,15 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   font-size: 13px;
   transition: border-color .15s;
 }
-#chat-input:focus { border-color: var(--gold); }
+#chat-input:focus { border-color: var(--brand); }
 #chat-send { height: 42px; min-width: 42px; padding: 0 14px; }
 
 /* ── Spinning loader ──────────────────────────────────────────── */
 .spinner {
   display: inline-block;
   width: 20px; height: 20px;
-  border: 2.5px solid rgba(201,168,76,.3);
-  border-top-color: var(--gold);
+  border: 2.5px solid rgba(139,28,42,.25);
+  border-top-color: var(--brand);
   border-radius: 50%;
   animation: spin .7s linear infinite;
 }
@@ -529,11 +552,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   outline: none;
   transition: border-color .15s;
 }
-.form-control:focus { border-color: var(--gold); }
+.form-control:focus { border-color: var(--brand); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .checkbox-label { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; }
-.checkbox-label input[type=checkbox] { accent-color: var(--gold); width: 15px; height: 15px; }
+.checkbox-label input[type=checkbox] { accent-color: var(--brand); width: 15px; height: 15px; }
 .adverse-section { background: #fff8f0; border: 1px solid #fbd38d; border-radius: 8px; padding: 14px; }
 
 /* ── Report tab ───────────────────────────────────────────────── */
@@ -564,7 +587,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 }
 .toast.success { border-left: 4px solid #68d391; }
 .toast.error { border-left: 4px solid #f56565; }
-.toast.info { border-left: 4px solid var(--gold); }
+.toast.info { border-left: 4px solid var(--brand); }
 @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
 /* ── Mobile hamburger button ──────────────────────────────────── */
@@ -722,14 +745,14 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       <span></span><span></span><span></span>
     </button>
     <div class="nav-logo">
-      <div class="nav-logo-mark">AM</div>
-      <div class="nav-logo-text">
-        <strong>APEX MORTGAGE</strong>
-        <span>Consultant Dashboard</span>
+      <div class="mau-wordmark-nav">
+        <span class="mau-wm-text">mau</span>
+        <div class="mau-wm-rule"></div>
+        <span class="mau-wm-sub">mortgages are us</span>
       </div>
     </div>
     <div class="nav-badge">Adverse Credit Specialist</div>
-    <div class="nav-uk">&#127468;&#127463; UK Dashboard</div>
+    <div class="nav-uk">&#127468;&#127463; UK</div>
   </nav>
 
   <!-- MAIN LAYOUT -->
@@ -761,14 +784,14 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
         <div class="welcome-header">
           <div class="welcome-header-icon">&#129302;</div>
           <div class="welcome-header-text">
-            <strong>Apex AI &#8212; Adverse Credit Specialist</strong>
+            <strong>MAU Adviser &#8212; Adverse Credit Specialist</strong>
             <span>Ask general questions below, or select a client from the sidebar to access the full dashboard</span>
           </div>
         </div>
         <div id="welcome-chat-messages" class="chat-messages">
           <div class="chat-msg assistant">
             <div class="msg-avatar bot-av">A</div>
-            <div class="msg-bubble assistant">Welcome to Apex Mortgage Agent. I'm your specialist adverse credit assistant.
+            <div class="msg-bubble assistant">Welcome to Mortgages Are Us. I'm MAU Adviser, your specialist adverse credit assistant.
 
 You can ask me general questions about UK adverse credit mortgages, lender criteria, MCOB compliance, case strategy, or red flag implications — no client selection needed.
 
@@ -1032,8 +1055,8 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
               </div>
 
               <!-- API Recommendations -->
-              <div class="card" style="border:2px solid var(--gold)">
-                <div class="card-title" style="color:var(--gold)">&#128279; Live Data API Recommendations</div>
+              <div class="card" style="border:1px solid var(--border)">
+                <div class="card-title">&#128279; Live Data API Recommendations</div>
                 <p style="font-size:13px;color:#555;margin-bottom:16px">To replace the indicative data above with live, real-time figures, integrate the following APIs:</p>
                 <table class="data-table">
                   <thead><tr><th>Data Type</th><th>API / Source</th><th>Cost</th><th>Authentication</th><th>Notes</th></tr></thead>
@@ -1128,7 +1151,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <div class="chat-messages" id="chat-messages">
               <div class="chat-msg assistant">
                 <div class="msg-avatar bot-av">A</div>
-                <div class="msg-bubble assistant">Welcome. I'm Apex AI, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client.
+                <div class="msg-bubble assistant">Welcome. I'm MAU Adviser, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client.
 
 What would you like to know?</div>
               </div>
@@ -1443,7 +1466,7 @@ function renderProfile(client) {
   var addrHtml = addrParts.length ? addrParts.map(function(p) { return esc(p); }).join(', ') : 'N/A';
 
   var emailHtml = client.email
-    ? '<a href="mailto:' + esc(client.email) + '" style="color:var(--gold)">' + esc(client.email) + '</a>'
+    ? '<a href="mailto:' + esc(client.email) + '" style="color:var(--brand)">' + esc(client.email) + '</a>'
     : 'N/A';
 
   var rows = [
@@ -1886,9 +1909,9 @@ function renderRiskAssessment(client) {
     '</div>' +
     '<table style="width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:8px;overflow:hidden">' +
       '<thead><tr style="background:var(--navy)">' +
-        '<th style="padding:8px 10px;text-align:left;color:var(--gold);font-size:12px;font-weight:600">Risk Factor</th>' +
-        '<th style="padding:8px 10px;text-align:left;color:var(--gold);font-size:12px;font-weight:600">Risk Level</th>' +
-        '<th style="padding:8px 10px;text-align:left;color:var(--gold);font-size:12px;font-weight:600">Detail</th>' +
+        '<th style="padding:8px 10px;text-align:left;color:var(--brand);font-size:12px;font-weight:600">Risk Factor</th>' +
+        '<th style="padding:8px 10px;text-align:left;color:var(--brand);font-size:12px;font-weight:600">Risk Level</th>' +
+        '<th style="padding:8px 10px;text-align:left;color:var(--brand);font-size:12px;font-weight:600">Detail</th>' +
       '</tr></thead>' +
       '<tbody>' +
         riskRow('Credit Grade', creditScore, creditDetail) +
@@ -1969,7 +1992,7 @@ function handleRefFileSelect(e) {
   document.getElementById('ref-filename').textContent = file.name;
   var sel = document.getElementById('ref-file-selected');
   sel.style.display = 'flex';
-  document.getElementById('ref-doc-zone').style.borderColor = 'var(--gold)';
+  document.getElementById('ref-doc-zone').style.borderColor = 'var(--brand)';
 }
 
 function clearRefFile() {

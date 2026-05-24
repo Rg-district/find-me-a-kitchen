@@ -1,4 +1,4 @@
-"""Apex Mortgage Agent — FastAPI entry point (consultant dashboard rebuild)."""
+"""MAU — Mortgages Are Us — FastAPI entry point (consultant dashboard rebuild)."""
 import os
 from typing import Optional
 
@@ -32,7 +32,7 @@ from tools.document_generator import (
 )
 from orchestrator import Orchestrator
 
-app = FastAPI(title="Apex Mortgage Agent — Consultant Dashboard", version="2.0.0")
+app = FastAPI(title="MAU — Mortgages Are Us — Consultant Dashboard", version="2.0.0")
 orchestrator = Orchestrator()
 
 
