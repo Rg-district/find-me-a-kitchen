@@ -17,11 +17,19 @@ from memory.client_store import (
     update_client,
     save_analysis,
     get_analysis,
+    save_document,
+    list_documents,
+    get_document,
 )
 from tools.bank_statement_analyser import analyse_statement
 from tools.grading_engine import grade_client
 from tools.adverse_lender_matcher import match_lenders
 from tools.report_generator import generate_report
+from tools.document_generator import (
+    generate_document as gen_document,
+    extract_reference_text,
+    DOC_TYPES as DOCUMENT_TYPES,
+)
 from orchestrator import Orchestrator
 
 app = FastAPI(title="Apex Mortgage Agent — Consultant Dashboard", version="2.0.0")
@@ -343,6 +351,86 @@ async def chat(req: ChatRequest):
         return ChatResponse(session_id=req.session_id, message=text, stage=stage)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ── Document generation ───────────────────────────────────────────────────────
+
+_ALLOWED_REF_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "text/plain",
+}
+
+
+@app.post("/api/clients/{client_id}/documents/generate")
+async def generate_client_document(
+    client_id: str,
+    doc_type: str = Form(...),
+    reference_file: Optional[UploadFile] = File(None),
+):
+    """Generate a UK mortgage document (IDD, Privacy Notice, ESIS/KFI, AIP)."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    if doc_type not in DOCUMENT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown doc_type '{doc_type}'. Must be one of: {', '.join(DOCUMENT_TYPES)}",
+        )
+
+    # Extract reference text from optional uploaded template
+    reference_text = None
+    if reference_file and reference_file.filename:
+        ct = reference_file.content_type or "application/octet-stream"
+        if ct in _ALLOWED_REF_TYPES:
+            try:
+                ref_bytes = await reference_file.read()
+                if ref_bytes:
+                    reference_text = extract_reference_text(ref_bytes, ct)
+            except Exception:
+                pass  # Non-fatal — proceed without reference
+
+    stored = get_analysis(client_id)
+    analysis = stored.get("analysis") if stored else None
+
+    try:
+        html = gen_document(
+            doc_type=doc_type,
+            client=client,
+            analysis=analysis,
+            reference_text=reference_text,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Document generation failed: {exc}")
+
+    save_document(client_id, doc_type, html)
+    return HTMLResponse(content=html, media_type="text/html")
+
+
+@app.get("/api/clients/{client_id}/documents")
+async def list_client_documents(client_id: str):
+    """List all generated documents for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    docs = list_documents(client_id)
+    return {"client_id": client_id, "documents": docs}
+
+
+@app.get("/api/clients/{client_id}/documents/{doc_type}")
+async def get_client_document(client_id: str, doc_type: str):
+    """Retrieve a previously generated document as HTML."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    html = get_document(client_id, doc_type)
+    if not html:
+        raise HTTPException(status_code=404, detail="Document not found. Generate it first.")
+    return HTMLResponse(content=html, media_type="text/html")
 
 
 # ── Static files ──────────────────────────────────────────────────────────────

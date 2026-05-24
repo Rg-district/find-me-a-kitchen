@@ -512,7 +512,13 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 /* ── Report tab ───────────────────────────────────────────────── */
 .report-frame-wrap { margin-top: 12px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
 #report-frame { width: 100%; height: 600px; border: none; display: block; }
+#doc-preview-frame { width: 100%; height: 600px; border: none; display: block; }
 .report-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+
+/* ── Documents tab ────────────────────────────────────────────── */
+.doc-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+.doc-gen-btn { justify-content: flex-start; text-align: left; }
+.ref-doc-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
 
 /* ── Notifications ────────────────────────────────────────────── */
 #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
@@ -634,6 +640,12 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   /* Market commentary grid — single col */
   .market-commentary-grid { grid-template-columns: 1fr !important; }
 
+  /* Document generate buttons — single col */
+  .doc-btn-grid { grid-template-columns: 1fr; }
+
+  /* Document preview iframe */
+  #doc-preview-frame { height: 400px; }
+
   /* Grade hero stack */
   .grade-hero { flex-direction: column; align-items: flex-start; gap: 12px; }
 
@@ -732,6 +744,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
             <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128221; Report</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
+            <button class="tab-btn" data-tab="documents" onclick="switchTab('documents')">&#128196; Documents</button>
             <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">&#129302; AI Assistant</button>
           </div>
         </div>
@@ -987,6 +1000,73 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
                   </tbody>
                 </table>
                 <p style="font-size:12px;color:#888;margin-top:12px;font-style:italic">The BoE, Land Registry, and Companies House APIs are available immediately at no cost. Moneyfacts and Twenty7Tec are the priority paid integrations for live rate data.</p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- DOCUMENTS TAB -->
+          <div id="tab-documents" class="tab-pane">
+            <div style="max-width:960px">
+
+              <div class="card">
+                <div class="card-title">&#128196; Generate Client Document</div>
+                <p style="font-size:13px;color:#555;margin-bottom:16px">
+                  Generate a professional, FCA-compliant document pre-filled with this client's data.
+                  Optionally upload a reference document to use as a formatting template.
+                </p>
+
+                <div class="doc-btn-grid">
+                  <button class="btn btn-secondary doc-gen-btn" onclick="generateDoc('idd')">
+                    &#128203; Initial Disclosure Document (IDD)
+                  </button>
+                  <button class="btn btn-secondary doc-gen-btn" onclick="generateDoc('privacy_notice')">
+                    &#128274; Privacy Notice / Terms of Business
+                  </button>
+                  <button class="btn btn-secondary doc-gen-btn" onclick="generateDoc('esis')">
+                    &#128202; ESIS / Key Facts Illustration
+                  </button>
+                  <button class="btn btn-secondary doc-gen-btn" onclick="generateDoc('aip')">
+                    &#9989; Agreement in Principle (AIP)
+                  </button>
+                </div>
+
+                <div class="ref-doc-box">
+                  <div style="font-size:12px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">&#128206; Reference Template <span style="color:#a0aec0;font-weight:400;text-transform:none;font-size:11px">(optional)</span></div>
+                  <p style="font-size:12px;color:#777;margin-bottom:10px;line-height:1.5">Upload an existing document (PDF, image, or plain text) to use as a style/layout template. The AI will mirror its structure and adapt the content for this client.</p>
+                  <div id="ref-doc-zone" class="upload-zone" style="padding:18px 16px" onclick="document.getElementById('ref-file-input').click()">
+                    <div class="upload-zone-icon" style="font-size:24px;margin-bottom:6px">&#128206;</div>
+                    <div class="upload-zone-text" style="font-size:13px"><strong>Click to upload reference document</strong></div>
+                    <div class="upload-zone-hint">PDF, JPG, PNG, or plain text</div>
+                  </div>
+                  <input type="file" id="ref-file-input" accept=".pdf,.jpg,.jpeg,.png,.txt" style="display:none" onchange="handleRefFileSelect(event)">
+                  <div id="ref-file-selected" style="display:none;margin-top:8px;align-items:center;gap:8px;font-size:12px;color:var(--success);font-weight:600">
+                    <span>&#10003;</span>
+                    <span id="ref-filename"></span>
+                    <button onclick="clearRefFile()" style="background:none;border:none;color:#a0aec0;font-size:16px;cursor:pointer;line-height:1;padding:0 2px">&#10005;</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-title">&#128193; Generated Documents</div>
+                <div id="documents-list">
+                  <p style="color:#a0aec0;font-size:13px">No documents generated yet for this client.</p>
+                </div>
+              </div>
+
+              <div id="doc-preview-section" style="display:none">
+                <div class="card">
+                  <div class="card-title">&#128065; Document Preview</div>
+                  <div class="report-toolbar">
+                    <button class="btn btn-primary btn-sm" onclick="downloadCurrentDoc()">&#8681; Download HTML</button>
+                    <button class="btn btn-outline btn-sm" onclick="printCurrentDoc()">&#128438; Print</button>
+                    <span id="doc-preview-label" style="font-size:12px;color:#888;margin-left:8px"></span>
+                  </div>
+                  <div class="report-frame-wrap">
+                    <iframe id="doc-preview-frame" src="about:blank"></iframe>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -1262,6 +1342,14 @@ function renderClientPanel(data) {
   document.getElementById('report-content').style.display = 'none';
   document.getElementById('report-no-analysis').style.display = 'block';
   reportHtml = null;
+
+  // Reset document state
+  currentDocHtml = null;
+  currentDocType = null;
+  document.getElementById('doc-preview-section').style.display = 'none';
+  document.getElementById('doc-preview-frame').srcdoc = 'about:blank';
+  document.getElementById('documents-list').innerHTML = '<p style="color:#a0aec0;font-size:13px">No documents generated yet for this client.</p>';
+  clearRefFile();
 
   switchTab('overview');
 }
@@ -1812,6 +1900,159 @@ function renderLenders(data) {
   }).join('');
 }
 
+// ── Documents ─────────────────────────────────────────────────────────────────
+var currentRefFile = null;
+var currentDocHtml = null;
+var currentDocType = null;
+var DOC_NAMES = {
+  'idd': 'Initial Disclosure Document (IDD)',
+  'privacy_notice': 'Privacy Notice / Terms of Business',
+  'esis': 'ESIS / Key Facts Illustration (KFI)',
+  'aip': 'Agreement in Principle (AIP)',
+};
+
+function handleRefFileSelect(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  currentRefFile = file;
+  document.getElementById('ref-filename').textContent = file.name;
+  var sel = document.getElementById('ref-file-selected');
+  sel.style.display = 'flex';
+  document.getElementById('ref-doc-zone').style.borderColor = 'var(--gold)';
+}
+
+function clearRefFile() {
+  currentRefFile = null;
+  document.getElementById('ref-file-input').value = '';
+  document.getElementById('ref-file-selected').style.display = 'none';
+  document.getElementById('ref-doc-zone').style.borderColor = '';
+}
+
+function generateDoc(docType) {
+  if (!selectedClientId) { toast('Please select a client first', 'error'); return; }
+
+  showLoading('Generating ' + (DOC_NAMES[docType] || docType) + '...\nThis may take 30–60 seconds.');
+  document.querySelectorAll('.doc-gen-btn').forEach(function(b) { b.disabled = true; });
+
+  var formData = new FormData();
+  formData.append('doc_type', docType);
+  if (currentRefFile) formData.append('reference_file', currentRefFile);
+
+  fetch('/api/clients/' + selectedClientId + '/documents/generate', {
+    method: 'POST',
+    body: formData,
+  })
+  .then(function(res) {
+    if (!res.ok) return res.json().then(function(e) { throw new Error(e.detail || 'Generation failed'); });
+    return res.text();
+  })
+  .then(function(html) {
+    hideLoading();
+    document.querySelectorAll('.doc-gen-btn').forEach(function(b) { b.disabled = false; });
+    currentDocHtml = html;
+    currentDocType = docType;
+    document.getElementById('doc-preview-section').style.display = 'block';
+    document.getElementById('doc-preview-frame').srcdoc = html;
+    document.getElementById('doc-preview-label').textContent = DOC_NAMES[docType] || docType;
+    loadDocuments();
+    toast(DOC_NAMES[docType] + ' generated', 'success');
+    setTimeout(function() {
+      document.getElementById('doc-preview-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 200);
+  })
+  .catch(function(e) {
+    hideLoading();
+    document.querySelectorAll('.doc-gen-btn').forEach(function(b) { b.disabled = false; });
+    toast(e.message || 'Document generation failed', 'error');
+  });
+}
+
+function loadDocuments() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/documents')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderDocumentList(data.documents || []); })
+    .catch(function() {});
+}
+
+function renderDocumentList(docs) {
+  var el = document.getElementById('documents-list');
+  if (!docs.length) {
+    el.innerHTML = '<p style="color:#a0aec0;font-size:13px">No documents generated yet for this client.</p>';
+    return;
+  }
+  el.innerHTML = docs.map(function(d) {
+    var dt = d.generated_at ? new Date(d.generated_at + 'Z').toLocaleString('en-GB') : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;gap:12px">' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(d.doc_name) + '</div>' +
+        (dt ? '<div style="font-size:11px;color:#888;margin-top:2px">Generated: ' + dt + '</div>' : '') +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-shrink:0">' +
+        '<button class="btn btn-outline btn-sm" onclick="viewDocument(\'' + d.doc_type + '\')">View</button>' +
+        '<button class="btn btn-primary btn-sm" onclick="downloadDocument(\'' + d.doc_type + '\')">&#8681;</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function viewDocument(docType) {
+  if (!selectedClientId) return;
+  showLoading('Loading document...');
+  fetch('/api/clients/' + selectedClientId + '/documents/' + docType)
+    .then(function(res) {
+      if (!res.ok) throw new Error('Document not found');
+      return res.text();
+    })
+    .then(function(html) {
+      hideLoading();
+      currentDocHtml = html;
+      currentDocType = docType;
+      document.getElementById('doc-preview-section').style.display = 'block';
+      document.getElementById('doc-preview-frame').srcdoc = html;
+      document.getElementById('doc-preview-label').textContent = DOC_NAMES[docType] || docType;
+      setTimeout(function() {
+        document.getElementById('doc-preview-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    })
+    .catch(function() { hideLoading(); toast('Could not load document', 'error'); });
+}
+
+function downloadDocument(docType) {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/documents/' + docType)
+    .then(function(res) {
+      if (!res.ok) throw new Error('Not found');
+      return res.text();
+    })
+    .then(function(html) {
+      var blob = new Blob([html], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = 'apex-' + docType.replace(/_/g, '-') + '-' + (selectedClientId || 'client').slice(0, 8) + '.html';
+      a.click();
+      URL.revokeObjectURL(url);
+    })
+    .catch(function() { toast('Could not download document', 'error'); });
+}
+
+function downloadCurrentDoc() {
+  if (!currentDocHtml || !currentDocType) return;
+  var blob = new Blob([currentDocHtml], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'apex-' + currentDocType.replace(/_/g, '-') + '-' + (selectedClientId || 'client').slice(0, 8) + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function printCurrentDoc() {
+  var frame = document.getElementById('doc-preview-frame');
+  if (frame && frame.contentWindow) frame.contentWindow.print();
+}
+
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function switchTab(tabId) {
   document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
@@ -1826,6 +2067,7 @@ function switchTab(tabId) {
 
   if (tabId === 'lenders') loadLenders();
   if (tabId === 'report' && !reportHtml && currentAnalysis) generateReport();
+  if (tabId === 'documents') loadDocuments();
   if (tabId === 'assistant') setTimeout(scrollChat, 100);
 }
 

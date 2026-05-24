@@ -76,7 +76,8 @@ TOOLS AVAILABLE:
 Use get_client_summary to pull client data before answering client-specific questions.
 Use explain_red_flag to provide detailed lender impact analysis for specific flags.
 Use lender_strategy to generate a structured lender approach plan.
-Use check_application_readiness to produce a readiness checklist."""
+Use check_application_readiness to produce a readiness checklist.
+Use generate_document when the consultant asks you to create, draft, or generate a document (IDD, Privacy Notice, ESIS/KFI, or AIP). Always call get_client_summary first if you haven't already, then call generate_document with the correct doc_type and client_id. Tell the consultant the document has been generated and to view it in the Documents tab."""
 
 TOOLS: list[dict] = [
     {
@@ -142,6 +143,25 @@ TOOLS: list[dict] = [
                 "loan_amount": {"type": "number"},
                 "notes": {"type": "string", "description": "Any additional case context"},
             },
+        },
+    },
+    {
+        "name": "generate_document",
+        "description": "Generate a professional, FCA-compliant UK mortgage document pre-filled with the client's data. Use when the consultant asks to create, draft, or prepare an IDD, Privacy Notice, ESIS/KFI, or Agreement in Principle.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "doc_type": {
+                    "type": "string",
+                    "enum": ["idd", "privacy_notice", "esis", "aip"],
+                    "description": "idd = Initial Disclosure Document | privacy_notice = Privacy Notice / Terms of Business | esis = ESIS / Key Facts Illustration | aip = Agreement in Principle",
+                },
+                "client_id": {
+                    "type": "string",
+                    "description": "The client's UUID — required to pre-fill all client data",
+                },
+            },
+            "required": ["doc_type", "client_id"],
         },
     },
     {
@@ -390,6 +410,39 @@ def _execute_tool(name: str, inp: dict) -> dict:
             "strategy_notes": f"Grade {grade} case with LTV {ltv:.1f}%. {len(matched)} lenders matched. Recommend pre-submission BDM call for Grade D/E cases.",
             "bdm_recommendation": grade in ("C", "D", "E"),
         }
+
+    elif name == "generate_document":
+        from tools.document_generator import generate_document as gen_doc, DOC_TYPES
+        from memory.client_store import save_document, get_analysis as _get_analysis
+
+        doc_type = inp.get("doc_type", "")
+        client_id = inp.get("client_id", "")
+
+        if doc_type not in DOC_TYPES:
+            return {"error": f"Invalid doc_type '{doc_type}'. Must be one of: {', '.join(DOC_TYPES)}"}
+
+        client = get_client(client_id)
+        if not client:
+            return {"error": f"Client {client_id} not found"}
+
+        stored = _get_analysis(client_id)
+        analysis = stored.get("analysis") if stored else None
+
+        try:
+            html = gen_doc(doc_type=doc_type, client=client, analysis=analysis)
+            save_document(client_id, doc_type, html)
+            return {
+                "success": True,
+                "doc_type": doc_type,
+                "doc_name": DOC_TYPES[doc_type],
+                "client_name": client.get("name"),
+                "message": (
+                    f"{DOC_TYPES[doc_type]} generated successfully for {client.get('name', 'the client')}. "
+                    f"Switch to the **Documents** tab to view, download, or print it."
+                ),
+            }
+        except Exception as exc:
+            return {"error": f"Document generation failed: {exc}"}
 
     elif name == "check_application_readiness":
         client_id = inp["client_id"]

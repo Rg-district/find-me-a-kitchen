@@ -10,6 +10,13 @@ os.makedirs(CLIENTS_DIR, exist_ok=True)
 _clients: dict[str, dict] = {}
 _analyses: dict[str, dict] = {}
 
+_DOC_TYPES: dict[str, str] = {
+    "idd": "Initial Disclosure Document (IDD)",
+    "privacy_notice": "Privacy Notice / Terms of Business",
+    "esis": "ESIS / Key Facts Illustration (KFI)",
+    "aip": "Agreement in Principle (AIP)",
+}
+
 
 def _client_path(client_id: str) -> str:
     return os.path.join(CLIENTS_DIR, f"{client_id}.json")
@@ -89,6 +96,36 @@ def get_analysis(client_id: str) -> dict | None:
         with open(path) as f:
             _analyses[client_id] = json.load(f)
         return _analyses[client_id]
+    return None
+
+
+def _doc_path(client_id: str, doc_type: str) -> str:
+    return os.path.join(CLIENTS_DIR, f"{client_id}_doc_{doc_type}.html")
+
+
+def save_document(client_id: str, doc_type: str, html: str) -> None:
+    with open(_doc_path(client_id, doc_type), "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+def list_documents(client_id: str) -> list[dict]:
+    docs = []
+    for doc_type, doc_name in _DOC_TYPES.items():
+        path = _doc_path(client_id, doc_type)
+        if os.path.exists(path):
+            docs.append({
+                "doc_type": doc_type,
+                "doc_name": doc_name,
+                "generated_at": datetime.utcfromtimestamp(os.path.getmtime(path)).isoformat(),
+            })
+    return docs
+
+
+def get_document(client_id: str, doc_type: str) -> str | None:
+    path = _doc_path(client_id, doc_type)
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return f.read()
     return None
 
 
