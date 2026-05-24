@@ -94,7 +94,9 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   font-weight: 600;
   letter-spacing: .5px;
 }
-.nav-uk { margin-left: auto; color: #a0b0c0; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.nav-uk { color: #a0b0c0; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+#nav-signout { margin-left: auto; color: rgba(255,255,255,.55); font-size: 12px; text-decoration: none; letter-spacing: .04em; padding: 4px 8px; border-radius: 4px; transition: color .15s, background .15s; }
+#nav-signout:hover { color: #fff; background: rgba(255,255,255,.1); }
 
 /* ── Main area ────────────────────────────────────────────────── */
 #main { display: flex; flex: 1; overflow: hidden; }
@@ -753,6 +755,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
     </div>
     <div class="nav-badge">Adverse Credit Specialist</div>
     <div class="nav-uk">&#127468;&#127463; UK</div>
+    <a href="/logout" id="nav-signout" title="Sign out">&#x2192; Sign out</a>
   </nav>
 
   <!-- MAIN LAYOUT -->

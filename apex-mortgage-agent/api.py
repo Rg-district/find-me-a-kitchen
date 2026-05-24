@@ -1,14 +1,42 @@
 """MAU — Mortgages Are Us — FastAPI entry point (consultant dashboard rebuild)."""
+import hashlib
 import os
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, File, Form
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ── Auth ───────────────────────────────────────────────────────────────────────
+
+_DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "1234567")
+_SESSION_SECRET = os.environ.get("SESSION_SECRET", "mau-secret-xK9p2q")
+_COOKIE_NAME = "mau_auth"
+_AUTH_TOKEN = hashlib.sha256(f"{_DASHBOARD_PASSWORD}:{_SESSION_SECRET}".encode()).hexdigest()
+
+# Paths that are always public (no auth required)
+_PUBLIC_PREFIXES = ("/login", "/logout", "/health", "/static/")
+
+
+class _AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if any(path == p or path.startswith(p) for p in _PUBLIC_PREFIXES):
+            return await call_next(request)
+
+        token = request.cookies.get(_COOKIE_NAME)
+        if token == _AUTH_TOKEN:
+            return await call_next(request)
+
+        # API calls get 401; browser navigation gets redirect to /login
+        if path.startswith("/api/"):
+            return JSONResponse({"detail": "Unauthorised"}, status_code=401)
+        return RedirectResponse(url="/login", status_code=302)
 
 from memory.client_store import (
     create_client,
@@ -33,7 +61,39 @@ from tools.document_generator import (
 from orchestrator import Orchestrator
 
 app = FastAPI(title="MAU — Mortgages Are Us — Consultant Dashboard", version="2.0.0")
+app.add_middleware(_AuthMiddleware)
 orchestrator = Orchestrator()
+
+
+# ── Login / logout ────────────────────────────────────────────────────────────
+
+@app.get("/login")
+async def login_page():
+    return FileResponse("static/login.html")
+
+
+@app.post("/login")
+async def login_submit(request: Request):
+    form = await request.form()
+    password = form.get("password", "")
+    if password == _DASHBOARD_PASSWORD:
+        response = RedirectResponse(url="/", status_code=302)
+        response.set_cookie(
+            _COOKIE_NAME,
+            _AUTH_TOKEN,
+            httponly=True,
+            samesite="lax",
+            max_age=7 * 24 * 3600,
+        )
+        return response
+    return RedirectResponse(url="/login?error=1", status_code=302)
+
+
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="/login", status_code=302)
+    response.delete_cookie(_COOKIE_NAME)
+    return response
 
 
 # ── Pydantic models ───────────────────────────────────────────────────────────
