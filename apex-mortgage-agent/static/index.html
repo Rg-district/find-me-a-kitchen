@@ -736,6 +736,105 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   .stat-row { grid-template-columns: 1fr; }
   .tab-btn { padding: 8px 10px; font-size: 11px; }
 }
+
+/* ── Case Progress Tracker ────────────────────────────────────────────── */
+.case-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 16px 0 8px;
+  position: relative;
+}
+.case-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+}
+.case-step-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  border: 2.5px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: #9aaab8;
+  position: relative; z-index: 2;
+  transition: background .2s, border-color .2s;
+}
+.case-step.done .case-step-dot { background: var(--brand); border-color: var(--brand); color: #fff; }
+.case-step.active .case-step-dot { background: #fff; border-color: var(--brand); color: var(--brand); box-shadow: 0 0 0 3px rgba(139,28,42,.12); }
+.case-step-label { font-size: 10px; font-weight: 600; color: #9aaab8; text-align: center; margin-top: 6px; text-transform: uppercase; letter-spacing: .05em; line-height: 1.2; }
+.case-step.done .case-step-label, .case-step.active .case-step-label { color: var(--brand); }
+.case-step-line {
+  flex: 1; height: 2.5px;
+  background: #e2e8f0;
+  margin-top: -24px;
+  z-index: 1;
+  transition: background .2s;
+}
+.case-step-line.done { background: var(--brand); }
+.case-step:hover .case-step-dot { border-color: var(--brand-light); }
+.case-stage-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: var(--brand-pale); color: var(--brand); margin-bottom: 4px; }
+
+/* Case notes */
+.case-note-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f4f8; font-size: 13px; }
+.case-note-item:last-child { border-bottom: none; }
+.case-note-time { color: #9aaab8; font-size: 11px; white-space: nowrap; min-width: 120px; }
+.case-note-stage-tag { font-size: 10px; font-weight: 700; background: var(--brand-pale); color: var(--brand); padding: 1px 6px; border-radius: 10px; margin-right: 4px; }
+
+/* ── Discrepancy Report ───────────────────────────────────────────────── */
+.discrepancy-hero { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.disc-stat { background: #f8fafc; border-radius: 8px; padding: 14px 16px; text-align: center; }
+.disc-stat-label { font-size: 11px; font-weight: 700; color: #7a8a9a; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.disc-stat-value { font-size: 22px; font-weight: 800; color: var(--navy); }
+.disc-stat-value.positive { color: #1a7a3e; }
+.disc-stat-value.negative { color: var(--danger); }
+.disc-severity { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+.disc-severity.green { background: #f0fdf4; color: #1a7a3e; }
+.disc-severity.amber { background: #fffbeb; color: #7d5a00; }
+.disc-severity.orange { background: #fff7ed; color: #9a4500; }
+.disc-severity.red { background: #fef2f2; color: var(--danger); }
+.disc-flag { display: flex; gap: 10px; padding: 10px 14px; border-radius: 7px; margin-bottom: 8px; }
+.disc-flag.critical { background: #fef2f2; border-left: 3px solid var(--danger); }
+.disc-flag.high { background: #fff7ed; border-left: 3px solid #e07000; }
+.disc-flag.medium { background: #fffbeb; border-left: 3px solid #d4a000; }
+.disc-action-item { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; font-size: 13px; color: #374151; border-bottom: 1px solid #f0f4f8; }
+.disc-action-item:last-child { border-bottom: none; }
+.disc-action-item::before { content: "→"; color: var(--brand); font-weight: 700; flex-shrink: 0; }
+
+/* ── Stress Test ─────────────────────────────────────────────────────── */
+.stress-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.stress-scenario { border-radius: 10px; padding: 16px; }
+.stress-scenario.product-rate { background: #f8fafc; border: 1.5px solid #e2e8f0; }
+.stress-scenario.stressed-rate { background: #f8fafc; border: 1.5px solid #e2e8f0; }
+.stress-scenario-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+.stress-payment { font-size: 28px; font-weight: 800; color: var(--navy); line-height: 1; }
+.stress-rate-label { font-size: 12px; color: #6b7c93; margin-top: 2px; margin-bottom: 8px; }
+.stress-verdict-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 14px; font-size: 12px; font-weight: 700; }
+.stress-verdict-badge.green { background: #f0fdf4; color: #1a7a3e; }
+.stress-verdict-badge.amber { background: #fffbeb; color: #7d5a00; }
+.stress-verdict-badge.orange { background: #fff7ed; color: #9a4500; }
+.stress-verdict-badge.red { background: #fef2f2; color: var(--danger); }
+.stress-metric-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; border-bottom: 1px solid rgba(0,0,0,.05); }
+.stress-metric-row:last-child { border-bottom: none; }
+.stress-metric-label { color: #6b7c93; }
+.stress-metric-value { font-weight: 700; color: var(--navy); }
+.stress-rec { display: flex; gap: 8px; align-items: flex-start; padding: 8px 12px; background: #fffbeb; border-radius: 6px; font-size: 12px; margin-bottom: 6px; color: #7d5a00; border-left: 3px solid #d4a000; }
+
+/* ── Audit Trail ────────────────────────────────────────────────────────── */
+.audit-entry { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid #f0f4f8; align-items: flex-start; }
+.audit-entry:last-child { border-bottom: none; }
+.audit-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); margin-top: 5px; flex-shrink: 0; }
+.audit-time { font-size: 11px; color: #9aaab8; min-width: 140px; }
+.audit-event { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .04em; }
+.audit-data { font-size: 12px; color: #555; margin-top: 2px; }
+
+/* ── GDPR consent ───────────────────────────────────────────────────────── */
+.gdpr-consent-wrap { background: #f0f7ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; }
+.gdpr-consent-label { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; color: #2c5282; line-height: 1.5; cursor: pointer; }
+.gdpr-consent-label input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; width: 15px; height: 15px; }
 </style>
 </head>
 <body>
@@ -823,6 +922,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
             <button class="tab-btn" data-tab="documents" onclick="switchTab('documents')">&#128196; Documents</button>
             <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">&#129302; AI Assistant</button>
+            <button class="tab-btn" data-tab="audit" onclick="switchTab('audit')">&#128196; Audit Trail</button>
           </div>
         </div>
 
@@ -830,33 +930,72 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
 
           <!-- OVERVIEW TAB -->
           <div id="tab-overview" class="tab-pane active">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1100px">
+            <div style="max-width:1100px">
 
-              <div class="card">
-                <div class="card-title">&#128100; Client Profile</div>
-                <table class="info-table"><tbody id="profile-body"></tbody></table>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+                <div class="card">
+                  <div class="card-title">&#128100; Client Profile</div>
+                  <table class="info-table"><tbody id="profile-body"></tbody></table>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#128200; Grade Summary</div>
+                  <div id="grade-summary-placeholder" style="color:#a0aec0;font-size:13px;padding:16px 0">
+                    No bank statement analysis yet. Upload a statement in the Bank Statements tab to generate a grade.
+                  </div>
+                  <div id="grade-summary" style="display:none">
+                    <div class="grade-hero" style="margin-bottom:16px">
+                      <div id="grade-circle" class="grade-circle"></div>
+                      <div class="grade-detail">
+                        <h3 id="grade-title"></h3>
+                        <p id="grade-desc"></p>
+                        <div class="prog-bar">
+                          <div id="grade-prog" class="prog-fill"></div>
+                        </div>
+                        <div style="font-size:11px;color:#888;text-align:right;margin-top:2px"><span id="grade-score"></span>/100</div>
+                      </div>
+                    </div>
+                    <p id="grade-summary-text" style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.5"></p>
+                    <div class="breakdown-grid" id="breakdown-grid"></div>
+                  </div>
+                </div>
+
               </div>
 
-              <div class="card">
-                <div class="card-title">&#128200; Grade Summary</div>
-                <div id="grade-summary-placeholder" style="color:#a0aec0;font-size:13px;padding:16px 0">
-                  No bank statement analysis yet. Upload a statement in the Bank Statements tab to generate a grade.
+              <!-- Case Progress Tracker -->
+              <div class="card" style="margin-bottom:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                  <div class="card-title" style="margin-bottom:0">&#127937; Case Progress</div>
+                  <button class="btn btn-outline" onclick="openAddNoteModal()" style="font-size:12px;padding:5px 12px">+ Add Note</button>
                 </div>
-                <div id="grade-summary" style="display:none">
-                  <div class="grade-hero" style="margin-bottom:16px">
-                    <div id="grade-circle" class="grade-circle"></div>
-                    <div class="grade-detail">
-                      <h3 id="grade-title"></h3>
-                      <p id="grade-desc"></p>
-                      <div class="prog-bar">
-                        <div id="grade-prog" class="prog-fill"></div>
-                      </div>
-                      <div style="font-size:11px;color:#888;text-align:right;margin-top:2px"><span id="grade-score"></span>/100</div>
-                    </div>
+                <div class="case-pipeline" id="case-pipeline"></div>
+                <div id="case-notes-section" style="margin-top:12px;display:none">
+                  <div style="font-size:11px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Case Notes</div>
+                  <div id="case-notes-list"></div>
+                </div>
+              </div>
+
+              <!-- Stress Test -->
+              <div class="card" id="stress-test-card">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+                  <div class="card-title" style="margin-bottom:0">&#128293; FCA Affordability Stress Test <span style="font-size:11px;font-weight:500;color:#888;font-family:sans-serif">(MCOB 11.6 / PRA SS13/16)</span></div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <label style="font-size:12px;color:#555">Term:</label>
+                    <select id="stress-term" class="form-control" style="padding:4px 8px;font-size:12px;width:auto">
+                      <option value="25" selected>25 years</option>
+                      <option value="30">30 years</option>
+                      <option value="35">35 years</option>
+                      <option value="20">20 years</option>
+                      <option value="15">15 years</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="runStressTest()" id="btn-stress-test" style="font-size:12px;padding:5px 14px">Run Test</button>
                   </div>
-                  <p id="grade-summary-text" style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.5"></p>
-                  <div class="breakdown-grid" id="breakdown-grid"></div>
                 </div>
+                <div id="stress-test-placeholder" style="color:#a0aec0;font-size:13px;padding:12px 0">
+                  Click <strong>Run Test</strong> to calculate FCA affordability at product rate and stressed rate.
+                </div>
+                <div id="stress-test-results" style="display:none;margin-top:12px"></div>
               </div>
 
             </div>
@@ -919,6 +1058,13 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                   <div class="card-title">&#128221; Underwriter Notes</div>
                   <p id="underwriter-notes-text" style="font-size:13px;color:#555;line-height:1.6"></p>
                 </div>
+
+                <!-- Discrepancy Report -->
+                <div class="card" id="discrepancy-card" style="display:none">
+                  <div class="card-title">&#9878;&#65039; Income Discrepancy & Cross-Validation Report</div>
+                  <div id="discrepancy-body"></div>
+                </div>
+
               </div>
 
             </div>
@@ -972,10 +1118,18 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
           <div id="tab-market" class="tab-pane">
             <div style="max-width:1100px">
 
+              <!-- FCA compliance warning -->
+              <div style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#7f1d1d;display:flex;gap:10px;align-items:flex-start">
+                <span style="font-size:18px;flex-shrink:0">&#9888;</span>
+                <div>
+                  <strong>FCA COMPLIANCE NOTICE — INDICATIVE DATA ONLY</strong><br>
+                  The rates, figures, and market data shown on this tab are <strong>static reference data</strong> and <strong>must not be used to advise clients on specific mortgage products</strong>. Under FCA MCOB 5 and 7, any rate communicated to a client must be current and lender-confirmed. Before presenting rates to a client, verify with the lender directly or via a live sourcing platform (Twenty7Tec, Trigold, or Mortgage Brain). Failure to use accurate current data constitutes a breach of FCA MCOB rules and could result in client detriment and regulatory action.
+                </div>
+              </div>
               <!-- Live data note -->
               <div style="background:#fffbeb;border:1px solid #f6d860;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#7d5a00;display:flex;gap:8px;align-items:flex-start">
-                <span style="font-size:16px">&#9888;</span>
-                <div><strong>Indicative data shown below.</strong> Connect live APIs (see recommendations at the bottom) to pull real-time rates, HPI, and lender news automatically.</div>
+                <span style="font-size:16px">&#9432;</span>
+                <div><strong>Connect live data APIs</strong> to replace these static figures with real-time rates, HPI, and lender criteria. Recommended: Moneyfacts (rates), Twenty7Tec (sourcing), HM Land Registry (HPI), BoE API (base rate).</div>
               </div>
 
               <!-- Key rate indicators -->
@@ -1163,6 +1317,19 @@ What would you like to know?</div>
               <textarea id="chat-input" placeholder="Ask about this client's case..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
               <button class="btn btn-primary" id="chat-send" onclick="sendChat()">Send</button>
             </div>
+          <!-- AUDIT TRAIL TAB -->
+          <div id="tab-audit" class="tab-pane">
+            <div style="max-width:900px">
+              <div class="card">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+                  <div class="card-title" style="margin-bottom:0">&#128196; FCA Audit Trail</div>
+                  <span style="font-size:12px;color:#9aaab8">MCOB 5-year retention requirement</span>
+                </div>
+                <div id="audit-log-body">
+                  <div style="color:#a0aec0;font-size:13px;padding:16px 0">Select a client to view their audit trail.</div>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -1271,10 +1438,46 @@ What would you like to know?</div>
           </div>
         </div>
       </div>
+      <div class="gdpr-consent-wrap">
+        <label class="gdpr-consent-label">
+          <input type="checkbox" id="nc-gdpr-consent">
+          <span>I confirm the client has provided <strong>written consent</strong> to process their personal and financial data for mortgage advice, in compliance with <strong>UK GDPR</strong> and FCA MCOB rules. A copy of the Privacy Notice / Terms of Business has been provided to and signed by the client.</span>
+        </label>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeNewClientModal()">Cancel</button>
       <button class="btn btn-primary" onclick="createClient()">Create Client</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CASE NOTE MODAL -->
+<div class="modal-overlay" id="add-note-modal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title">Add Case Note</span>
+      <button class="modal-close" onclick="closeAddNoteModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Stage</label>
+        <select class="form-control" id="note-stage">
+          <option value="research">Research / Fact Find</option>
+          <option value="dip">Decision in Principle</option>
+          <option value="full_application">Full Application</option>
+          <option value="offer">Mortgage Offer</option>
+          <option value="completion">Completion</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <textarea class="form-control" id="note-text" rows="4" placeholder="e.g. Submitted DIP to Kensington — awaiting soft credit search result..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeAddNoteModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
     </div>
   </div>
 </div>
@@ -1427,6 +1630,21 @@ function renderClientPanel(data) {
   document.getElementById('doc-preview-frame').srcdoc = 'about:blank';
   document.getElementById('documents-list').innerHTML = '<p style="color:#a0aec0;font-size:13px">No documents generated yet for this client.</p>';
   clearRefFile();
+
+  // Render case progress tracker
+  renderCaseProgress(client);
+
+  // Reset stress test
+  document.getElementById('stress-test-results').style.display = 'none';
+  document.getElementById('stress-test-placeholder').style.display = 'block';
+
+  // Reset discrepancy
+  document.getElementById('discrepancy-card').style.display = 'none';
+
+  // Discrepancy report (if analysis exists)
+  if (stored && stored.analysis) {
+    loadDiscrepancyReport();
+  }
 
   switchTab('overview');
 }
@@ -1730,6 +1948,7 @@ function uploadAndAnalyse() {
 
     renderGradeSummary(data.grade_result);
     renderAnalysisResults(data.analysis, data.grade_result);
+    loadDiscrepancyReport();
 
     allClients.forEach(function(c) {
       if (c.client_id === selectedClientId) {
@@ -2146,6 +2365,7 @@ function switchTab(tabId) {
   if (tabId === 'report' && !reportHtml && currentAnalysis) generateReport();
   if (tabId === 'documents') loadDocuments();
   if (tabId === 'assistant') setTimeout(scrollChat, 100);
+  if (tabId === 'audit') loadAuditLog();
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────
@@ -2323,7 +2543,7 @@ function closeNewClientModal() {
    'nc-loan','nc-property','nc-income','nc-months-adverse'].forEach(function(id) {
     document.getElementById(id).value = '';
   });
-  ['nc-ccj','nc-default','nc-iva','nc-bankruptcy','nc-dmp','nc-payday'].forEach(function(id) {
+  ['nc-ccj','nc-default','nc-iva','nc-bankruptcy','nc-dmp','nc-payday','nc-gdpr-consent'].forEach(function(id) {
     document.getElementById(id).checked = false;
   });
 }
@@ -2336,6 +2556,10 @@ function createClient() {
 
   if (!name || !loan || !property || !income) {
     toast('Please fill in all required fields', 'error');
+    return;
+  }
+  if (!document.getElementById('nc-gdpr-consent').checked) {
+    toast('GDPR consent must be confirmed before creating a client record', 'error');
     return;
   }
 
@@ -2363,6 +2587,7 @@ function createClient() {
       payday_loans: document.getElementById('nc-payday').checked,
       months_since_most_recent: monthsStr ? parseInt(monthsStr) : null,
     },
+    gdpr_consent: true,
   };
 
   fetch('/api/clients', {
@@ -2457,6 +2682,295 @@ function toggleSidebar() {
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebar-backdrop').classList.remove('show');
+}
+
+// ── Case Progress Tracker ─────────────────────────────────────────────────────
+var CASE_STAGES = ['research','dip','full_application','offer','completion'];
+var CASE_STAGE_LABELS = {
+  research: 'Research / Fact Find',
+  dip: 'Decision in Principle',
+  full_application: 'Full Application',
+  offer: 'Mortgage Offer',
+  completion: 'Completion',
+};
+var CASE_STAGE_ICONS = { research:'1', dip:'2', full_application:'3', offer:'4', completion:'5' };
+
+function renderCaseProgress(client) {
+  var current = client.case_stage || 'research';
+  var currentIdx = CASE_STAGES.indexOf(current);
+  var pipeline = document.getElementById('case-pipeline');
+
+  var html = '';
+  CASE_STAGES.forEach(function(stage, i) {
+    var isDone = i < currentIdx;
+    var isActive = i === currentIdx;
+    var cls = isDone ? 'done' : (isActive ? 'active' : '');
+    var label = CASE_STAGE_LABELS[stage].replace(' / ', '<br>');
+
+    if (i > 0) {
+      html += '<div class="case-step-line' + (i <= currentIdx ? ' done' : '') + '"></div>';
+    }
+    html += '<div class="case-step ' + cls + '" onclick="advanceCaseStage(\'' + stage + '\')" title="Set stage: ' + CASE_STAGE_LABELS[stage] + '">' +
+      '<div class="case-step-dot">' + (isDone ? '&#10003;' : (isActive ? CASE_STAGE_ICONS[stage] : CASE_STAGE_ICONS[stage])) + '</div>' +
+      '<div class="case-step-label">' + label + '</div>' +
+    '</div>';
+  });
+  pipeline.innerHTML = html;
+
+  // Case notes
+  var notes = client.case_notes || [];
+  var noteSection = document.getElementById('case-notes-section');
+  var noteList = document.getElementById('case-notes-list');
+  if (notes.length > 0) {
+    noteSection.style.display = 'block';
+    var notesHtml = '';
+    notes.slice().reverse().forEach(function(n) {
+      var ts = n.timestamp ? new Date(n.timestamp).toLocaleString('en-GB', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+      var stageTag = n.stage ? '<span class="case-note-stage-tag">' + esc(CASE_STAGE_LABELS[n.stage] || n.stage) + '</span>' : '';
+      notesHtml += '<div class="case-note-item"><span class="case-note-time">' + ts + '</span><span>' + stageTag + esc(n.note) + '</span></div>';
+    });
+    noteList.innerHTML = notesHtml;
+  } else {
+    noteSection.style.display = 'none';
+  }
+}
+
+function advanceCaseStage(stage) {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/case-stage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ stage: stage }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (d.client) {
+      currentClient = d.client;
+      renderCaseProgress(d.client);
+      toast('Case stage: ' + d.stage_label, 'success');
+    }
+  })
+  .catch(function() { toast('Failed to update case stage', 'error'); });
+}
+
+function openAddNoteModal() {
+  if (!selectedClientId) return;
+  var stage = (currentClient && currentClient.case_stage) || 'research';
+  document.getElementById('note-stage').value = stage;
+  document.getElementById('note-text').value = '';
+  document.getElementById('add-note-modal').style.display = 'flex';
+}
+
+function closeAddNoteModal() {
+  document.getElementById('add-note-modal').style.display = 'none';
+}
+
+document.getElementById('add-note-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddNoteModal();
+});
+
+function saveNote() {
+  var note = document.getElementById('note-text').value.trim();
+  var stage = document.getElementById('note-stage').value;
+  if (!note) { toast('Please enter a note', 'error'); return; }
+  fetch('/api/clients/' + selectedClientId + '/case-notes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ note: note, stage: stage }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    closeAddNoteModal();
+    if (d.client) { currentClient = d.client; renderCaseProgress(d.client); }
+    toast('Note saved', 'success');
+  })
+  .catch(function() { toast('Failed to save note', 'error'); });
+}
+
+// ── Discrepancy Report ────────────────────────────────────────────────────────
+function loadDiscrepancyReport() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/discrepancy')
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(d) { renderDiscrepancyReport(d.discrepancy); })
+    .catch(function() {}); // non-fatal if no analysis
+}
+
+function renderDiscrepancyReport(disc) {
+  var card = document.getElementById('discrepancy-card');
+  var body = document.getElementById('discrepancy-body');
+  if (!disc) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  var deltaSign = disc.delta_gbp >= 0 ? '+' : '';
+  var deltaClass = disc.delta_gbp >= 0 ? 'positive' : 'negative';
+  var pctSign = disc.delta_pct >= 0 ? '+' : '';
+
+  var html =
+    '<div class="discrepancy-hero">' +
+      '<div class="disc-stat"><div class="disc-stat-label">Declared Monthly</div><div class="disc-stat-value">' + gbp(disc.declared_monthly) + '</div></div>' +
+      '<div class="disc-stat"><div class="disc-stat-label">Verified (Bank Stmt)</div><div class="disc-stat-value">' + gbp(disc.verified_monthly) + '</div></div>' +
+      '<div class="disc-stat"><div class="disc-stat-label">Delta</div><div class="disc-stat-value ' + deltaClass + '">' + deltaSign + gbp(disc.delta_gbp) + '</div></div>' +
+    '</div>' +
+    '<div style="margin-bottom:12px">' +
+      '<span class="disc-severity ' + esc(disc.severity_colour) + '">&#9679; ' + esc(disc.severity_label) + '</span>' +
+      '<span style="font-size:12px;color:#555;margin-left:12px">(' + pctSign + disc.delta_pct.toFixed(1) + '%) — ' + esc(disc.direction_note) + '</span>' +
+    '</div>';
+
+  // Stats row
+  html += '<div class="stat-row" style="margin-bottom:16px">' +
+    '<div class="stat-box"><div class="stat-label">Fixed Outgoings</div><div class="stat-value">' + gbp(disc.total_fixed_outgoings) + '</div><div style="font-size:11px;color:#888">per month</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Variable Outgoings</div><div class="stat-value">' + gbp(disc.total_variable_outgoings) + '</div><div style="font-size:11px;color:#888">per month avg</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Net Disposable</div><div class="stat-value ' + (disc.net_disposable_income < 500 ? 'negative' : '') + '">' + gbp(disc.net_disposable_income) + '</div><div style="font-size:11px;color:#888">per month</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Debt-to-Income</div><div class="stat-value ' + (disc.debt_to_income_ratio > 45 ? 'negative' : '') + '">' + disc.debt_to_income_ratio.toFixed(1) + '%</div><div style="font-size:11px;color:#888">fixed commitments</div></div>' +
+  '</div>';
+
+  // Risk flags
+  if (disc.risk_flags && disc.risk_flags.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Risk Flags</div>';
+    disc.risk_flags.forEach(function(f) {
+      html += '<div class="disc-flag ' + esc(f.severity) + '"><div><strong>' + esc(f.label) + '</strong><br><span style="font-size:12px">' + esc(f.detail) + '</span></div></div>';
+    });
+  }
+
+  // Consultant actions
+  if (disc.consultant_actions && disc.consultant_actions.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Required Consultant Actions</div>';
+    disc.consultant_actions.forEach(function(a) {
+      html += '<div class="disc-action-item">' + esc(a) + '</div>';
+    });
+  }
+
+  body.innerHTML = html;
+}
+
+// ── Stress Test ───────────────────────────────────────────────────────────────
+function runStressTest() {
+  if (!selectedClientId) { toast('Select a client first', 'error'); return; }
+  var term = parseInt(document.getElementById('stress-term').value) || 25;
+  document.getElementById('btn-stress-test').disabled = true;
+  fetch('/api/clients/' + selectedClientId + '/stress-test', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ term_years: term }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    document.getElementById('btn-stress-test').disabled = false;
+    renderStressTest(d.stress_test);
+  })
+  .catch(function() {
+    document.getElementById('btn-stress-test').disabled = false;
+    toast('Stress test failed', 'error');
+  });
+}
+
+var STRESS_COLOURS = { green: '#1a7a3e', amber: '#7d5a00', orange: '#9a4500', red: '#c0392b' };
+
+function renderStressTest(st) {
+  var placeholder = document.getElementById('stress-test-placeholder');
+  var results = document.getElementById('stress-test-results');
+  placeholder.style.display = 'none';
+  results.style.display = 'block';
+
+  var verdictColour = STRESS_COLOURS[st.stress_verdict_colour] || '#333';
+  var incomeNote = '(' + esc(st.income_type) + ' income used: ' + gbp(st.income_used) + '/month)';
+
+  var html =
+    '<div class="stress-hero">' +
+      // Product rate scenario
+      '<div class="stress-scenario product-rate">' +
+        '<div class="stress-scenario-title" style="color:#4a5568">At Product Rate</div>' +
+        '<div class="stress-payment">' + gbp(st.payment_at_rate) + '</div>' +
+        '<div class="stress-rate-label">@ ' + st.indicative_rate.toFixed(2) + '% — ' + st.term_years + ' yr capital repayment</div>' +
+        '<span class="stress-verdict-badge ' + esc(st.rate_verdict_colour) + '" style="margin-bottom:10px">' + esc(st.rate_verdict.replace('_',' ').replace(/\b\w/g,function(c){return c.toUpperCase();})) + '</span>' +
+        '<div class="stress-metric-row"><span class="stress-metric-label">Payment-to-income</span><span class="stress-metric-value">' + st.ratio_at_rate.toFixed(1) + '%</span></div>' +
+        '<div class="stress-metric-row"><span class="stress-metric-label">Disposable after pmt</span><span class="stress-metric-value">' + gbp(st.disposable_after_rate) + '/mo</span></div>' +
+        '<div class="stress-metric-row"><span class="stress-metric-label">Total interest</span><span class="stress-metric-value">' + gbp(st.total_interest_at_rate) + '</span></div>' +
+      '</div>' +
+      // Stressed rate scenario
+      '<div class="stress-scenario stressed-rate" style="border-color:' + verdictColour + '">' +
+        '<div class="stress-scenario-title" style="color:' + verdictColour + '">FCA Stressed Rate &#9888;</div>' +
+        '<div class="stress-payment" style="color:' + verdictColour + '">' + gbp(st.payment_at_stress) + '</div>' +
+        '<div class="stress-rate-label">@ ' + st.stress_rate.toFixed(2) + '% (product + ' + st.stress_add_on + 'pp floor ' + st.stress_rate.toFixed(0) + '%)</div>' +
+        '<span class="stress-verdict-badge ' + esc(st.stress_verdict_colour) + '" style="margin-bottom:10px">' + esc(st.stress_verdict_label) + '</span>' +
+        '<div class="stress-metric-row"><span class="stress-metric-label">Payment-to-income</span><span class="stress-metric-value">' + st.ratio_at_stress.toFixed(1) + '%</span></div>' +
+        '<div class="stress-metric-row"><span class="stress-metric-label">Disposable after pmt</span><span class="stress-metric-value">' + gbp(st.disposable_after_stress) + '/mo</span></div>' +
+        '<div class="stress-metric-row"><span class="stress-metric-label">Payment increase</span><span class="stress-metric-value">+' + gbp(st.payment_increase) + '/mo</span></div>' +
+      '</div>' +
+    '</div>';
+
+  // Max affordable
+  html += '<div class="stat-row" style="margin-bottom:16px">' +
+    '<div class="stat-box"><div class="stat-label">Max Loan @ Product Rate</div><div class="stat-value">' + gbp(st.max_affordable_at_rate) + '</div><div style="font-size:11px;color:#888">at 35% PTI threshold</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Max Loan @ Stressed Rate</div><div class="stat-value">' + gbp(st.max_affordable_at_stress) + '</div><div style="font-size:11px;color:#888">FCA constraint</div></div>' +
+  '</div>';
+
+  // Recommendations
+  if (st.recommendations && st.recommendations.length > 0) {
+    st.recommendations.forEach(function(r) {
+      html += '<div class="stress-rec">&#9888; ' + esc(r) + '</div>';
+    });
+  }
+
+  html += '<div style="font-size:11px;color:#9aaab8;margin-top:10px">&#9432; ' + esc(st.regulatory_note) + ' &mdash; ' + incomeNote + '</div>';
+
+  results.innerHTML = html;
+}
+
+// ── Audit Trail ───────────────────────────────────────────────────────────────
+var AUDIT_EVENT_LABELS = {
+  client_created: 'Client record created',
+  case_stage_changed: 'Case stage updated',
+  case_note_added: 'Case note added',
+  stress_test_run: 'Affordability stress test run',
+  statement_uploaded: 'Bank statement uploaded',
+  report_generated: 'Client report generated',
+  document_generated: 'Document generated',
+};
+
+function loadAuditLog() {
+  if (!selectedClientId) return;
+  var body = document.getElementById('audit-log-body');
+  body.innerHTML = '<div style="color:#9aaab8;font-size:13px">Loading...</div>';
+  fetch('/api/clients/' + selectedClientId + '/audit-log')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { renderAuditLog(d.entries || []); })
+    .catch(function() { body.innerHTML = '<div style="color:var(--danger);font-size:13px">Failed to load audit log</div>'; });
+}
+
+function renderAuditLog(entries) {
+  var body = document.getElementById('audit-log-body');
+  if (!entries || entries.length === 0) {
+    body.innerHTML = '<div style="color:#a0aec0;font-size:13px;padding:12px 0">No audit entries yet for this client.</div>';
+    return;
+  }
+  var html = '<div style="font-size:12px;color:#9aaab8;margin-bottom:12px">' + entries.length + ' audit entr' + (entries.length === 1 ? 'y' : 'ies') + ' &mdash; FCA 5-year retention (MCOB)</div>';
+  entries.slice().reverse().forEach(function(e) {
+    var ts = e.timestamp ? new Date(e.timestamp).toLocaleString('en-GB', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+    var label = AUDIT_EVENT_LABELS[e.event_type] || e.event_type;
+    var dataStr = '';
+    if (e.data && Object.keys(e.data).length > 0) {
+      var parts = [];
+      Object.keys(e.data).forEach(function(k) {
+        if (e.data[k] !== null && e.data[k] !== '' && e.data[k] !== undefined) {
+          parts.push('<strong>' + esc(k.replace(/_/g,' ')) + ':</strong> ' + esc(String(e.data[k])));
+        }
+      });
+      if (parts.length) dataStr = '<div class="audit-data">' + parts.join(' &nbsp;|&nbsp; ') + '</div>';
+    }
+    html += '<div class="audit-entry">' +
+      '<div class="audit-dot"></div>' +
+      '<div style="flex:1">' +
+        '<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">' +
+          '<span class="audit-event">' + esc(label) + '</span>' +
+          '<span class="audit-time">' + ts + '</span>' +
+        '</div>' +
+        dataStr +
+      '</div>' +
+    '</div>';
+  });
+  body.innerHTML = html;
 }
 </script>
 </body>

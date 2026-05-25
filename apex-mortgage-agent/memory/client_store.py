@@ -17,6 +17,15 @@ _DOC_TYPES: dict[str, str] = {
     "aip": "Agreement in Principle (AIP)",
 }
 
+CASE_STAGES = ["research", "dip", "full_application", "offer", "completion"]
+CASE_STAGE_LABELS = {
+    "research": "Research / Fact Find",
+    "dip": "Decision in Principle",
+    "full_application": "Full Application",
+    "offer": "Mortgage Offer",
+    "completion": "Completion",
+}
+
 
 def _client_path(client_id: str) -> str:
     return os.path.join(CLIENTS_DIR, f"{client_id}.json")
@@ -46,6 +55,10 @@ def create_client(data: dict) -> str:
         "grade": None,
         "score": None,
         "status": "active",
+        "case_stage": "research",
+        "case_stage_updated_at": now,
+        "case_notes": [],
+        "gdpr_consent": data.pop("gdpr_consent", False),
         **data,
     }
     _clients[client_id] = client
@@ -127,6 +140,54 @@ def get_document(client_id: str, doc_type: str) -> str | None:
         with open(path, encoding="utf-8") as f:
             return f.read()
     return None
+
+
+def set_case_stage(client_id: str, stage: str, note: str = "") -> dict:
+    if stage not in CASE_STAGES:
+        raise ValueError(f"Invalid stage '{stage}'. Must be one of: {', '.join(CASE_STAGES)}")
+    now = datetime.utcnow().isoformat()
+    client = get_client(client_id)
+    if client is None:
+        raise KeyError(f"Client {client_id} not found")
+    client["case_stage"] = stage
+    client["case_stage_updated_at"] = now
+    if note:
+        if "case_notes" not in client or not isinstance(client["case_notes"], list):
+            client["case_notes"] = []
+        client["case_notes"].append({
+            "timestamp": now,
+            "stage": stage,
+            "note": note,
+        })
+    client["updated_at"] = now
+    _clients[client_id] = client
+    with open(_client_path(client_id), "w") as f:
+        json.dump(client, f, indent=2)
+    return client
+
+
+def add_case_note(client_id: str, note: str, stage: str = "") -> dict:
+    now = datetime.utcnow().isoformat()
+    client = get_client(client_id)
+    if client is None:
+        raise KeyError(f"Client {client_id} not found")
+    if "case_notes" not in client or not isinstance(client["case_notes"], list):
+        client["case_notes"] = []
+    client["case_notes"].append({
+        "timestamp": now,
+        "stage": stage or client.get("case_stage", "research"),
+        "note": note,
+    })
+    client["updated_at"] = now
+    _clients[client_id] = client
+    with open(_client_path(client_id), "w") as f:
+        json.dump(client, f, indent=2)
+    return client
+
+
+def get_audit_log(client_id: str) -> list[dict]:
+    from memory.audit_log import get_log
+    return get_log(client_id)
 
 
 # Legacy compatibility for orchestrator

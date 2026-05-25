@@ -48,11 +48,19 @@ from memory.client_store import (
     save_document,
     list_documents,
     get_document,
+    set_case_stage,
+    add_case_note,
+    get_audit_log,
+    CASE_STAGES,
+    CASE_STAGE_LABELS,
 )
+from memory.audit_log import log_event
 from tools.bank_statement_analyser import analyse_statement
 from tools.grading_engine import grade_client
 from tools.adverse_lender_matcher import match_lenders
 from tools.report_generator import generate_report
+from tools.discrepancy_engine import compute_discrepancy
+from tools.stress_test import run_stress_test
 from tools.document_generator import (
     generate_document as gen_document,
     extract_reference_text,
@@ -123,6 +131,7 @@ class CreateClientRequest(BaseModel):
     declared_income: float  # monthly in £
     employment_type: str    # employed | self_employed | contractor | retired
     adverse_history: AdverseHistory = AdverseHistory()
+    gdpr_consent: bool = False
 
 
 class UpdateClientRequest(BaseModel):
@@ -193,9 +202,15 @@ async def create_new_client(req: CreateClientRequest):
         "declared_income": req.declared_income,
         "employment_type": req.employment_type,
         "adverse_history": req.adverse_history.model_dump(),
+        "gdpr_consent": req.gdpr_consent,
     }
     client_id = create_client(data)
     client = get_client(client_id)
+    log_event(client_id, "client_created", {
+        "name": req.name,
+        "gdpr_consent": req.gdpr_consent,
+        "mortgage_purpose": req.mortgage_purpose,
+    })
     return {"client_id": client_id, "client": client}
 
 
@@ -387,6 +402,115 @@ async def get_matched_lenders(client_id: str):
     )
 
     return {"client_id": client_id, "grade": grade, "lenders": matched, "count": len(matched)}
+
+
+# ── Case progress ─────────────────────────────────────────────────────────────
+
+class CaseStageRequest(BaseModel):
+    stage: str
+    note: Optional[str] = None
+
+
+class CaseNoteRequest(BaseModel):
+    note: str
+
+
+@app.post("/api/clients/{client_id}/case-stage")
+async def update_case_stage(client_id: str, req: CaseStageRequest):
+    """Advance or change the case stage with an optional note."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    if req.stage not in CASE_STAGES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid stage. Must be one of: {', '.join(CASE_STAGES)}",
+        )
+    updated = set_case_stage(client_id, req.stage, req.note or "")
+    log_event(client_id, "case_stage_changed", {"stage": req.stage, "note": req.note or ""})
+    return {"client": updated, "stage": req.stage, "stage_label": CASE_STAGE_LABELS[req.stage]}
+
+
+@app.post("/api/clients/{client_id}/case-notes")
+async def create_case_note(client_id: str, req: CaseNoteRequest):
+    """Add a free-text case note."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    updated = add_case_note(client_id, req.note)
+    log_event(client_id, "case_note_added", {"note": req.note[:200]})
+    return {"client": updated}
+
+
+@app.get("/api/clients/{client_id}/audit-log")
+async def get_client_audit_log(client_id: str):
+    """Return the full audit trail for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    entries = get_audit_log(client_id)
+    return {"client_id": client_id, "entries": entries, "count": len(entries)}
+
+
+# ── Discrepancy report ────────────────────────────────────────────────────────
+
+@app.get("/api/clients/{client_id}/discrepancy")
+async def get_discrepancy_report(client_id: str):
+    """Return cross-validation discrepancy report for declared vs verified income."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    stored = get_analysis(client_id)
+    if not stored or not stored.get("analysis"):
+        raise HTTPException(
+            status_code=400,
+            detail="No bank statement analysis found. Upload a statement first.",
+        )
+    report = compute_discrepancy(client, stored["analysis"])
+    return {"client_id": client_id, "discrepancy": report}
+
+
+# ── Stress test ───────────────────────────────────────────────────────────────
+
+class StressTestRequest(BaseModel):
+    term_years: int = 25
+    indicative_rate: Optional[float] = None
+
+
+@app.post("/api/clients/{client_id}/stress-test")
+async def run_client_stress_test(client_id: str, req: StressTestRequest):
+    """Run FCA MCOB 11 affordability stress test for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    stored = get_analysis(client_id)
+    analysis = stored.get("analysis") if stored else None
+
+    verified_income = 0.0
+    net_disposable = 0.0
+    if analysis:
+        verified_income = float(
+            (analysis.get("income_analysis") or {}).get("total_average_monthly_income", 0) or 0
+        )
+        net_disposable = float(
+            (analysis.get("affordability_indicators") or {}).get("net_disposable_income_monthly", 0) or 0
+        )
+
+    result = run_stress_test(
+        loan_amount=float(client.get("loan_amount", 0) or 0),
+        declared_income=float(client.get("declared_income", 0) or 0),
+        grade=client.get("grade", "F") or "F",
+        verified_income=verified_income,
+        net_disposable=net_disposable,
+        term_years=req.term_years,
+        indicative_rate=req.indicative_rate,
+    )
+    log_event(client_id, "stress_test_run", {
+        "verdict": result["stress_verdict"],
+        "ratio_at_stress": result["ratio_at_stress"],
+    })
+    return {"client_id": client_id, "stress_test": result}
 
 
 # ── AI Assistant ──────────────────────────────────────────────────────────────
