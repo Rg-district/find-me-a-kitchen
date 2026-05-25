@@ -177,6 +177,8 @@ TOOLS: list[dict] = [
             },
             "required": ["client_id"],
         },
+        # Cache all tools up to and including this last one
+        "cache_control": {"type": "ephemeral"},
     },
 ]
 
@@ -569,7 +571,13 @@ class Orchestrator:
             response = self.client.messages.create(
                 model="claude-sonnet-4-6",
                 max_tokens=4096,
-                system=SYSTEM_PROMPT,
+                system=[
+                    {
+                        "type": "text",
+                        "text": SYSTEM_PROMPT,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
                 tools=TOOLS,
                 messages=current,
             )

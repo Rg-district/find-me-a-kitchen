@@ -215,11 +215,14 @@ def analyse_statement(
             {
                 "role": "user",
                 "content": [
-                    document_block,
+                    # Static analysis instructions first — cached across calls.
+                    # The document block follows and varies per call (not cached).
                     {
                         "type": "text",
                         "text": prompt,
+                        "cache_control": {"type": "ephemeral"},
                     },
+                    document_block,
                 ],
             }
         ],
