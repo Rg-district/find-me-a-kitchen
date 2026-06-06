@@ -38,6 +38,8 @@ class _AuthMiddleware(BaseHTTPMiddleware):
             return JSONResponse({"detail": "Unauthorised"}, status_code=401)
         return RedirectResponse(url="/login", status_code=302)
 
+import base64
+
 from memory.client_store import (
     create_client,
     get_client,
@@ -51,6 +53,8 @@ from memory.client_store import (
     set_case_stage,
     add_case_note,
     get_audit_log,
+    save_credit_report,
+    get_credit_report,
     CASE_STAGES,
     CASE_STAGE_LABELS,
 )
@@ -61,6 +65,7 @@ from tools.adverse_lender_matcher import match_lenders
 from tools.report_generator import generate_report
 from tools.discrepancy_engine import compute_discrepancy
 from tools.stress_test import run_stress_test
+from tools.credit_report_analyser import analyse_credit_report, cross_validate as credit_cross_validate
 from tools.document_generator import (
     generate_document as gen_document,
     extract_reference_text,
@@ -513,7 +518,141 @@ async def run_client_stress_test(client_id: str, req: StressTestRequest):
     return {"client_id": client_id, "stress_test": result}
 
 
+# ── Credit report ─────────────────────────────────────────────────────────────
+
+_ALLOWED_CREDIT_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+}
+
+
+@app.post("/api/clients/{client_id}/upload-credit-report")
+async def upload_credit_report(client_id: str, file: UploadFile = File(...)):
+    """Upload a credit bureau report (Equifax, Experian, TransUnion) for AI analysis."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    ct = file.content_type or "application/octet-stream"
+    if ct not in _ALLOWED_CREDIT_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {ct}. Upload a PDF or image.",
+        )
+
+    try:
+        file_bytes = await file.read()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not read file: {exc}")
+
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    try:
+        credit_data = analyse_credit_report(
+            file_bytes=file_bytes,
+            file_type=ct,
+            client_id=client_id,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Credit report analysis failed: {exc}")
+
+    stored_analysis = get_analysis(client_id)
+    bank_analysis = stored_analysis.get("analysis") if stored_analysis else None
+
+    validation = credit_cross_validate(client, credit_data)
+
+    payload = {
+        "credit_data": credit_data,
+        "validation": validation,
+        "filename": file.filename,
+        "uploaded_at": credit_data["_meta"]["analysed_at"],
+    }
+    save_credit_report(client_id, payload)
+
+    log_event(client_id, "credit_report_uploaded", {
+        "bureau": credit_data.get("bureau"),
+        "critical_discrepancies": validation["critical_count"],
+        "filename": file.filename,
+    })
+
+    update_client(client_id, {"credit_report_uploaded": True})
+
+    return {
+        "success": True,
+        "client_id": client_id,
+        "bureau": credit_data.get("bureau"),
+        "credit_data": credit_data,
+        "validation": validation,
+    }
+
+
+@app.get("/api/clients/{client_id}/credit-report")
+async def get_client_credit_report(client_id: str):
+    """Return the stored credit report analysis for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    data = get_credit_report(client_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="No credit report uploaded yet")
+    return {"client_id": client_id, **data}
+
+
 # ── AI Assistant ──────────────────────────────────────────────────────────────
+
+@app.post("/api/chat-with-document")
+async def chat_with_document(
+    session_id: str = Form(...),
+    message: str = Form(""),
+    client_id: Optional[str] = Form(None),
+    file: Optional[UploadFile] = File(None),
+):
+    """AI chat with an optional attached document (PDF or image)."""
+    _allowed = {"application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp", "text/plain"}
+
+    content: str | list = message or "Please analyse the attached document."
+
+    if file and file.filename:
+        ct = file.content_type or "application/octet-stream"
+        if ct not in _allowed:
+            raise HTTPException(status_code=400, detail=f"Unsupported file type: {ct}")
+        file_bytes = await file.read()
+        if not file_bytes:
+            raise HTTPException(status_code=400, detail="Empty file")
+
+        encoded = base64.standard_b64encode(file_bytes).decode()
+        msg_text = message or "Please analyse this document and tell me what's relevant to this mortgage case."
+
+        if ct == "text/plain":
+            text_body = file_bytes.decode("utf-8", errors="replace")[:8000]
+            content = [{"type": "text", "text": f"[ATTACHED: {file.filename}]\n\n{text_body}\n\n{message}".strip()}]
+        elif ct == "application/pdf":
+            content = [
+                {"type": "document", "source": {"type": "base64", "media_type": "application/pdf", "data": encoded}},
+                {"type": "text", "text": msg_text},
+            ]
+        else:
+            content = [
+                {"type": "image", "source": {"type": "base64", "media_type": ct, "data": encoded}},
+                {"type": "text", "text": msg_text},
+            ]
+
+    eff_session = f"{client_id}_{session_id}" if client_id else session_id
+
+    try:
+        text, stage = await orchestrator.process(
+            eff_session,
+            [{"role": "user", "content": content}],
+            client_id=client_id,
+        )
+        return ChatResponse(session_id=session_id, message=text, stage=stage)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):

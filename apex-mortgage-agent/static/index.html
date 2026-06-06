@@ -831,6 +831,54 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .audit-event { font-size: 12px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .04em; }
 .audit-data { font-size: 12px; color: #555; margin-top: 2px; }
 
+/* ── Credit Report Tab ───────────────────────────────────────────────────── */
+.cr-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.cr-summary-grid .stat-box { text-align: center; }
+.cr-score-badge { display: inline-flex; flex-direction: column; align-items: center; background: var(--brand-pale); border-radius: 10px; padding: 10px 18px; }
+.cr-score-num { font-size: 32px; font-weight: 800; color: var(--navy); line-height: 1; }
+.cr-score-label { font-size: 10px; color: #6b7c93; text-transform: uppercase; letter-spacing: .07em; margin-top: 3px; }
+.cr-discrepancy { display: flex; gap: 10px; padding: 10px 14px; border-radius: 7px; margin-bottom: 8px; align-items: flex-start; }
+.cr-discrepancy.critical { background: #fef2f2; border-left: 3px solid #c0392b; }
+.cr-discrepancy.high { background: #fff7ed; border-left: 3px solid #e07000; }
+.cr-discrepancy.medium { background: #fffbeb; border-left: 3px solid #d4a000; }
+.cr-discrepancy.low { background: #f0f9ff; border-left: 3px solid #0ea5e9; }
+.cr-confirm { display: flex; gap: 8px; padding: 6px 0; font-size: 13px; color: #1a7a3e; border-bottom: 1px solid #f0f4f8; }
+.cr-confirm:last-child { border-bottom: none; }
+.cr-confirm::before { content: "✓"; font-weight: 700; flex-shrink: 0; }
+.cr-action { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; font-size: 13px; color: #374151; border-bottom: 1px solid #f0f4f8; }
+.cr-action:last-child { border-bottom: none; }
+.cr-action::before { content: "→"; color: var(--brand); font-weight: 700; flex-shrink: 0; }
+.cr-accounts-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cr-accounts-table th { background: var(--navy); color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; }
+.cr-accounts-table td { padding: 7px 10px; border-bottom: 1px solid #eee; }
+.cr-accounts-table tr:nth-child(even) td { background: #f8fafc; }
+.cr-accounts-table .badge-open { color: #1a7a3e; font-weight: 700; }
+.cr-accounts-table .badge-default { color: var(--danger); font-weight: 700; }
+.cr-accounts-table .badge-closed { color: #9aaab8; }
+.cr-payday-tag { display: inline-block; background: #fef2f2; color: var(--danger); font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 4px; }
+.cr-summary-item { background: #f8fafc; border-radius: 7px; padding: 12px 14px; text-align: center; }
+.cr-summary-label { font-size: 11px; color: #6b7c93; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.cr-summary-value { font-size: 20px; font-weight: 700; color: var(--navy); }
+.cr-status-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.cr-status-badge.status-bad { background: #fef2f2; color: #c0392b; }
+.cr-status-badge.status-ok { background: #f0fdf4; color: #1a7a3e; }
+.cr-status-badge.status-active { background: #eff6ff; color: #1a4e8a; }
+.cr-discrepancy.warning { background: #fff7ed; border-left: 3px solid #d97706; }
+.cr-adverse-item { border: 1px solid #fee2e2; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; background: #fff5f5; }
+.cr-adverse-type { display: inline-block; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.cr-search-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 7px; background: #f8fafc; flex-wrap: wrap; }
+.cr-search-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; }
+.cr-search-hard { background: #fef2f2; color: var(--danger); }
+.cr-search-soft { background: #f0fdf4; color: #1a7a3e; }
+
+/* ── Chat attachment ─────────────────────────────────────────────────────── */
+.chat-attach-btn { width: 42px; height: 42px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #6b7c93; flex-shrink: 0; transition: border-color .15s, color .15s; }
+.chat-attach-btn:hover { border-color: var(--brand); color: var(--brand); }
+.chat-attach-btn.has-file { border-color: var(--brand); color: var(--brand); background: var(--brand-pale); }
+.chat-file-chip { display: flex; align-items: center; gap: 6px; background: var(--brand-pale); border: 1px solid rgba(139,28,42,.25); border-radius: 20px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: var(--brand); margin: 6px 14px 0; width: fit-content; }
+.chat-file-chip-close { cursor: pointer; font-size: 14px; line-height: 1; opacity: .7; }
+.chat-file-chip-close:hover { opacity: 1; }
+
 /* ── GDPR consent ───────────────────────────────────────────────────────── */
 .gdpr-consent-wrap { background: #f0f7ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; }
 .gdpr-consent-label { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; color: #2c5282; line-height: 1.5; cursor: pointer; }
@@ -917,7 +965,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
           <div id="tabs">
             <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">&#128203; Overview</button>
             <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
-            <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128221; Report</button>
+            <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128196; Credit Report</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
             <button class="tab-btn" data-tab="documents" onclick="switchTab('documents')">&#128196; Documents</button>
@@ -958,6 +1006,10 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                     </div>
                     <p id="grade-summary-text" style="font-size:13px;color:#555;margin-bottom:16px;line-height:1.5"></p>
                     <div class="breakdown-grid" id="breakdown-grid"></div>
+                    <div style="margin-top:14px;padding-top:12px;border-top:1px solid #eee;display:flex;gap:8px">
+                      <button class="btn btn-outline" onclick="switchTab('report');" style="font-size:12px;padding:5px 12px">&#128196; Upload Credit Report</button>
+                      <button class="btn btn-outline" onclick="generateAndShowReport()" style="font-size:12px;padding:5px 12px">&#128221; Generate Client Report</button>
+                    </div>
                   </div>
                 </div>
 
@@ -1070,21 +1122,73 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             </div>
           </div>
 
-          <!-- REPORT TAB -->
+          <!-- CREDIT REPORT TAB -->
           <div id="tab-report" class="tab-pane">
-            <div style="max-width:960px">
-              <div id="report-no-analysis" class="card" style="text-align:center;padding:36px;color:#a0aec0">
-                <div style="font-size:36px;margin-bottom:12px">&#128221;</div>
-                <p>No report available yet. Analyse a bank statement to generate a report.</p>
+            <div style="max-width:1000px">
+
+              <!-- Upload zone -->
+              <div class="card" id="cr-upload-card">
+                <div class="card-title">&#128196; Upload Credit Bureau Report</div>
+                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload a credit report from <strong>Equifax, Experian, or TransUnion</strong>. The AI will extract all accounts, defaults, CCJs, and adverse markers — then cross-validate against what your client declared.</p>
+                <div class="upload-zone" id="cr-upload-zone"
+                     onclick="document.getElementById('cr-file-input').click()"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleCrDrop(event)">
+                  <div class="upload-zone-icon">&#128202;</div>
+                  <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
+                  <div class="upload-zone-hint">PDF or image — Equifax, Experian, TransUnion, CheckMyFile</div>
+                </div>
+                <input type="file" id="cr-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleCrFileSelect(event)">
+                <div id="cr-selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
+                  <span id="cr-selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
+                  <button class="btn btn-primary" onclick="uploadCreditReport()" id="btn-cr-analyse">Analyse Credit Report</button>
+                </div>
               </div>
-              <div id="report-content" style="display:none">
-                <div class="report-toolbar">
-                  <button class="btn btn-primary" onclick="generateReport()">&#8635; Regenerate Report</button>
-                  <button class="btn btn-outline" onclick="downloadReport()">&#8681; Download HTML</button>
+
+              <!-- Results (hidden until upload) -->
+              <div id="cr-results" style="display:none">
+
+                <!-- Summary header -->
+                <div class="card">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+                    <div>
+                      <div class="card-title" style="margin-bottom:4px">&#128202; Credit Report Summary</div>
+                      <div id="cr-bureau-info" style="font-size:13px;color:#6b7c93"></div>
+                    </div>
+                    <div id="cr-score-badge" class="cr-score-badge" style="display:none">
+                      <div class="cr-score-num" id="cr-score-num"></div>
+                      <div class="cr-score-label" id="cr-score-label"></div>
+                    </div>
+                  </div>
+                  <div class="cr-summary-grid" id="cr-summary-grid"></div>
+                  <div id="cr-underwriter-summary" style="font-size:13px;color:#555;line-height:1.6;margin-top:8px;padding-top:12px;border-top:1px solid #eee"></div>
                 </div>
-                <div class="report-frame-wrap">
-                  <iframe id="report-frame" src="about:blank"></iframe>
+
+                <!-- Cross-validation — CRITICAL section -->
+                <div class="card" id="cr-validation-card">
+                  <div class="card-title">&#9878;&#65039; Cross-Validation — Declared vs Credit Report</div>
+                  <div id="cr-validation-body"></div>
                 </div>
+
+                <!-- Accounts table -->
+                <div class="card">
+                  <div class="card-title">&#128179; All Credit Accounts</div>
+                  <div id="cr-accounts-body" style="overflow-x:auto"></div>
+                </div>
+
+                <!-- Adverse public records -->
+                <div class="card" id="cr-adverse-card">
+                  <div class="card-title">&#128683; Adverse Public Records</div>
+                  <div id="cr-adverse-body"></div>
+                </div>
+
+                <!-- Credit searches -->
+                <div class="card">
+                  <div class="card-title">&#128269; Credit Searches</div>
+                  <div id="cr-searches-body"></div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -1308,15 +1412,20 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <div class="chat-messages" id="chat-messages">
               <div class="chat-msg assistant">
                 <div class="msg-avatar bot-av">A</div>
-                <div class="msg-bubble assistant">Welcome. I'm MAU Adviser, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client.
+                <div class="msg-bubble assistant">Welcome. I'm MAU Adviser, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client. You can also attach documents (PDFs, images) using the paperclip button.
 
 What would you like to know?</div>
               </div>
             </div>
+            <div id="chat-file-chip-wrap"></div>
             <div class="chat-footer">
-              <textarea id="chat-input" placeholder="Ask about this client's case..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+              <button class="chat-attach-btn" id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Attach document for AI analysis">&#128206;</button>
+              <input type="file" id="chat-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt" style="display:none" onchange="handleChatFileSelect(event)">
+              <textarea id="chat-input" placeholder="Ask about this client's case, or attach a document..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
               <button class="btn btn-primary" id="chat-send" onclick="sendChat()">Send</button>
             </div>
+          </div>
+
           <!-- AUDIT TRAIL TAB -->
           <div id="tab-audit" class="tab-pane">
             <div style="max-width:900px">
@@ -1493,9 +1602,10 @@ var currentAnalysis = null;
 var currentGrade = null;
 var chatSessionId = 'session_' + Date.now();
 var chatHistory = [];
-var reportHtml = null;
 var selectedFile = null;
 var currentClient = null;
+var currentChatFile = null;
+var crSelectedFile = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
@@ -1619,9 +1729,10 @@ function renderClientPanel(data) {
     document.getElementById('analysis-results').style.display = 'none';
   }
 
-  document.getElementById('report-content').style.display = 'none';
-  document.getElementById('report-no-analysis').style.display = 'block';
-  reportHtml = null;
+  // Reset credit report state
+  document.getElementById('cr-results').style.display = 'none';
+  document.getElementById('cr-upload-card').style.display = 'block';
+  clearChatFile();
 
   // Reset document state
   currentDocHtml = null;
@@ -1977,40 +2088,23 @@ function uploadAndAnalyse() {
 }
 
 // ── Report ────────────────────────────────────────────────────────────────────
-function generateReport() {
+function generateAndShowReport() {
   if (!selectedClientId) return;
-  showLoading('Generating report...');
+  if (!currentAnalysis) { toast('Upload and analyse a bank statement first', 'error'); return; }
+  showLoading('Generating client report...');
   fetch('/api/clients/' + selectedClientId + '/generate-report', { method: 'POST' })
     .then(function(res) {
-      if (!res.ok) {
-        return res.json().then(function(e) { throw new Error(e.detail || 'Report failed'); });
-      }
+      if (!res.ok) return res.json().then(function(e) { throw new Error(e.detail || 'Report failed'); });
       return res.text();
     })
     .then(function(html) {
-      reportHtml = html;
       hideLoading();
-      document.getElementById('report-no-analysis').style.display = 'none';
-      document.getElementById('report-content').style.display = 'block';
-      var frame = document.getElementById('report-frame');
-      frame.srcdoc = reportHtml;
-      toast('Report generated', 'success');
+      var blob = new Blob([html], { type: 'text/html' });
+      var url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      toast('Report generated — opened in new tab', 'success');
     })
-    .catch(function(e) {
-      hideLoading();
-      toast(e.message || 'Failed to generate report', 'error');
-    });
-}
-
-function downloadReport() {
-  if (!reportHtml) return;
-  var blob = new Blob([reportHtml], { type: 'text/html' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'apex-report-' + (selectedClientId || 'client') + '.html';
-  a.click();
-  URL.revokeObjectURL(url);
+    .catch(function(e) { hideLoading(); toast(e.message || 'Failed to generate report', 'error'); });
 }
 
 // ── Risk Assessment ───────────────────────────────────────────────────────────
@@ -2362,7 +2456,7 @@ function switchTab(tabId) {
   });
 
   if (tabId === 'lenders') loadLenders();
-  if (tabId === 'report' && !reportHtml && currentAnalysis) generateReport();
+  if (tabId === 'report') loadCreditReport();
   if (tabId === 'documents') loadDocuments();
   if (tabId === 'assistant') setTimeout(scrollChat, 100);
   if (tabId === 'audit') loadAuditLog();
@@ -2392,13 +2486,15 @@ function autoResize(el) {
 function sendChat() {
   var input = document.getElementById('chat-input');
   var text = input.value.trim();
-  if (!text) return;
+  var hasFile = !!currentChatFile;
+  if (!text && !hasFile) return;
 
+  var displayText = text || ('📎 ' + (currentChatFile ? currentChatFile.name : 'document'));
   input.value = '';
   input.style.height = 'auto';
 
-  addChatMessage('user', text);
-  chatHistory.push({ role: 'user', content: text });
+  addChatMessage('user', displayText);
+  if (text) chatHistory.push({ role: 'user', content: text });
 
   var typingId = 'typing-' + Date.now();
   document.getElementById('chat-messages').insertAdjacentHTML('beforeend',
@@ -2408,27 +2504,34 @@ function sendChat() {
     '</div>');
   scrollChat();
 
-  var payload = {
-    session_id: chatSessionId,
-    messages: chatHistory,
-    client_id: selectedClientId,
-  };
+  var fileToSend = currentChatFile;
+  clearChatFile();
 
-  fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  var fetchPromise;
+  if (fileToSend) {
+    var fd = new FormData();
+    fd.append('session_id', chatSessionId);
+    fd.append('message', text || '');
+    if (selectedClientId) fd.append('client_id', selectedClientId);
+    fd.append('file', fileToSend);
+    fetchPromise = fetch('/api/chat-with-document', { method: 'POST', body: fd });
+  } else {
+    fetchPromise = fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: chatSessionId, messages: chatHistory, client_id: selectedClientId }),
+    });
+  }
+
+  fetchPromise
   .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
   .then(function(result) {
     var typing = document.getElementById(typingId);
     if (typing) typing.remove();
-
     if (!result.ok) {
       addChatMessage('assistant', 'Error: ' + (result.data.detail || 'Unknown error'));
       return;
     }
-
     var reply = result.data.message;
     chatHistory.push({ role: 'assistant', content: reply });
     addChatMessage('assistant', reply);
@@ -2916,6 +3019,326 @@ function renderStressTest(st) {
   html += '<div style="font-size:11px;color:#9aaab8;margin-top:10px">&#9432; ' + esc(st.regulatory_note) + ' &mdash; ' + incomeNote + '</div>';
 
   results.innerHTML = html;
+}
+
+// ── Chat file attachment ───────────────────────────────────────────────────────
+function handleChatFileSelect(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  currentChatFile = file;
+  var btn = document.getElementById('chat-attach-btn');
+  btn.classList.add('has-file');
+  var wrap = document.getElementById('chat-file-chip-wrap');
+  wrap.innerHTML = '<div class="chat-file-chip"><span>&#128206; ' + esc(file.name) + '</span><span class="chat-file-chip-close" onclick="clearChatFile()">&#10005;</span></div>';
+  // Reset input so same file can be reselected
+  event.target.value = '';
+}
+
+function clearChatFile() {
+  currentChatFile = null;
+  var btn = document.getElementById('chat-attach-btn');
+  if (btn) btn.classList.remove('has-file');
+  var wrap = document.getElementById('chat-file-chip-wrap');
+  if (wrap) wrap.innerHTML = '';
+}
+
+// ── Credit Report tab ──────────────────────────────────────────────────────────
+function handleCrFileSelect(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  crSelectedFile = file;
+  document.getElementById('cr-selected-filename').textContent = file.name;
+  document.getElementById('cr-selected-file').style.display = 'flex';
+}
+
+function handleCrDrop(event) {
+  event.preventDefault();
+  var zone = document.getElementById('cr-upload-zone');
+  zone.classList.remove('dragover');
+  var file = event.dataTransfer.files && event.dataTransfer.files[0];
+  if (!file) return;
+  crSelectedFile = file;
+  document.getElementById('cr-selected-filename').textContent = file.name;
+  document.getElementById('cr-selected-file').style.display = 'flex';
+}
+
+function uploadCreditReport() {
+  if (!selectedClientId) { toast('Select a client first', 'error'); return; }
+  if (!crSelectedFile) { toast('Please select a credit report file', 'error'); return; }
+
+  var btn = document.getElementById('btn-cr-analyse');
+  btn.disabled = true;
+  btn.textContent = 'Analysing…';
+  showLoading('Analysing credit report with AI…');
+
+  var fd = new FormData();
+  fd.append('file', crSelectedFile);
+
+  fetch('/api/clients/' + selectedClientId + '/upload-credit-report', { method: 'POST', body: fd })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(result) {
+      hideLoading();
+      btn.disabled = false;
+      btn.textContent = 'Analyse Credit Report';
+      if (!result.ok) {
+        toast(result.data.detail || 'Analysis failed', 'error');
+        return;
+      }
+      crSelectedFile = null;
+      document.getElementById('cr-selected-file').style.display = 'none';
+      document.getElementById('cr-selected-filename').textContent = '';
+      renderCreditReport(result.data);
+    })
+    .catch(function() {
+      hideLoading();
+      btn.disabled = false;
+      btn.textContent = 'Analyse Credit Report';
+      toast('Network error during analysis', 'error');
+    });
+}
+
+function loadCreditReport() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/credit-report')
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(d) {
+      if (d && d.credit_data) {
+        renderCreditReport(d);
+      }
+    })
+    .catch(function() {}); // No report yet — upload zone stays visible
+}
+
+function renderCreditReport(data) {
+  var cr = data.credit_data || data;
+  var validation = data.validation || cr.validation;
+
+  // Show results section, hide upload card
+  document.getElementById('cr-upload-card').style.display = 'none';
+  document.getElementById('cr-results').style.display = 'block';
+
+  // Bureau info
+  var bureau = cr.bureau || 'Unknown';
+  var personal = cr.personal_details || {};
+  var name = personal.name || '';
+  var dob = personal.date_of_birth || '';
+  var bureauText = bureau;
+  if (name) bureauText += ' &mdash; ' + esc(name);
+  if (dob) bureauText += ' &mdash; DOB: ' + esc(dob);
+  document.getElementById('cr-bureau-info').innerHTML = bureauText;
+
+  // Score badge
+  var summary = cr.summary || {};
+  if (summary.credit_score != null) {
+    var score = summary.credit_score;
+    var scoreBadge = document.getElementById('cr-score-badge');
+    var scoreNum = document.getElementById('cr-score-num');
+    var scoreLabel = document.getElementById('cr-score-label');
+    scoreBadge.style.display = 'flex';
+    scoreNum.textContent = score;
+    var scoreRating = summary.credit_score_band || (score >= 880 ? 'Excellent' : score >= 750 ? 'Good' : score >= 600 ? 'Fair' : 'Poor');
+    scoreLabel.textContent = scoreRating;
+    var scoreColor = score >= 800 ? '#1a7a3e' : score >= 650 ? '#1a4e8a' : score >= 500 ? '#b8760a' : '#c0392b';
+    scoreBadge.style.borderColor = scoreColor;
+    scoreNum.style.color = scoreColor;
+  }
+
+  // Summary grid
+  var gridItems = [
+    { label: 'Open Accounts', value: summary.total_open_accounts != null ? summary.total_open_accounts : 'N/A' },
+    { label: 'Total Balance', value: summary.total_balance != null ? gbp(summary.total_balance) : 'N/A' },
+    { label: 'CCJs', value: summary.ccj_count != null ? summary.ccj_count : (summary.ccjs ? summary.ccjs.length : 'N/A') },
+    { label: 'Defaults', value: summary.default_count != null ? summary.default_count : 'N/A' },
+    { label: 'Missed Payments (12m)', value: summary.missed_payments_12m != null ? summary.missed_payments_12m : 'N/A' },
+    { label: 'Hard Searches (6m)', value: summary.hard_searches_6m != null ? summary.hard_searches_6m : 'N/A' },
+  ];
+  var gridHtml = '';
+  gridItems.forEach(function(item) {
+    gridHtml += '<div class="cr-summary-item"><div class="cr-summary-label">' + esc(item.label) + '</div><div class="cr-summary-value">' + esc(String(item.value)) + '</div></div>';
+  });
+  document.getElementById('cr-summary-grid').innerHTML = gridHtml;
+
+  // Underwriter summary
+  var uwSummary = cr.underwriter_summary || '';
+  document.getElementById('cr-underwriter-summary').innerHTML = uwSummary ? esc(uwSummary).replace(/\n/g, '<br>') : '';
+
+  // Cross-validation
+  if (validation) {
+    renderCrValidation(validation);
+  } else {
+    document.getElementById('cr-validation-body').innerHTML = '<p style="font-size:13px;color:#9aaab8">No cross-validation data available.</p>';
+  }
+
+  // Accounts
+  renderCrAccounts(cr.accounts || []);
+
+  // Adverse public records
+  renderCrAdverse(cr.adverse_public_records || cr.adverse_records || {});
+
+  // Searches
+  renderCrSearches(cr.credit_searches || []);
+}
+
+function renderCrValidation(v) {
+  var body = document.getElementById('cr-validation-body');
+  var html = '';
+
+  var critical = v.critical_count || 0;
+  if (critical > 0) {
+    html += '<div class="cr-discrepancy" style="margin-bottom:16px"><strong>&#9888; ' + critical + ' critical discrepanc' + (critical === 1 ? 'y' : 'ies') + ' found</strong> — immediate consultant review required</div>';
+  }
+
+  if (v.discrepancies && v.discrepancies.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Discrepancies</div>';
+    v.discrepancies.forEach(function(d) {
+      var sevClass = d.severity === 'critical' ? 'critical' : d.severity === 'warning' ? 'warning' : '';
+      html += '<div class="cr-discrepancy ' + sevClass + '"><strong>' + esc(d.field || d.type || 'Issue') + ':</strong> ' + esc(d.detail || d.message || '') + '</div>';
+    });
+  }
+
+  if (v.confirmations && v.confirmations.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Confirmed / Matches</div>';
+    v.confirmations.forEach(function(c) {
+      html += '<div class="cr-confirm">&#10003; ' + esc(c.detail || c.message || c) + '</div>';
+    });
+  }
+
+  if (v.flags && v.flags.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Additional Flags</div>';
+    v.flags.forEach(function(f) {
+      html += '<div class="cr-discrepancy warning">&#9888; ' + esc(f.detail || f.message || f) + '</div>';
+    });
+  }
+
+  if (v.consultant_actions && v.consultant_actions.length > 0) {
+    html += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Required Consultant Actions</div>';
+    v.consultant_actions.forEach(function(a) {
+      html += '<div class="cr-action">&#8594; ' + esc(a) + '</div>';
+    });
+  }
+
+  if (!html) {
+    html = '<p style="font-size:13px;color:#1a7a3e">&#10003; No discrepancies detected between declared information and credit report.</p>';
+  }
+
+  body.innerHTML = html;
+}
+
+function renderCrAccounts(accounts) {
+  var body = document.getElementById('cr-accounts-body');
+  if (!accounts || accounts.length === 0) {
+    body.innerHTML = '<p style="font-size:13px;color:#9aaab8">No account data extracted.</p>';
+    return;
+  }
+
+  var html = '<table class="cr-accounts-table"><thead><tr>' +
+    '<th>Creditor</th><th>Type</th><th>Status</th><th>Balance</th><th>Limit</th><th>Opened</th><th>Notes</th>' +
+  '</tr></thead><tbody>';
+
+  accounts.forEach(function(acc) {
+    var statusCls = '';
+    var status = (acc.status || '').toLowerCase();
+    if (status.includes('default') || status.includes('bad') || status.includes('delinquent')) statusCls = 'status-bad';
+    else if (status.includes('satisfied') || status.includes('settled') || status.includes('closed') || status.includes('good')) statusCls = 'status-ok';
+    else if (status.includes('active') || status.includes('open') || status.includes('current')) statusCls = 'status-active';
+
+    var paydayTag = acc.is_payday_lender ? '<span class="cr-payday-tag">PAYDAY</span>' : '';
+    var creditor = esc(acc.creditor || acc.lender || 'Unknown');
+
+    html += '<tr>' +
+      '<td>' + creditor + paydayTag + '</td>' +
+      '<td>' + esc(acc.account_type || acc.type || '') + '</td>' +
+      '<td><span class="cr-status-badge ' + statusCls + '">' + esc(acc.status || '') + '</span></td>' +
+      '<td>' + (acc.current_balance != null ? gbp(acc.current_balance) : (acc.balance != null ? gbp(acc.balance) : 'N/A')) + '</td>' +
+      '<td>' + (acc.credit_limit != null ? gbp(acc.credit_limit) : 'N/A') + '</td>' +
+      '<td>' + esc(acc.opened_date || acc.date_opened || '') + '</td>' +
+      '<td style="font-size:11px;color:#555">' + esc(acc.notes || acc.payment_history || '') + '</td>' +
+    '</tr>';
+  });
+
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function renderCrAdverse(pub) {
+  var body = document.getElementById('cr-adverse-body');
+  var card = document.getElementById('cr-adverse-card');
+
+  var sections = [];
+
+  // Handle both array and object formats
+  var records = Array.isArray(pub) ? pub : [];
+  if (!Array.isArray(pub)) {
+    // Object with ccjs, defaults, etc.
+    var ccjs = pub.ccjs || pub.county_court_judgments || [];
+    var defaults = pub.defaults || [];
+    var ivas = pub.ivas || pub.insolvency || [];
+    var bankruptcies = pub.bankruptcies || [];
+
+    ccjs.forEach(function(r) { records.push(Object.assign({ _type: 'CCJ' }, r)); });
+    defaults.forEach(function(r) { records.push(Object.assign({ _type: 'Default' }, r)); });
+    ivas.forEach(function(r) { records.push(Object.assign({ _type: 'IVA / Insolvency' }, r)); });
+    bankruptcies.forEach(function(r) { records.push(Object.assign({ _type: 'Bankruptcy' }, r)); });
+  }
+
+  if (records.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  var html = '';
+  records.forEach(function(r) {
+    var type = r._type || r.type || r.record_type || 'Adverse Record';
+    var amount = r.amount != null ? gbp(r.amount) : '';
+    var date = r.date || r.date_registered || r.registration_date || '';
+    var satisfied = r.satisfied_date || r.date_satisfied || '';
+    var creditor = r.creditor || r.claimant || '';
+    var status = r.status || (satisfied ? 'Satisfied' : 'Outstanding');
+
+    html += '<div class="cr-adverse-item">' +
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+        '<span class="cr-adverse-type">' + esc(type) + '</span>' +
+        (amount ? '<span style="font-weight:700;font-size:14px">' + amount + '</span>' : '') +
+        '<span style="font-size:12px;color:#777">' + esc(status) + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#555;display:flex;gap:16px;flex-wrap:wrap">' +
+        (date ? '<span><strong>Registered:</strong> ' + esc(date) + '</span>' : '') +
+        (satisfied ? '<span><strong>Satisfied:</strong> ' + esc(satisfied) + '</span>' : '') +
+        (creditor ? '<span><strong>Creditor:</strong> ' + esc(creditor) + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  });
+
+  body.innerHTML = html;
+}
+
+function renderCrSearches(searches) {
+  var body = document.getElementById('cr-searches-body');
+  if (!searches || searches.length === 0) {
+    body.innerHTML = '<p style="font-size:13px;color:#9aaab8">No credit search data extracted.</p>';
+    return;
+  }
+
+  var html = '<div style="display:flex;flex-direction:column;gap:6px">';
+  searches.forEach(function(s) {
+    var isHard = (s.search_type || s.type || '').toLowerCase().includes('hard');
+    var badgeClass = isHard ? 'cr-search-hard' : 'cr-search-soft';
+    var badgeText = isHard ? 'Hard' : 'Soft';
+    var date = s.date || s.search_date || '';
+    var org = s.organisation || s.company || s.lender || '';
+    var purpose = s.purpose || s.reason || '';
+
+    html += '<div class="cr-search-item">' +
+      '<span class="cr-search-badge ' + badgeClass + '">' + badgeText + '</span>' +
+      '<span style="font-size:13px;font-weight:600;color:var(--navy)">' + esc(org) + '</span>' +
+      (date ? '<span style="font-size:12px;color:#777">' + esc(date) + '</span>' : '') +
+      (purpose ? '<span style="font-size:12px;color:#555">' + esc(purpose) + '</span>' : '') +
+    '</div>';
+  });
+
+  html += '</div>';
+  body.innerHTML = html;
 }
 
 // ── Audit Trail ───────────────────────────────────────────────────────────────

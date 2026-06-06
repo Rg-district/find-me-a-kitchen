@@ -562,7 +562,11 @@ class Orchestrator:
                     f"Purpose: {client.get('mortgage_purpose', 'N/A')} | "
                     f"Income declared: £{client.get('declared_income', 0):,.0f}/mo]\n\n"
                 )
-                content = context_prefix + content
+                if isinstance(content, list):
+                    # Prepend context as a text block before the multimodal content
+                    content = [{"type": "text", "text": context_prefix}] + content
+                else:
+                    content = context_prefix + content
 
         history.append({"role": "user", "content": content})
         current = list(history)

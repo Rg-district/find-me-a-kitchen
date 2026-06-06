@@ -112,6 +112,23 @@ def get_analysis(client_id: str) -> dict | None:
     return None
 
 
+def _credit_report_path(client_id: str) -> str:
+    return os.path.join(CLIENTS_DIR, f"{client_id}_credit_report.json")
+
+
+def save_credit_report(client_id: str, data: dict) -> None:
+    with open(_credit_report_path(client_id), "w") as f:
+        json.dump(data, f, indent=2)
+
+
+def get_credit_report(client_id: str) -> dict | None:
+    path = _credit_report_path(client_id)
+    if os.path.exists(path):
+        with open(path) as f:
+            return json.load(f)
+    return None
+
+
 def _doc_path(client_id: str, doc_type: str) -> str:
     return os.path.join(CLIENTS_DIR, f"{client_id}_doc_{doc_type}.html")
 
