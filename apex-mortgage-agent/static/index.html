@@ -265,8 +265,8 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .tab-btn:hover { color: var(--navy); }
 .tab-btn.active { color: var(--navy); border-bottom-color: var(--brand); }
 
-#tab-content { flex: 1; overflow-y: auto; }
-.tab-pane { display: none; padding: 24px; }
+#tab-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.tab-pane { display: none; padding: 24px; flex: 1; overflow-y: auto; min-height: 0; }
 .tab-pane.active { display: block; }
 
 /* ── Cards & sections ─────────────────────────────────────────── */
@@ -427,10 +427,14 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .suitability-bar { margin: 8px 0 4px; }
 
 /* ── Chat ─────────────────────────────────────────────────────── */
-.tab-pane#tab-assistant { height: calc(100vh - var(--topnav-h) - 94px); display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+/* display:none as default — specificity 1,1,0 beats .tab-pane's 0,1,0 so it hides correctly */
+.tab-pane#tab-assistant { display: none; flex-direction: column; padding: 0; overflow: hidden; }
+/* specificity 1,2,0 beats the rule above so it shows correctly when active */
+.tab-pane#tab-assistant.active { display: flex; }
 .chat-messages {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
