@@ -111,11 +111,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   overflow: hidden;
   border-right: 1px solid rgba(255,255,255,.06);
 }
-.sidebar-header {
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  flex-shrink: 0;
-}
+.sidebar-header { padding: 14px 16px 10px; border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0; }
 .sidebar-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .sidebar-title { color: #8fa5bf; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 #btn-new-client {
@@ -253,7 +249,8 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
   color: #fff;
 }
 
-#tabs { display: flex; gap: 0; }
+#tabs { display: flex; gap: 0; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+#tabs::-webkit-scrollbar { display: none; }
 .tab-btn {
   background: none;
   border: none;
@@ -950,11 +947,19 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .duty-rating-btn { padding: 4px 10px; border: 1.5px solid var(--border); border-radius: 6px; background: #fff; font-size: 11px; font-weight: 600; color: #6b7c93; cursor: pointer; transition: all .15s; }
 .duty-rating-btn:hover { border-color: var(--brand); }
 
-/* ── Global nav buttons ──────────────────────────────────────────────────── */
-.nav-global-links { display: flex; gap: 4px; margin-left: 12px; }
-.nav-global-btn { padding: 5px 10px; border: 1.5px solid rgba(255,255,255,.35); border-radius: 6px; background: transparent; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
-.nav-global-btn:hover { background: rgba(255,255,255,.15); }
-.nav-global-btn.active { background: rgba(255,255,255,.2); border-color: #fff; }
+/* ── Sidebar navigation section ──────────────────────────────────────────── */
+.sidebar-nav { padding: 10px 8px 8px; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.snav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 8px; background: none; border: none; color: rgba(255,255,255,.62); font-size: 13px; font-weight: 600; width: 100%; text-align: left; cursor: pointer; transition: background .15s, color .15s; }
+.snav-item:hover { background: rgba(255,255,255,.09); color: rgba(255,255,255,.92); }
+.snav-item.active { background: var(--brand); color: #fff; }
+.snav-icon { font-size: 15px; width: 22px; text-align: center; flex-shrink: 0; line-height: 1; }
+.snav-label { flex: 1; }
+.sidebar-clients-section { display: flex; flex-direction: column; flex: 1; overflow: hidden; border-top: 1px solid rgba(255,255,255,.1); margin-top: 4px; }
+.sidebar-clients-hdr { padding: 10px 14px 6px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+#search-clients { width: 100%; }
+/* ── (Legacy nav-global kept for any leftover references) ─────────────────── */
+.nav-global-links { display: none; }
+.nav-global-btn { display: none; }
 
 /* ── Global views ────────────────────────────────────────────────────────── */
 .global-view { padding: 20px 24px; overflow-y: auto; height: calc(100vh - 52px); }
@@ -989,12 +994,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       </div>
     </div>
     <div class="nav-badge">Adverse Credit Specialist</div>
-    <div class="nav-global-links">
-      <button class="nav-global-btn" onclick="showGlobalView('pipeline')" id="nav-btn-pipeline">&#128202; Pipeline</button>
-      <button class="nav-global-btn" onclick="showGlobalView('revenue')" id="nav-btn-revenue">&#128181; Revenue</button>
-      <button class="nav-global-btn" onclick="showGlobalView('calculators')" id="nav-btn-calculators">&#128290; Calculators</button>
-    </div>
-    <div class="nav-uk">&#127468;&#127463; UK</div>
+    <div class="nav-uk" style="margin-left:auto">&#127468;&#127463; FCA Regulated</div>
     <a href="/logout" id="nav-signout" title="Sign out">&#x2192; Sign out</a>
   </nav>
 
@@ -1007,15 +1007,39 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
     <!-- SIDEBAR -->
     <aside id="sidebar">
       <button id="sidebar-close" onclick="closeSidebar()" aria-label="Close">&#10005;</button>
-      <div class="sidebar-header">
-        <div class="sidebar-header-top">
+
+      <!-- Sidebar navigation -->
+      <nav class="sidebar-nav">
+        <button class="snav-item active" id="snav-home" onclick="showHome()">
+          <span class="snav-icon">&#9783;</span>
+          <span class="snav-label">Home</span>
+        </button>
+        <button class="snav-item" id="snav-pipeline" onclick="showGlobalView('pipeline')">
+          <span class="snav-icon">&#128202;</span>
+          <span class="snav-label">Pipeline</span>
+        </button>
+        <button class="snav-item" id="snav-revenue" onclick="showGlobalView('revenue')">
+          <span class="snav-icon">&#128181;</span>
+          <span class="snav-label">Revenue</span>
+        </button>
+        <button class="snav-item" id="snav-calculators" onclick="showGlobalView('calculators')">
+          <span class="snav-icon">&#128290;</span>
+          <span class="snav-label">Calculators</span>
+        </button>
+      </nav>
+
+      <!-- Client list section -->
+      <div class="sidebar-clients-section">
+        <div class="sidebar-clients-hdr">
           <span class="sidebar-title">Clients</span>
           <button id="btn-new-client" onclick="openNewClientModal()">+ New</button>
         </div>
-        <input id="search-clients" type="search" placeholder="Search clients..." oninput="filterClients(this.value)">
-      </div>
-      <div id="client-list">
-        <div class="sidebar-empty">Loading clients...</div>
+        <div style="padding:0 12px 8px">
+          <input id="search-clients" type="search" placeholder="Search clients..." oninput="filterClients(this.value)">
+        </div>
+        <div id="client-list">
+          <div class="sidebar-empty">Loading clients...</div>
+        </div>
       </div>
     </aside>
 
@@ -2225,6 +2249,9 @@ function selectClient(clientId) {
   document.querySelectorAll('.client-item').forEach(function(el) {
     el.classList.toggle('active', el.getAttribute('data-id') === clientId);
   });
+
+  // Deactivate sidebar nav items (client list is now the active context)
+  document.querySelectorAll('.snav-item').forEach(function(i) { i.classList.remove('active'); });
 
   // Close drawer on mobile when client is selected
   if (window.innerWidth <= 768) closeSidebar();
@@ -3968,8 +3995,11 @@ function renderAuditLog(entries) {
 function showGlobalView(view) {
   ['pipeline', 'revenue', 'calculators'].forEach(function(v) {
     var el = document.getElementById('global-' + v);
-    var btn = document.getElementById('nav-btn-' + v);
     if (el) el.style.display = v === view ? 'block' : 'none';
+  });
+  // Update sidebar nav active state
+  ['home', 'pipeline', 'revenue', 'calculators'].forEach(function(v) {
+    var btn = document.getElementById('snav-' + v);
     if (btn) btn.classList.toggle('active', v === view);
   });
   // Hide client panel and welcome
@@ -3985,10 +4015,24 @@ function showGlobalView(view) {
 function hideGlobalViews() {
   ['pipeline', 'revenue', 'calculators'].forEach(function(v) {
     var el = document.getElementById('global-' + v);
-    var btn = document.getElementById('nav-btn-' + v);
     if (el) el.style.display = 'none';
+  });
+  ['home', 'pipeline', 'revenue', 'calculators'].forEach(function(v) {
+    var btn = document.getElementById('snav-' + v);
     if (btn) btn.classList.remove('active');
   });
+}
+
+function showHome() {
+  hideGlobalViews();
+  var cp = document.getElementById('client-panel');
+  var wl = document.getElementById('welcome');
+  if (cp) cp.style.display = 'none';
+  if (wl) wl.style.display = 'flex';
+  document.querySelectorAll('.client-item').forEach(function(i) { i.classList.remove('active'); });
+  var homeBtn = document.getElementById('snav-home');
+  if (homeBtn) homeBtn.classList.add('active');
+  selectedClientId = null;
 }
 
 // ── AI Tools sub-tab switcher ─────────────────────────────────────────────────
