@@ -883,6 +883,94 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .gdpr-consent-wrap { background: #f0f7ff; border: 1px solid #bee3f8; border-radius: 8px; padding: 12px 14px; margin-top: 16px; }
 .gdpr-consent-label { display: flex; gap: 10px; align-items: flex-start; font-size: 12px; color: #2c5282; line-height: 1.5; cursor: pointer; }
 .gdpr-consent-label input[type="checkbox"] { margin-top: 2px; flex-shrink: 0; width: 15px; height: 15px; }
+
+/* ── AI Tools tab ───────────────────────────────────────────────────────── */
+.ai-tools-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+.ai-tool-tab { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 6px; background: #fff; font-size: 12px; font-weight: 600; color: #6b7c93; cursor: pointer; transition: all .15s; }
+.ai-tool-tab:hover { border-color: var(--brand); color: var(--brand); }
+.ai-tool-tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.ai-tool-panel { display: none; }
+.ai-tool-panel.active { display: block; }
+
+/* ── Pipeline Kanban ─────────────────────────────────────────────────────── */
+.pipeline-kanban { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+@media (max-width: 1100px) { .pipeline-kanban { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 700px) { .pipeline-kanban { grid-template-columns: 1fr 1fr; } }
+.kanban-col { background: #f8fafc; border-radius: 10px; padding: 10px; min-height: 200px; }
+.kanban-col-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+.kanban-col-title { font-size: 12px; font-weight: 700; color: var(--navy); }
+.kanban-col-count { font-size: 11px; font-weight: 700; color: #fff; padding: 2px 7px; border-radius: 10px; }
+.kanban-empty { font-size: 12px; color: #c0ccd8; text-align: center; padding: 20px 0; }
+.kanban-cards { display: flex; flex-direction: column; gap: 6px; }
+.kanban-card { background: #fff; border-radius: 8px; padding: 10px 12px; border: 1px solid #e2e8f0; cursor: pointer; transition: box-shadow .15s; }
+.kanban-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); border-color: var(--brand); }
+.kanban-card-header { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 4px; }
+.kanban-name { font-size: 13px; font-weight: 700; color: var(--navy); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kanban-grade-dot { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: #fff; flex-shrink: 0; }
+.kanban-card-meta { font-size: 11px; color: #9aaab8; }
+.kanban-lender { font-size: 11px; color: #6b7c93; margin-top: 3px; }
+.kanban-urgency { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-top: 4px; }
+.kanban-urgency.urgent { background: #fef2f2; color: #c0392b; }
+.kanban-urgency.overdue { background: #c0392b; color: #fff; }
+.kanban-urgency.due-soon { background: #f0fdf4; color: #1a7a3e; }
+.kanban-vuln-flag { color: #d97706; font-size: 12px; }
+
+/* ── Remortgage radar ────────────────────────────────────────────────────── */
+.radar-grid { display: flex; flex-direction: column; gap: 8px; }
+.radar-card { display: flex; gap: 14px; align-items: center; padding: 12px 16px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: box-shadow .15s; }
+.radar-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.radar-urgent { background: #fef2f2; border-color: #fca5a5; }
+.radar-soon { background: #fffbeb; border-color: #fcd34d; }
+.radar-ok { background: #f0fdf4; border-color: #86efac; }
+.radar-months { font-size: 28px; font-weight: 800; color: var(--navy); line-height: 1; min-width: 40px; text-align: center; }
+.radar-months-label { display: block; font-size: 10px; font-weight: 600; color: #9aaab8; text-transform: uppercase; }
+.radar-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+.radar-meta { font-size: 12px; color: #6b7c93; }
+.radar-date { font-size: 11px; color: #9aaab8; }
+
+/* ── Expiry tracker ──────────────────────────────────────────────────────── */
+.expiry-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 7px; cursor: pointer; font-size: 13px; flex-wrap: wrap; }
+.expiry-overdue { background: #fef2f2; }
+.expiry-urgent { background: #fff7ed; }
+.expiry-soon { background: #fffbeb; }
+.expiry-ok { background: #f0fdf4; }
+.expiry-label { font-weight: 600; color: var(--navy); min-width: 100px; }
+.expiry-name { color: #555; flex: 1; }
+.expiry-date { color: #9aaab8; font-size: 12px; }
+.expiry-days { font-weight: 700; min-width: 70px; text-align: right; }
+.expiry-icon { font-size: 14px; }
+
+/* ── Revenue dashboard ───────────────────────────────────────────────────── */
+.revenue-progress-bar { height: 8px; background: #f0f4f8; border-radius: 4px; overflow: hidden; }
+.revenue-progress-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+
+/* ── Consumer Duty ───────────────────────────────────────────────────────── */
+.duty-outcome-block { padding: 14px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px; }
+.duty-outcome-title { font-weight: 700; font-size: 14px; color: var(--navy); }
+.duty-rating-btn { padding: 4px 10px; border: 1.5px solid var(--border); border-radius: 6px; background: #fff; font-size: 11px; font-weight: 600; color: #6b7c93; cursor: pointer; transition: all .15s; }
+.duty-rating-btn:hover { border-color: var(--brand); }
+
+/* ── Global nav buttons ──────────────────────────────────────────────────── */
+.nav-global-links { display: flex; gap: 4px; margin-left: 12px; }
+.nav-global-btn { padding: 5px 10px; border: 1.5px solid rgba(255,255,255,.35); border-radius: 6px; background: transparent; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+.nav-global-btn:hover { background: rgba(255,255,255,.15); }
+.nav-global-btn.active { background: rgba(255,255,255,.2); border-color: #fff; }
+
+/* ── Global views ────────────────────────────────────────────────────────── */
+.global-view { padding: 20px 24px; overflow-y: auto; height: calc(100vh - 52px); }
+.global-view-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+.global-view-title { font-size: 20px; font-weight: 800; color: var(--navy); }
+
+/* ── Calculator tabs ─────────────────────────────────────────────────────── */
+.calc-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; }
+.calc-tab { padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 6px; background: #fff; font-size: 12px; font-weight: 600; color: #6b7c93; cursor: pointer; transition: all .15s; }
+.calc-tab:hover { border-color: var(--brand); color: var(--brand); }
+.calc-tab.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.calc-panel { display: none; }
+.calc-panel.active { display: block; }
+
+/* ── Modal footer ────────────────────────────────────────────────────────── */
+.modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 </style>
 </head>
 <body>
@@ -901,6 +989,11 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
       </div>
     </div>
     <div class="nav-badge">Adverse Credit Specialist</div>
+    <div class="nav-global-links">
+      <button class="nav-global-btn" onclick="showGlobalView('pipeline')" id="nav-btn-pipeline">&#128202; Pipeline</button>
+      <button class="nav-global-btn" onclick="showGlobalView('revenue')" id="nav-btn-revenue">&#128181; Revenue</button>
+      <button class="nav-global-btn" onclick="showGlobalView('calculators')" id="nav-btn-calculators">&#128290; Calculators</button>
+    </div>
     <div class="nav-uk">&#127468;&#127463; UK</div>
     <a href="/logout" id="nav-signout" title="Sign out">&#x2192; Sign out</a>
   </nav>
@@ -928,6 +1021,215 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 
     <!-- CONTENT -->
     <div id="content">
+
+      <!-- GLOBAL: Pipeline Dashboard -->
+      <div id="global-pipeline" class="global-view" style="display:none">
+        <div class="global-view-header">
+          <div class="global-view-title">&#128202; Pipeline Dashboard</div>
+          <button class="btn btn-outline" style="font-size:12px" onclick="loadPipeline()">&#8635; Refresh</button>
+        </div>
+        <div id="pipeline-revenue-metrics" style="margin-bottom:16px"></div>
+        <div class="card" style="overflow-x:auto">
+          <div class="card-title">Case Kanban Board</div>
+          <div id="pipeline-board"><div style="color:#9aaab8;font-size:13px;padding:16px">Loading…</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-title">&#128312; Remortgage Radar <span style="font-size:12px;font-weight:400;color:#9aaab8">(next 12 months)</span></div>
+            <div id="remortgage-radar-body"><div style="color:#9aaab8;font-size:13px">Loading…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">&#128197; Key Dates &amp; Expiries</div>
+            <div id="expiry-tracker-body"><div style="color:#9aaab8;font-size:13px">Loading…</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#9201; Lender SLA Tracker</div>
+          <div id="lender-sla-body"><div style="color:#9aaab8;font-size:13px">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- GLOBAL: Revenue Dashboard -->
+      <div id="global-revenue" class="global-view" style="display:none">
+        <div class="global-view-header">
+          <div class="global-view-title">&#128181; Revenue Dashboard</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input id="monthly-target-input" type="number" placeholder="Monthly target £" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;width:150px">
+            <button class="btn btn-outline" style="font-size:12px" onclick="saveMonthlyTarget()">Set Target</button>
+            <button class="btn btn-outline" style="font-size:12px" onclick="loadRevenueDashboard()">&#8635; Refresh</button>
+          </div>
+        </div>
+        <div id="revenue-summary" style="margin-bottom:16px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div class="card">
+            <div class="card-title">&#128200; Conversion Funnel</div>
+            <div id="conversion-funnel-body"><div style="color:#9aaab8;font-size:13px">Loading…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-title">&#128101; Referral Sources</div>
+            <div id="referral-sources-body"><div style="color:#9aaab8;font-size:13px">Loading…</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#128181; Proc Fee Tracker</div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead><tr style="background:var(--navy);color:#fff">
+                <th style="padding:8px 10px;text-align:left">Client</th>
+                <th style="padding:8px 10px;text-align:left">Lender</th>
+                <th style="padding:8px 10px;text-align:left">Stage</th>
+                <th style="padding:8px 10px;text-align:left">Expected</th>
+                <th style="padding:8px 10px;text-align:left">Actual</th>
+                <th style="padding:8px 10px;text-align:left">Status</th>
+                <th style="padding:8px 10px;text-align:left">Action</th>
+              </tr></thead>
+              <tbody id="proc-fee-table-body"><tr><td colspan="7" style="text-align:center;color:#9aaab8;padding:20px">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#9888; Clawback Risk (within 24 months)</div>
+          <div id="clawback-body"><div style="color:#9aaab8;font-size:13px">Loading…</div></div>
+        </div>
+      </div>
+
+      <!-- GLOBAL: Financial Calculators -->
+      <div id="global-calculators" class="global-view" style="display:none">
+        <div class="global-view-header">
+          <div class="global-view-title">&#128290; Financial Calculators</div>
+        </div>
+        <div class="calc-tabs">
+          <button class="calc-tab active" onclick="switchCalcTab('stamp-duty')">&#127968; Stamp Duty</button>
+          <button class="calc-tab" onclick="switchCalcTab('ltv')">&#128200; LTV</button>
+          <button class="calc-tab" onclick="switchCalcTab('btl-icr')">&#127968; BTL ICR</button>
+          <button class="calc-tab" onclick="switchCalcTab('contractor')">&#128188; Contractor Income</button>
+          <button class="calc-tab" onclick="switchCalcTab('erc')">&#128197; ERC Planner</button>
+          <button class="calc-tab" onclick="switchCalcTab('second-charge')">&#128176; Second Charge</button>
+          <button class="calc-tab" onclick="switchCalcTab('shared-ownership')">&#127968; Shared Ownership</button>
+          <button class="calc-tab" onclick="switchCalcTab('bridging')">&#128297; Bridging</button>
+          <button class="calc-tab" onclick="switchCalcTab('htb')">&#9989; Help to Buy</button>
+        </div>
+
+        <!-- Stamp Duty Calculator -->
+        <div class="calc-panel active" id="calc-stamp-duty">
+          <div class="card"><div class="card-title">&#127968; Stamp Duty / LBTT / LTT Calculator</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Purchase Price (£)</label><input class="form-control" id="sd-price" type="number" placeholder="e.g. 350000" oninput="calcAndRenderStampDuty()"></div>
+              <div><label class="form-label">Jurisdiction</label><select class="form-control" id="sd-jurisdiction" onchange="calcAndRenderStampDuty()"><option value="england">England / N. Ireland (SDLT)</option><option value="scotland">Scotland (LBTT)</option><option value="wales">Wales (LTT)</option></select></div>
+              <div style="display:flex;flex-direction:column;gap:8px;padding-top:20px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="sd-ftb" onchange="calcAndRenderStampDuty()"> First Time Buyer</label>
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer"><input type="checkbox" id="sd-additional" onchange="calcAndRenderStampDuty()"> Additional Dwelling / BTL</label>
+              </div>
+            </div>
+            <div id="calc-stamp-duty-result"></div>
+          </div>
+        </div>
+
+        <!-- LTV Calculator -->
+        <div class="calc-panel" id="calc-ltv">
+          <div class="card"><div class="card-title">&#128200; LTV Calculator &amp; Rate Band Optimiser</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Loan Amount (£)</label><input class="form-control" id="ltv-loan" type="number" placeholder="e.g. 200000" oninput="calcAndRenderLTV()"></div>
+              <div><label class="form-label">Property Value (£)</label><input class="form-control" id="ltv-value" type="number" placeholder="e.g. 280000" oninput="calcAndRenderLTV()"></div>
+            </div>
+            <div id="calc-ltv-result"></div>
+          </div>
+        </div>
+
+        <!-- BTL ICR Calculator -->
+        <div class="calc-panel" id="calc-btl-icr">
+          <div class="card"><div class="card-title">&#127968; BTL Rental Yield &amp; ICR Calculator</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Monthly Rent (£)</label><input class="form-control" id="btl-rent" type="number" placeholder="e.g. 1200" oninput="calcAndRenderBTL()"></div>
+              <div><label class="form-label">Loan Amount (£)</label><input class="form-control" id="btl-loan" type="number" placeholder="e.g. 180000" oninput="calcAndRenderBTL()"></div>
+              <div><label class="form-label">Stress Test Rate (%)</label><input class="form-control" id="btl-rate" type="number" step="0.01" placeholder="e.g. 5.5" oninput="calcAndRenderBTL()"></div>
+              <div><label class="form-label">Tax Bracket</label><select class="form-control" id="btl-tax" onchange="calcAndRenderBTL()"><option value="basic">Basic Rate</option><option value="higher">Higher Rate</option><option value="portfolio">Portfolio Landlord</option></select></div>
+            </div>
+            <div id="calc-btl-icr-result"></div>
+          </div>
+        </div>
+
+        <!-- Contractor Income -->
+        <div class="calc-panel" id="calc-contractor">
+          <div class="card"><div class="card-title">&#128188; Contractor Income Calculator</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Day Rate (£)</label><input class="form-control" id="cont-day-rate" type="number" placeholder="e.g. 500" oninput="calcAndRenderContractor()"></div>
+              <div><label class="form-label">Days Per Week</label><input class="form-control" id="cont-days-pw" type="number" step="0.5" placeholder="e.g. 5" value="5" oninput="calcAndRenderContractor()"></div>
+              <div><label class="form-label">Weeks Worked (est.)</label><input class="form-control" id="cont-weeks" type="number" placeholder="e.g. 48" value="48" oninput="calcAndRenderContractor()"></div>
+            </div>
+            <div id="calc-contractor-result"></div>
+          </div>
+        </div>
+
+        <!-- ERC Planner -->
+        <div class="calc-panel" id="calc-erc">
+          <div class="card"><div class="card-title">&#128197; Early Repayment Charge (ERC) Planner</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Outstanding Balance (£)</label><input class="form-control" id="erc-balance" type="number" placeholder="e.g. 200000" oninput="calcAndRenderERC()"></div>
+              <div><label class="form-label">ERC Rate (%)</label><input class="form-control" id="erc-pct" type="number" step="0.1" placeholder="e.g. 3" oninput="calcAndRenderERC()"></div>
+              <div><label class="form-label">ERC End Date</label><input class="form-control" id="erc-end-date" type="date" oninput="calcAndRenderERC()"></div>
+            </div>
+            <div id="calc-erc-result"></div>
+          </div>
+        </div>
+
+        <!-- Second Charge -->
+        <div class="calc-panel" id="calc-second-charge">
+          <div class="card"><div class="card-title">&#128176; Second Charge Affordability</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">1st Charge Payment (£/mo)</label><input class="form-control" id="sc-first-pmt" type="number" placeholder="e.g. 900" oninput="calcAndRenderSecondCharge()"></div>
+              <div><label class="form-label">2nd Loan Amount (£)</label><input class="form-control" id="sc-loan" type="number" placeholder="e.g. 30000" oninput="calcAndRenderSecondCharge()"></div>
+              <div><label class="form-label">2nd Rate (%)</label><input class="form-control" id="sc-rate" type="number" step="0.1" placeholder="e.g. 9.5" oninput="calcAndRenderSecondCharge()"></div>
+              <div><label class="form-label">2nd Term (years)</label><input class="form-control" id="sc-term" type="number" placeholder="e.g. 10" oninput="calcAndRenderSecondCharge()"></div>
+              <div><label class="form-label">Monthly Income (£)</label><input class="form-control" id="sc-income" type="number" placeholder="e.g. 4000" oninput="calcAndRenderSecondCharge()"></div>
+            </div>
+            <div id="calc-second-charge-result"></div>
+          </div>
+        </div>
+
+        <!-- Shared Ownership -->
+        <div class="calc-panel" id="calc-shared-ownership">
+          <div class="card"><div class="card-title">&#127968; Shared Ownership Calculator</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Full Property Value (£)</label><input class="form-control" id="so-price" type="number" placeholder="e.g. 300000" oninput="calcAndRenderSharedOwnership()"></div>
+              <div><label class="form-label">Your Share (%)</label><input class="form-control" id="so-share" type="number" placeholder="e.g. 40" oninput="calcAndRenderSharedOwnership()"></div>
+              <div><label class="form-label">Mortgage Rate (%)</label><input class="form-control" id="so-rate" type="number" step="0.1" placeholder="e.g. 5.5" oninput="calcAndRenderSharedOwnership()"></div>
+              <div><label class="form-label">Mortgage Term (yrs)</label><input class="form-control" id="so-term" type="number" placeholder="e.g. 25" oninput="calcAndRenderSharedOwnership()"></div>
+              <div><label class="form-label">Rent % of Unsold <span style="font-size:11px;color:#9aaab8">(2.75%)</span></label><input class="form-control" id="so-rent-pct" type="number" step="0.1" placeholder="2.75" value="2.75" oninput="calcAndRenderSharedOwnership()"></div>
+            </div>
+            <div id="calc-shared-ownership-result"></div>
+          </div>
+        </div>
+
+        <!-- Bridging -->
+        <div class="calc-panel" id="calc-bridging">
+          <div class="card"><div class="card-title">&#128297; Bridging Finance Calculator</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Gross Loan (£)</label><input class="form-control" id="bridge-loan" type="number" placeholder="e.g. 500000" oninput="calcAndRenderBridging()"></div>
+              <div><label class="form-label">Monthly Rate (%)</label><input class="form-control" id="bridge-rate" type="number" step="0.01" placeholder="e.g. 0.75" oninput="calcAndRenderBridging()"></div>
+              <div><label class="form-label">Term (months)</label><input class="form-control" id="bridge-term" type="number" placeholder="e.g. 12" oninput="calcAndRenderBridging()"></div>
+              <div><label class="form-label">Arrangement Fee (%)</label><input class="form-control" id="bridge-arr-fee" type="number" step="0.1" placeholder="e.g. 2" oninput="calcAndRenderBridging()"></div>
+              <div><label class="form-label">Exit Fee (%)</label><input class="form-control" id="bridge-exit-fee" type="number" step="0.1" placeholder="e.g. 1" oninput="calcAndRenderBridging()"></div>
+            </div>
+            <div id="calc-bridging-result"></div>
+          </div>
+        </div>
+
+        <!-- Help to Buy -->
+        <div class="calc-panel" id="calc-htb">
+          <div class="card"><div class="card-title">&#9989; Help to Buy Equity Loan Calculator</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:12px">
+              <div><label class="form-label">Property Price (£)</label><input class="form-control" id="htb-price" type="number" placeholder="e.g. 400000" oninput="calcAndRenderHTB()"></div>
+              <div><label class="form-label">Deposit (%)</label><input class="form-control" id="htb-deposit" type="number" placeholder="e.g. 5" oninput="calcAndRenderHTB()"></div>
+              <div><label class="form-label">Equity Loan (%)</label><input class="form-control" id="htb-share" type="number" placeholder="e.g. 20" oninput="calcAndRenderHTB()"></div>
+              <div><label class="form-label">Mortgage Rate (%)</label><input class="form-control" id="htb-rate" type="number" step="0.1" placeholder="e.g. 5.0" oninput="calcAndRenderHTB()"></div>
+              <div><label class="form-label">Term (years)</label><input class="form-control" id="htb-term" type="number" placeholder="e.g. 25" oninput="calcAndRenderHTB()"></div>
+            </div>
+            <div id="calc-htb-result"></div>
+          </div>
+        </div>
+
+      </div>
 
       <!-- Welcome — global AI assistant (visible when no client selected) -->
       <div id="welcome">
@@ -965,11 +1267,12 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
           <div id="tabs">
             <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">&#128203; Overview</button>
             <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
-            <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128196; Credit Report</button>
+            <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128202; Credit Report</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
             <button class="tab-btn" data-tab="documents" onclick="switchTab('documents')">&#128196; Documents</button>
-            <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">&#129302; AI Assistant</button>
+            <button class="tab-btn" data-tab="compliance" onclick="switchTab('compliance')">&#9878;&#65039; Compliance</button>
+            <button class="tab-btn" data-tab="assistant" onclick="switchTab('assistant')">&#129302; AI Tools</button>
             <button class="tab-btn" data-tab="audit" onclick="switchTab('audit')">&#128196; Audit Trail</button>
           </div>
         </div>
@@ -1364,6 +1667,9 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                   <button class="btn btn-secondary doc-gen-btn" onclick="generateDoc('aip')">
                     &#9989; Agreement in Principle (AIP)
                   </button>
+                  <button class="btn btn-secondary doc-gen-btn" onclick="switchTab('assistant');switchAITool('suitability')">
+                    &#128220; Suitability Letter (AI)
+                  </button>
                 </div>
 
                 <div class="ref-doc-box">
@@ -1407,22 +1713,192 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             </div>
           </div>
 
-          <!-- AI ASSISTANT TAB -->
+          <!-- AI TOOLS TAB -->
           <div id="tab-assistant" class="tab-pane">
-            <div class="chat-messages" id="chat-messages">
-              <div class="chat-msg assistant">
-                <div class="msg-avatar bot-av">A</div>
-                <div class="msg-bubble assistant">Welcome. I'm MAU Adviser, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client. You can also attach documents (PDFs, images) using the paperclip button.
+            <div style="max-width:1100px">
+
+              <!-- Tab selector within AI Tools -->
+              <div class="ai-tools-tabs" id="ai-tools-tabs">
+                <button class="ai-tool-tab active" onclick="switchAITool('chat')">&#129302; Chat Assistant</button>
+                <button class="ai-tool-tab" onclick="switchAITool('suitability')">&#128220; Suitability Letter</button>
+                <button class="ai-tool-tab" onclick="switchAITool('decline')">&#128683; Decline Analyser</button>
+                <button class="ai-tool-tab" onclick="switchAITool('email')">&#9993; Email Drafter</button>
+                <button class="ai-tool-tab" onclick="switchAITool('criteria')">&#128269; Criteria Search</button>
+                <button class="ai-tool-tab" onclick="switchAITool('summary')">&#128203; Case Summary</button>
+                <button class="ai-tool-tab" onclick="switchAITool('market')">&#128200; Market Commentary</button>
+                <button class="ai-tool-tab" onclick="switchAITool('objection')">&#128172; Objection Handler</button>
+              </div>
+
+              <!-- Chat Panel -->
+              <div class="ai-tool-panel active" id="ai-panel-chat">
+                <div class="chat-messages" id="chat-messages">
+                  <div class="chat-msg assistant">
+                    <div class="msg-avatar bot-av">A</div>
+                    <div class="msg-bubble assistant">Welcome. I'm MAU Adviser, your specialist adverse credit assistant. I can help you review bank statement analysis results, advise on lender strategy, explain red flags, and check application readiness for this client. You can also attach documents (PDFs, images) using the paperclip button.
 
 What would you like to know?</div>
+                  </div>
+                </div>
+                <div id="chat-file-chip-wrap"></div>
+                <div class="chat-footer">
+                  <button class="chat-attach-btn" id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Attach document for AI analysis">&#128206;</button>
+                  <input type="file" id="chat-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt" style="display:none" onchange="handleChatFileSelect(event)">
+                  <textarea id="chat-input" placeholder="Ask about this client's case, or attach a document..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+                  <button class="btn btn-primary" id="chat-send" onclick="sendChat()">Send</button>
+                </div>
               </div>
-            </div>
-            <div id="chat-file-chip-wrap"></div>
-            <div class="chat-footer">
-              <button class="chat-attach-btn" id="chat-attach-btn" onclick="document.getElementById('chat-file-input').click()" title="Attach document for AI analysis">&#128206;</button>
-              <input type="file" id="chat-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt" style="display:none" onchange="handleChatFileSelect(event)">
-              <textarea id="chat-input" placeholder="Ask about this client's case, or attach a document..." rows="1" onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
-              <button class="btn btn-primary" id="chat-send" onclick="sendChat()">Send</button>
+
+              <!-- Suitability Letter Panel -->
+              <div class="ai-tool-panel" id="ai-panel-suitability">
+                <div class="card">
+                  <div class="card-title">&#128220; Suitability Letter Generator (FCA MCOB 4.8)</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Generate an AI-drafted, MCOB 4.8-compliant suitability letter for this client and recommended product. Edit before sending.</p>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+                    <div><label class="form-label">Lender Name</label><input class="form-control" id="sl-lender" placeholder="e.g. Precise Mortgages"></div>
+                    <div><label class="form-label">Product / Scheme</label><input class="form-control" id="sl-product" placeholder="e.g. 2yr Fixed Adverse"></div>
+                    <div><label class="form-label">Initial Rate (%)</label><input class="form-control" id="sl-rate" type="number" step="0.01" placeholder="e.g. 6.24"></div>
+                    <div><label class="form-label">Revert Rate (%)</label><input class="form-control" id="sl-revert-rate" type="number" step="0.01" placeholder="e.g. 8.74"></div>
+                    <div><label class="form-label">Mortgage Term (years)</label><input class="form-control" id="sl-term" type="number" placeholder="e.g. 25"></div>
+                    <div><label class="form-label">LTV (%)</label><input class="form-control" id="sl-ltv" type="number" placeholder="e.g. 75"></div>
+                    <div><label class="form-label">Arrangement Fee (£)</label><input class="form-control" id="sl-arrangement-fee" type="number" placeholder="e.g. 999"></div>
+                    <div><label class="form-label">ERC Period</label><input class="form-control" id="sl-erc-period" placeholder="e.g. 2 years"></div>
+                  </div>
+                  <button class="btn btn-primary" id="btn-gen-suitability" onclick="generateSuitabilityLetter()">&#128220; Generate Suitability Letter</button>
+                </div>
+                <div class="card" id="suitability-letter-result-card" style="display:none">
+                  <div id="suitability-letter-body"></div>
+                </div>
+              </div>
+
+              <!-- Decline Analyser Panel -->
+              <div class="ai-tool-panel" id="ai-panel-decline">
+                <div class="card">
+                  <div class="card-title">&#128683; Decline Reason Analyser</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Paste a lender decline reason. AI will identify the root cause, suggest alternative lenders, and recommend remediation steps.</p>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                    <div><label class="form-label">Declined Lender</label><input class="form-control" id="decline-lender-input" placeholder="e.g. Halifax"></div>
+                    <div></div>
+                  </div>
+                  <div style="margin-bottom:12px">
+                    <label class="form-label">Decline Reason / Message</label>
+                    <textarea class="form-control" id="decline-reason-input" rows="4" placeholder="Paste the full decline reason or any information provided by the lender…" style="resize:vertical"></textarea>
+                  </div>
+                  <button class="btn btn-primary" id="btn-analyse-decline" onclick="analyseDecline()">&#128269; Analyse Decline</button>
+                </div>
+                <div class="card">
+                  <div class="card-title">Analysis Results</div>
+                  <div id="decline-analysis-body"><div style="color:#9aaab8;font-size:13px">Enter a decline reason above and click Analyse.</div></div>
+                </div>
+              </div>
+
+              <!-- Email Drafter Panel -->
+              <div class="ai-tool-panel" id="ai-panel-email">
+                <div class="card">
+                  <div class="card-title">&#9993; AI Email Drafter</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Draft professional emails for any stage of the case — client updates, chasing lenders, instructing solicitors, or follow-ups.</p>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+                    <div>
+                      <label class="form-label">Email Type</label>
+                      <select class="form-control" id="email-type-select">
+                        <option value="">Select type…</option>
+                        <option value="client_update">Client Update</option>
+                        <option value="lender_chase">Chase Lender</option>
+                        <option value="solicitor_instruction">Solicitor Instruction</option>
+                        <option value="referral_request">Referral Request</option>
+                        <option value="completion_congratulations">Completion Congratulations</option>
+                        <option value="remortgage_reminder">Remortgage Reminder</option>
+                      </select>
+                    </div>
+                    <div></div>
+                  </div>
+                  <div style="margin-bottom:12px">
+                    <label class="form-label">Additional Context <span style="color:#9aaab8;font-weight:400">(optional)</span></label>
+                    <textarea class="form-control" id="email-context-input" rows="2" placeholder="Any extra details — lender name, days waiting, solicitor name, specific points to cover…" style="resize:vertical"></textarea>
+                  </div>
+                  <button class="btn btn-primary" id="btn-draft-email" onclick="draftEmail()">&#9993; Draft Email</button>
+                </div>
+                <div class="card">
+                  <div class="card-title">Draft Email</div>
+                  <div id="email-draft-body"><div style="color:#9aaab8;font-size:13px">Select an email type above and click Draft Email.</div></div>
+                </div>
+              </div>
+
+              <!-- Criteria Search Panel -->
+              <div class="ai-tool-panel" id="ai-panel-criteria">
+                <div class="card">
+                  <div class="card-title">&#128269; Lender Criteria Search</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Ask any criteria question in plain English. AI searches across Precise, Kensington, Aldermore, Together, Pepper, Norton, MBS, Bluestone, Vida, and more.</p>
+                  <div style="margin-bottom:12px">
+                    <label class="form-label">Criteria Question</label>
+                    <input class="form-control" id="criteria-search-input" placeholder="e.g. Which lenders accept 2 satisfied CCJs under £1,000 registered 18 months ago at 75% LTV?" style="margin-bottom:8px">
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+                    <span style="font-size:12px;color:#9aaab8">Quick questions:</span>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('criteria-search-input').value='Which lenders accept a DMP satisfied 6 months ago at 80% LTV?'">DMP 6 months ago</button>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('criteria-search-input').value='Who will lend to a discharged bankrupt 2 years ago?'">Bankruptcy 2yr ago</button>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('criteria-search-input').value='Which lenders accept self-employed 1 year trading?'">Self-employed 1yr</button>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('criteria-search-input').value='Best BTL lenders for HMO properties?'">BTL HMO</button>
+                  </div>
+                  <button class="btn btn-primary" id="btn-criteria-search" onclick="searchCriteria()">&#128269; Search Criteria</button>
+                </div>
+                <div class="card">
+                  <div class="card-title">Search Results</div>
+                  <div id="criteria-search-results"><div style="color:#9aaab8;font-size:13px">Enter a question above to search lender criteria.</div></div>
+                </div>
+              </div>
+
+              <!-- Case Summary Panel -->
+              <div class="ai-tool-panel" id="ai-panel-summary">
+                <div class="card">
+                  <div class="card-title">&#128203; Case Summary &amp; Handover</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Generate an AI case summary covering health, key risks, action items, and next steps — ideal for handover, file notes, or internal review.</p>
+                  <button class="btn btn-primary" id="btn-case-summary" onclick="generateCaseSummary()">&#128203; Generate Case Summary</button>
+                </div>
+                <div class="card">
+                  <div id="case-summary-body"><div style="color:#9aaab8;font-size:13px">Click above to generate a case summary for the selected client.</div></div>
+                </div>
+              </div>
+
+              <!-- Market Commentary Panel -->
+              <div class="ai-tool-panel" id="ai-panel-market-ai">
+                <div class="card">
+                  <div class="card-title">&#128200; Market Commentary Generator</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Generate professional UK mortgage market commentary for client newsletters, social media, or internal briefings.</p>
+                  <div style="margin-bottom:12px">
+                    <label class="form-label">Topic / Focus <span style="color:#9aaab8;font-weight:400">(optional)</span></label>
+                    <input class="form-control" id="market-topic-input" placeholder="e.g. Bank of England base rate outlook, adverse market conditions, remortgage market Q1 2025">
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+                    <span style="font-size:12px;color:#9aaab8">Quick topics:</span>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('market-topic-input').value='Bank of England base rate and UK mortgage market outlook'">Base rate outlook</button>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('market-topic-input').value='Adverse credit mortgage market update for brokers'">Adverse market</button>
+                    <button class="btn btn-outline" style="font-size:11px;padding:3px 8px" onclick="document.getElementById('market-topic-input').value='UK house prices and remortgage market conditions'">House prices</button>
+                  </div>
+                  <button class="btn btn-primary" id="btn-market-commentary" onclick="generateMarketCommentary()">&#128200; Generate Commentary</button>
+                </div>
+                <div class="card">
+                  <div id="market-commentary-body"><div style="color:#9aaab8;font-size:13px">Click above to generate market commentary.</div></div>
+                </div>
+              </div>
+
+              <!-- Objection Handler Panel -->
+              <div class="ai-tool-panel" id="ai-panel-objection">
+                <div class="card">
+                  <div class="card-title">&#128172; Broker Objection Handler</div>
+                  <p style="font-size:13px;color:#555;margin-bottom:14px">Select a common client objection to get a professional, persuasive broker response you can use or adapt.</p>
+                  <div id="objection-examples" style="margin-bottom:14px"></div>
+                  <div style="margin-bottom:12px">
+                    <label class="form-label">Or type a custom objection</label>
+                    <input class="form-control" id="custom-objection-input" placeholder="e.g. I don't want to pay a broker fee">
+                    <button class="btn btn-primary" style="margin-top:8px" onclick="handleObjection(document.getElementById('custom-objection-input').value)">Get Response</button>
+                  </div>
+                </div>
+                <div class="card">
+                  <div class="card-title">Suggested Response</div>
+                  <div id="objection-response-body"><div style="color:#9aaab8;font-size:13px">Select or type an objection above.</div></div>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1438,6 +1914,40 @@ What would you like to know?</div>
                   <div style="color:#a0aec0;font-size:13px;padding:16px 0">Select a client to view their audit trail.</div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- COMPLIANCE TAB -->
+          <div id="tab-compliance" class="tab-pane">
+            <div style="max-width:1000px">
+
+              <!-- File Review Checklist -->
+              <div class="card">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+                  <div class="card-title" style="margin-bottom:0">&#128203; File Review Checklist</div>
+                  <button class="btn btn-outline" style="font-size:12px" onclick="loadFileReview(selectedClientId)">&#8635; Refresh</button>
+                </div>
+                <div id="file-review-body"><div style="color:#9aaab8;font-size:13px">Select a client to check file completeness.</div></div>
+              </div>
+
+              <!-- Consumer Duty -->
+              <div class="card">
+                <div class="card-title">&#9878;&#65039; Consumer Duty Assessment (PS22/9)</div>
+                <div id="consumer-duty-body"><div style="color:#9aaab8;font-size:13px">Select a client to record Consumer Duty outcomes.</div></div>
+              </div>
+
+              <!-- Vulnerable Customer -->
+              <div class="card">
+                <div class="card-title">&#9888;&#65039; Vulnerable Customer Assessment (FG21/1)</div>
+                <div id="vulnerable-customer-body"><div style="color:#9aaab8;font-size:13px">Select a client to complete vulnerability screening.</div></div>
+              </div>
+
+              <!-- TCF Log -->
+              <div class="card">
+                <div class="card-title">&#9989; Treating Customers Fairly (TCF) Log</div>
+                <div id="tcf-log-body"><div style="color:#9aaab8;font-size:13px">Select a client to record TCF evidence.</div></div>
+              </div>
+
             </div>
           </div>
 
@@ -1562,6 +2072,50 @@ What would you like to know?</div>
 </div>
 
 <!-- ADD CASE NOTE MODAL -->
+<!-- PROC FEE MODAL -->
+<div class="modal-overlay" id="proc-fee-modal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-title">Edit Proc Fee — <span id="pfe-client-name"></span></span>
+      <button class="modal-close" onclick="closeProcFeeModal()">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pfe-client-id">
+      <div class="form-group">
+        <label class="form-label">Lender Name</label>
+        <input class="form-control" id="pfe-lender" placeholder="e.g. Precise Mortgages">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Expected Proc Fee (£)</label>
+          <input class="form-control" id="pfe-expected" type="number" step="0.01" placeholder="e.g. 850">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Actual Proc Fee Received (£)</label>
+          <input class="form-control" id="pfe-actual" type="number" step="0.01" placeholder="e.g. 850">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control" id="pfe-status">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="paid">Paid</option>
+          <option value="clawback">Clawback</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Referral Source</label>
+        <input class="form-control" id="pfe-referral" placeholder="e.g. Smith & Jones Estate Agents">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeProcFeeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProcFee()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="add-note-modal" style="display:none">
   <div class="modal" style="max-width:480px">
     <div class="modal-header">
@@ -1674,6 +2228,12 @@ function selectClient(clientId) {
 
   // Close drawer on mobile when client is selected
   if (window.innerWidth <= 768) closeSidebar();
+
+  // Hide global views, show client panel
+  if (typeof hideGlobalViews === 'function') hideGlobalViews();
+  var wl = document.getElementById('welcome');
+  if (wl) wl.style.display = 'none';
+  document.getElementById('client-panel').style.display = 'block';
 
   showLoading('Loading client...');
   fetch('/api/clients/' + clientId)
@@ -2445,6 +3005,13 @@ function printCurrentDoc() {
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 function switchTab(tabId) {
+  // Hide global views if a client tab is clicked
+  if (typeof hideGlobalViews === 'function') hideGlobalViews();
+  var cp = document.getElementById('client-panel');
+  var wl = document.getElementById('welcome');
+  if (selectedClientId && cp) cp.style.display = 'block';
+  if (wl) wl.style.display = selectedClientId ? 'none' : 'block';
+
   document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
   document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
 
@@ -2460,6 +3027,7 @@ function switchTab(tabId) {
   if (tabId === 'documents') loadDocuments();
   if (tabId === 'assistant') setTimeout(scrollChat, 100);
   if (tabId === 'audit') loadAuditLog();
+  if (tabId === 'compliance') loadComplianceTab();
 }
 
 // ── Chat ──────────────────────────────────────────────────────────────────────
@@ -3395,6 +3963,171 @@ function renderAuditLog(entries) {
   });
   body.innerHTML = html;
 }
+
+// ── Global views (Pipeline, Revenue, Calculators) ─────────────────────────────
+function showGlobalView(view) {
+  ['pipeline', 'revenue', 'calculators'].forEach(function(v) {
+    var el = document.getElementById('global-' + v);
+    var btn = document.getElementById('nav-btn-' + v);
+    if (el) el.style.display = v === view ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', v === view);
+  });
+  // Hide client panel and welcome
+  var cp = document.getElementById('client-panel');
+  var wl = document.getElementById('welcome');
+  if (cp) cp.style.display = 'none';
+  if (wl) wl.style.display = 'none';
+
+  if (view === 'pipeline') loadPipeline();
+  if (view === 'revenue') { loadRevenueDashboard(); var t = localStorage.getItem('mau_monthly_target'); if (t) { var el = document.getElementById('monthly-target-input'); if (el) el.value = t; } }
+}
+
+function hideGlobalViews() {
+  ['pipeline', 'revenue', 'calculators'].forEach(function(v) {
+    var el = document.getElementById('global-' + v);
+    var btn = document.getElementById('nav-btn-' + v);
+    if (el) el.style.display = 'none';
+    if (btn) btn.classList.remove('active');
+  });
+}
+
+// ── AI Tools sub-tab switcher ─────────────────────────────────────────────────
+function switchAITool(tool) {
+  document.querySelectorAll('.ai-tool-tab').forEach(function(btn, i) {
+    var tools = ['chat','suitability','decline','email','criteria','summary','market','objection'];
+    btn.classList.toggle('active', tools[i] === tool);
+  });
+  document.querySelectorAll('.ai-tool-panel').forEach(function(panel) {
+    panel.classList.remove('active');
+  });
+  var target = document.getElementById('ai-panel-' + (tool === 'market' ? 'market-ai' : tool));
+  if (target) target.classList.add('active');
+  if (tool === 'objection') loadObjectionExamples();
+}
+
+// ── Calculator tab switcher ────────────────────────────────────────────────────
+function switchCalcTab(tab) {
+  document.querySelectorAll('.calc-tab').forEach(function(btn) { btn.classList.remove('active'); });
+  document.querySelectorAll('.calc-panel').forEach(function(panel) { panel.classList.remove('active'); });
+  var clickedBtn = event && event.target ? event.target : null;
+  if (clickedBtn) clickedBtn.classList.add('active');
+  var panel = document.getElementById('calc-' + tab);
+  if (panel) panel.classList.add('active');
+}
+
+// ── Calculator wrapper functions (wire input IDs to calc functions) ────────────
+function calcAndRenderStampDuty() {
+  var price = parseFloat(document.getElementById('sd-price').value);
+  if (!price || price <= 0) return;
+  var isFTB = document.getElementById('sd-ftb').checked;
+  var isAdditional = document.getElementById('sd-additional').checked;
+  var jurisdiction = document.getElementById('sd-jurisdiction').value;
+  var result = calcStampDuty(price, isFTB, isAdditional, jurisdiction);
+  renderStampDuty(result, 'calc-stamp-duty-result');
+}
+
+function calcAndRenderLTV() {
+  var loan = parseFloat(document.getElementById('ltv-loan').value);
+  var value = parseFloat(document.getElementById('ltv-value').value);
+  if (!loan || !value) return;
+  var result = calcLTV(loan, value);
+  renderLTV(result, 'calc-ltv-result');
+}
+
+function calcAndRenderBTL() {
+  var rent = parseFloat(document.getElementById('btl-rent').value);
+  var loan = parseFloat(document.getElementById('btl-loan').value);
+  var rate = parseFloat(document.getElementById('btl-rate').value);
+  var tax = document.getElementById('btl-tax').value;
+  if (!rent || !loan || !rate) return;
+  var result = calcBTLICR(rent, loan, rate, tax);
+  renderBTLICR(result, 'calc-btl-icr-result');
+}
+
+function calcAndRenderContractor() {
+  var day = parseFloat(document.getElementById('cont-day-rate').value);
+  var dpw = parseFloat(document.getElementById('cont-days-pw').value) || 5;
+  var weeks = parseFloat(document.getElementById('cont-weeks').value) || 48;
+  if (!day) return;
+  var result = calcContractorIncome(day, dpw, weeks);
+  renderContractorIncome(result, 'calc-contractor-result');
+}
+
+function calcAndRenderERC() {
+  var bal = parseFloat(document.getElementById('erc-balance').value);
+  var pct = parseFloat(document.getElementById('erc-pct').value);
+  var endDate = document.getElementById('erc-end-date').value;
+  if (!bal || !pct || !endDate) return;
+  var result = calcERC(bal, pct, endDate);
+  renderERC(result, 'calc-erc-result');
+}
+
+function calcAndRenderSecondCharge() {
+  var fp = parseFloat(document.getElementById('sc-first-pmt').value) || 0;
+  var loan = parseFloat(document.getElementById('sc-loan').value);
+  var rate = parseFloat(document.getElementById('sc-rate').value);
+  var term = parseFloat(document.getElementById('sc-term').value);
+  var income = parseFloat(document.getElementById('sc-income').value);
+  if (!loan || !rate || !term || !income) return;
+  var result = calcSecondCharge(fp, loan, rate, term, income);
+  renderSecondCharge(result, 'calc-second-charge-result');
+}
+
+function calcAndRenderSharedOwnership() {
+  var price = parseFloat(document.getElementById('so-price').value);
+  var share = parseFloat(document.getElementById('so-share').value);
+  var rate = parseFloat(document.getElementById('so-rate').value);
+  var term = parseFloat(document.getElementById('so-term').value);
+  var rentPct = parseFloat(document.getElementById('so-rent-pct').value) || 2.75;
+  if (!price || !share || !rate || !term) return;
+  var result = calcSharedOwnership(price, share, rate, term, rentPct);
+  renderSharedOwnership(result, 'calc-shared-ownership-result');
+}
+
+function calcAndRenderBridging() {
+  var loan = parseFloat(document.getElementById('bridge-loan').value);
+  var rate = parseFloat(document.getElementById('bridge-rate').value);
+  var term = parseFloat(document.getElementById('bridge-term').value);
+  var arrFee = parseFloat(document.getElementById('bridge-arr-fee').value) || 0;
+  var exitFee = parseFloat(document.getElementById('bridge-exit-fee').value) || 0;
+  if (!loan || !rate || !term) return;
+  var result = calcBridging(loan, rate, term, arrFee, exitFee);
+  renderBridging(result, 'calc-bridging-result');
+}
+
+function calcAndRenderHTB() {
+  var price = parseFloat(document.getElementById('htb-price').value);
+  var deposit = parseFloat(document.getElementById('htb-deposit').value);
+  var htbShare = parseFloat(document.getElementById('htb-share').value);
+  var rate = parseFloat(document.getElementById('htb-rate').value);
+  var term = parseFloat(document.getElementById('htb-term').value);
+  if (!price || !deposit || !htbShare || !rate || !term) return;
+  var result = calcHTB(price, deposit, htbShare, rate, term);
+  renderHTB(result, 'calc-htb-result');
+}
+
+// ── Override selectClient to also hide global views ───────────────────────────
+var _origSelectClient = typeof selectClient !== 'undefined' ? selectClient : null;
+// Wrap the existing client selection to close global views
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof loadObjectionExamples === 'function') loadObjectionExamples();
+});
+
+// ── Compliance tab wiring ─────────────────────────────────────────────────────
+// Called from switchTab when compliance tab is activated
+function loadComplianceTab() {
+  if (!selectedClientId) return;
+  loadFileReview(selectedClientId);
+  loadConsumerDuty(selectedClientId);
+  loadVulnerableCustomer(selectedClientId);
+  renderTCFLog(selectedClientId);
+}
+
 </script>
+<script src="/static/js/calculators.js"></script>
+<script src="/static/js/pipeline.js"></script>
+<script src="/static/js/revenue.js"></script>
+<script src="/static/js/compliance.js"></script>
+<script src="/static/js/ai-tools.js"></script>
 </body>
 </html>

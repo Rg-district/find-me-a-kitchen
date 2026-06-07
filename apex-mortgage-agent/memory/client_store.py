@@ -15,6 +15,7 @@ _DOC_TYPES: dict[str, str] = {
     "privacy_notice": "Privacy Notice / Terms of Business",
     "esis": "ESIS / Key Facts Illustration (KFI)",
     "aip": "Agreement in Principle (AIP)",
+    "suitability_letter": "Suitability Letter (MCOB 4.8)",
 }
 
 CASE_STAGES = ["research", "dip", "full_application", "offer", "completion"]

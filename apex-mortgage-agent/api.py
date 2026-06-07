@@ -71,6 +71,11 @@ from tools.document_generator import (
     extract_reference_text,
     DOC_TYPES as DOCUMENT_TYPES,
 )
+from tools.suitability_letter import generate_suitability_letter
+from tools.decline_analyser import analyse_decline
+from tools.email_drafter import draft_email
+from tools.case_summary import summarise_case
+from tools.criteria_engine import search_criteria
 from orchestrator import Orchestrator
 
 app = FastAPI(title="MAU — Mortgages Are Us — Consultant Dashboard", version="2.0.0")
@@ -754,6 +759,430 @@ async def get_client_document(client_id: str, doc_type: str):
     if not html:
         raise HTTPException(status_code=404, detail="Document not found. Generate it first.")
     return HTMLResponse(content=html, media_type="text/html")
+
+
+# ── Pipeline ──────────────────────────────────────────────────────────────────
+
+class PipelineDatesRequest(BaseModel):
+    lender_name: Optional[str] = None
+    aip_expiry: Optional[str] = None
+    offer_date: Optional[str] = None
+    offer_expiry: Optional[str] = None
+    exchange_date: Optional[str] = None
+    completion_date: Optional[str] = None
+    product_end_date: Optional[str] = None
+    erc_end_date: Optional[str] = None
+
+
+@app.get("/api/pipeline")
+async def get_pipeline():
+    """Pipeline overview — all clients with stage, dates, proc fees."""
+    from datetime import datetime
+    clients = list_clients()
+    today = datetime.utcnow()
+
+    active_cases = sum(1 for c in clients if c.get("status") == "active" or c.get("case_stage") != "completion")
+    pipeline_value = sum(
+        (c.get("proc_fee_expected") or 0)
+        for c in clients
+        if c.get("proc_fee_status") in (None, "pending", "confirmed")
+    )
+
+    # Build SLA data from lenders with both offer + DIP data
+    sla_map: dict = {}
+    for c in clients:
+        lender = c.get("lender_name")
+        if not lender:
+            continue
+        dip_date = c.get("aip_expiry")  # proxy
+        offer_date = c.get("offer_date")
+        completion_date = c.get("completion_date")
+        if offer_date and dip_date:
+            try:
+                diff = (datetime.fromisoformat(offer_date) - datetime.fromisoformat(dip_date)).days
+                if diff > 0:
+                    if lender not in sla_map:
+                        sla_map[lender] = []
+                    sla_map[lender].append(diff)
+            except Exception:
+                pass
+
+    sla_data = []
+    for lender, days_list in sla_map.items():
+        sla_data.append({
+            "lender": lender,
+            "case_count": len(days_list),
+            "avg_days": round(sum(days_list) / len(days_list)),
+            "best_days": min(days_list),
+            "worst_days": max(days_list),
+        })
+
+    return {
+        "clients": clients,
+        "sla_data": sorted(sla_data, key=lambda x: x["avg_days"]),
+        "total_clients": len(clients),
+        "active_cases": active_cases,
+        "pipeline_proc_value": pipeline_value,
+    }
+
+
+@app.patch("/api/clients/{client_id}/pipeline-dates")
+async def update_pipeline_dates(client_id: str, req: PipelineDatesRequest):
+    """Update pipeline dates (offer expiry, completion, etc.) for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    update_data = {k: v for k, v in req.dict().items() if v is not None}
+    updated = update_client(client_id, update_data)
+    log_event(client_id, "pipeline_dates_updated", update_data)
+    return {"client_id": client_id, "client": updated}
+
+
+# ── Revenue & Proc Fees ───────────────────────────────────────────────────────
+
+class ProcFeeRequest(BaseModel):
+    proc_fee_expected: Optional[float] = None
+    proc_fee_actual: Optional[float] = None
+    proc_fee_status: Optional[str] = None  # pending | confirmed | paid | clawback
+    lender_name: Optional[str] = None
+    referral_source: Optional[str] = None
+
+
+@app.patch("/api/clients/{client_id}/proc-fee")
+async def update_proc_fee(client_id: str, req: ProcFeeRequest):
+    """Update proc fee status and amounts for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    update_data = {k: v for k, v in req.dict().items() if v is not None}
+    updated = update_client(client_id, update_data)
+    log_event(client_id, "proc_fee_updated", update_data)
+    return {"client_id": client_id, "client": updated}
+
+
+@app.get("/api/revenue-dashboard")
+async def revenue_dashboard(monthly_target: float = 0):
+    """Aggregated revenue metrics across all clients."""
+    from datetime import datetime
+    clients = list_clients()
+    now = datetime.utcnow()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0)
+
+    pipeline_value = 0.0
+    mtd_actual = 0.0
+    paid_ytd = 0.0
+    clawback_risk_total = 0.0
+    proc_fees = []
+    clawback_risk = []
+    funnel: dict = {s: 0 for s in ["research", "dip", "full_application", "offer", "completion"]}
+    referral_map: dict = {}
+
+    for c in clients:
+        stage = c.get("case_stage", "research")
+        funnel[stage] = funnel.get(stage, 0) + 1
+
+        ref = c.get("referral_source") or "Direct"
+        referral_map[ref] = referral_map.get(ref, 0) + 1
+
+        fee_exp = c.get("proc_fee_expected") or 0
+        fee_act = c.get("proc_fee_actual") or 0
+        fee_status = c.get("proc_fee_status") or "pending"
+
+        if fee_status in ("pending", "confirmed"):
+            pipeline_value += fee_exp
+
+        if fee_status == "paid":
+            paid_ytd += fee_act
+            # Check MTD
+            paid_at = c.get("updated_at", "")
+            try:
+                if datetime.fromisoformat(paid_at) >= month_start:
+                    mtd_actual += fee_act
+            except Exception:
+                pass
+
+        # Clawback: completion within 24 months = at risk
+        completion = c.get("completion_date")
+        if completion and fee_status == "paid" and fee_act > 0:
+            try:
+                comp_dt = datetime.fromisoformat(completion)
+                months_ago = (now - comp_dt).days / 30.44
+                if months_ago < 24:
+                    months_remaining = max(0, round(24 - months_ago))
+                    clawback_risk_total += fee_act
+                    clawback_risk.append({
+                        **{k: c.get(k) for k in ("client_id", "name", "lender_name", "completion_date")},
+                        "proc_fee_actual": fee_act,
+                        "clawback_months_remaining": months_remaining,
+                    })
+            except Exception:
+                pass
+
+        proc_fees.append({
+            **{k: c.get(k) for k in ("client_id", "name", "lender_name", "case_stage", "proc_fee_expected", "proc_fee_actual", "proc_fee_status")},
+            "clawback_risk": c.get("completion_date") is not None and fee_status == "paid",
+        })
+
+    referral_sources = [{"source": k, "count": v} for k, v in referral_map.items()]
+
+    return {
+        "pipeline_value": pipeline_value,
+        "mtd_actual": mtd_actual,
+        "paid_ytd": paid_ytd,
+        "clawback_risk_total": clawback_risk_total,
+        "monthly_target": monthly_target,
+        "proc_fees": sorted(proc_fees, key=lambda x: x.get("proc_fee_expected") or 0, reverse=True),
+        "clawback_risk": clawback_risk,
+        "funnel": funnel,
+        "referral_sources": referral_sources,
+    }
+
+
+# ── AI Tools ──────────────────────────────────────────────────────────────────
+
+class SuitabilityLetterRequest(BaseModel):
+    product_details: dict = {}
+
+
+class DeclineAnalysisRequest(BaseModel):
+    decline_reason: str
+    declined_lender: str = "Unknown"
+
+
+class DraftEmailRequest(BaseModel):
+    email_type: str
+    context: dict = {}
+
+
+class CriteriaSearchRequest(BaseModel):
+    query: str
+    client_id: Optional[str] = None
+
+
+class MarketCommentaryRequest(BaseModel):
+    topic: str = "UK mortgage market update"
+
+
+class ObjectionRequest(BaseModel):
+    objection: str
+
+
+@app.post("/api/clients/{client_id}/suitability-letter")
+async def suitability_letter(client_id: str, req: SuitabilityLetterRequest):
+    """Generate an FCA MCOB 4.8-compliant suitability letter using AI."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    stored = get_analysis(client_id)
+    analysis = stored.get("analysis") if stored else {}
+    try:
+        html = generate_suitability_letter(client, analysis or {}, req.product_details)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Generation failed: {exc}")
+    save_document(client_id, "suitability_letter", html)
+    log_event(client_id, "document_generated", {"doc_type": "suitability_letter"})
+    return {"client_id": client_id, "html": html}
+
+
+@app.post("/api/clients/{client_id}/decline-analysis")
+async def decline_analysis(client_id: str, req: DeclineAnalysisRequest):
+    """Analyse a lender decline reason and suggest alternatives."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    try:
+        result = analyse_decline(client, req.decline_reason, req.declined_lender)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {exc}")
+    log_event(client_id, "decline_analysed", {"lender": req.declined_lender})
+    return {"client_id": client_id, "analysis": result}
+
+
+@app.post("/api/clients/{client_id}/draft-email")
+async def draft_client_email(client_id: str, req: DraftEmailRequest):
+    """Draft a professional email using AI."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    try:
+        email = draft_email(client, req.email_type, req.context)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Draft failed: {exc}")
+    log_event(client_id, "email_drafted", {"type": req.email_type})
+    return {"client_id": client_id, "email": email}
+
+
+@app.post("/api/clients/{client_id}/case-summary")
+async def case_summary(client_id: str):
+    """Generate an AI case handover summary."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    stored = get_analysis(client_id)
+    analysis = stored.get("analysis") if stored else None
+    credit_data_raw = get_credit_report(client_id)
+    credit_data = credit_data_raw.get("credit_data") if credit_data_raw else None
+    try:
+        summary = summarise_case(client, analysis, credit_data)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Summary failed: {exc}")
+    log_event(client_id, "case_summary_generated", {})
+    return {"client_id": client_id, "summary": summary}
+
+
+@app.post("/api/criteria-search")
+async def criteria_search(req: CriteriaSearchRequest):
+    """AI-powered lender criteria search."""
+    client = get_client(req.client_id) if req.client_id else None
+    try:
+        result = search_criteria(req.query, client)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Search failed: {exc}")
+    return result
+
+
+@app.post("/api/market-commentary")
+async def market_commentary(req: MarketCommentaryRequest):
+    """Generate UK mortgage market commentary using AI."""
+    import anthropic as _anthropic
+    _ac = _anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    from datetime import date
+    today_str = date.today().strftime("%d %B %Y")
+    try:
+        resp = _ac.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=800,
+            system=[{"type": "text", "text": (
+                "You are a UK mortgage market analyst writing professional broker commentary. "
+                "Write in a clear, confident tone suitable for sharing with clients or on social media. "
+                "Focus on factual observations about the UK mortgage market, Bank of England base rate context, "
+                "adverse credit market, and practical advice for borrowers. No disclaimers or caveats beyond "
+                "a brief 'this is general information' note at the end. 3-4 paragraphs maximum."
+            ), "cache_control": {"type": "ephemeral"}}],
+            messages=[{"role": "user", "content": f"Date: {today_str}\n\nTopic: {req.topic}\n\nWrite the commentary now."}],
+        )
+        commentary = resp.content[0].text
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Generation failed: {exc}")
+    return {"commentary": commentary, "topic": req.topic}
+
+
+@app.post("/api/objection-handler")
+async def objection_handler(req: ObjectionRequest):
+    """Generate a professional broker response to a common client objection."""
+    import anthropic as _anthropic
+    _ac = _anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    try:
+        resp = _ac.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=400,
+            system=[{"type": "text", "text": (
+                "You are a senior UK mortgage broker. Write a concise, confident, and professional response "
+                "to a client objection. The response should be 3-5 sentences — persuasive but not pushy, "
+                "focused on real value a mortgage broker provides. No bullet points — flowing prose."
+            ), "cache_control": {"type": "ephemeral"}}],
+            messages=[{"role": "user", "content": f"Client said: \"{req.objection}\"\n\nWrite the broker's response:"}],
+        )
+        response_text = resp.content[0].text
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Generation failed: {exc}")
+    return {"response": response_text, "objection": req.objection}
+
+
+# ── Compliance ────────────────────────────────────────────────────────────────
+
+@app.get("/api/clients/{client_id}/consumer-duty")
+async def get_consumer_duty(client_id: str):
+    """Get saved Consumer Duty assessment for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return client.get("consumer_duty") or {}
+
+
+@app.post("/api/clients/{client_id}/consumer-duty")
+async def save_consumer_duty(client_id: str, request: Request):
+    """Save Consumer Duty outcome assessment."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    body = await request.json()
+    update_client(client_id, {"consumer_duty": body})
+    log_event(client_id, "consumer_duty_recorded", {"outcomes": list(body.keys())})
+    return {"saved": True}
+
+
+@app.post("/api/clients/{client_id}/vulnerable-customer")
+async def save_vulnerable_customer(client_id: str, request: Request):
+    """Save vulnerability assessment for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    body = await request.json()
+    is_vuln = body.get("vulnerable_customer", False)
+    update_client(client_id, {
+        "vulnerable_customer": is_vuln,
+        "vulnerability_data": body.get("vulnerability_data", {}),
+    })
+    log_event(client_id, "vulnerability_assessed", {"vulnerable": is_vuln})
+    return {"saved": True, "vulnerable_customer": is_vuln}
+
+
+@app.get("/api/clients/{client_id}/file-review")
+async def file_review(client_id: str):
+    """Auto-check file completeness against FCA MCOB requirements."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    stored = get_analysis(client_id)
+    analysis = stored.get("analysis") if stored else None
+    docs = list_documents(client_id)
+    doc_types = {d["doc_type"] for d in docs}
+    audit = get_audit_log(client_id)
+    audit_events = {e["event_type"] for e in audit}
+    credit = get_credit_report(client_id)
+
+    checks = {
+        "gdpr_consent": bool(client.get("gdpr_consent")),
+        "idd_generated": "idd" in doc_types,
+        "privacy_notice": "privacy_notice" in doc_types,
+        "consumer_duty": bool(client.get("consumer_duty")),
+        "vulnerable_assessed": "vulnerability_data" in client or "vulnerable_customer" in client,
+        "fact_find": all(client.get(f) for f in ("declared_income", "loan_amount", "property_value", "employment_type")),
+        "income_verified": analysis is not None,
+        "bank_statement": analysis is not None,
+        "credit_report": credit is not None,
+        "stress_test": "stress_test_run" in audit_events,
+        "grade_assigned": bool(client.get("grade")),
+        "esis_provided": "esis" in doc_types,
+        "suitability_letter": "suitability_letter" in doc_types,
+        "risks_explained": bool(client.get("consumer_duty")),
+        "alternatives_considered": "suitability_letter" in doc_types,
+        "aip_obtained": bool(client.get("aip_expiry") or client.get("case_stage") in ("dip", "full_application", "offer", "completion")),
+    }
+    return checks
+
+
+@app.get("/api/clients/{client_id}/tcf-log")
+async def get_tcf_log(client_id: str):
+    """Get TCF log for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    return client.get("tcf_log") or {}
+
+
+@app.post("/api/clients/{client_id}/tcf-log")
+async def save_tcf_log(client_id: str, request: Request):
+    """Save TCF log for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    body = await request.json()
+    update_client(client_id, {"tcf_log": body})
+    log_event(client_id, "tcf_log_saved", {})
+    return {"saved": True}
 
 
 # ── Static files ──────────────────────────────────────────────────────────────
