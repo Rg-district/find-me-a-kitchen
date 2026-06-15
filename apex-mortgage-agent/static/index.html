@@ -978,6 +978,80 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .calc-panel { display: none; }
 .calc-panel.active { display: block; }
 
+/* ── Dashboard ───────────────────────────────────────────────────────────── */
+.dash-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 22px; gap: 12px; flex-wrap: wrap; }
+.dash-greeting { font-size: 22px; font-weight: 800; color: var(--navy); }
+.dash-date-str { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+/* KPI strip */
+.dash-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.dash-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; position: relative; overflow: hidden; }
+.dash-kpi::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--border); border-radius: 12px 0 0 12px; }
+.dash-kpi.kpi-urgent::before { background: var(--danger); }
+.dash-kpi.kpi-revenue::before { background: var(--success); }
+.dash-kpi.kpi-pipeline::before { background: var(--grade-b); }
+.dash-kpi.kpi-active::before { background: var(--brand); }
+.dash-kpi-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .9px; }
+.dash-kpi-value { font-size: 30px; font-weight: 800; color: var(--navy); margin: 6px 0 3px; line-height: 1; }
+.dash-kpi-sub { font-size: 12px; color: var(--text-muted); }
+
+/* Main 2-col grid */
+.dash-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; margin-bottom: 16px; }
+.dash-col { display: flex; flex-direction: column; gap: 16px; }
+
+/* Shared card-body list styles */
+.dash-empty { color: #a0aec0; font-size: 13px; padding: 8px 0; display: flex; align-items: center; gap: 6px; }
+
+/* Urgent actions */
+.dash-action-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f4f8; }
+.dash-action-item:last-child { border-bottom: none; padding-bottom: 0; }
+.dash-action-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.dash-action-dot.high { background: var(--danger); box-shadow: 0 0 0 3px rgba(197,48,48,.15); }
+.dash-action-dot.medium { background: #d69e2e; box-shadow: 0 0 0 3px rgba(214,158,46,.12); }
+.dash-action-dot.low { background: var(--text-muted); }
+.dash-action-name { font-weight: 700; font-size: 13px; color: var(--navy); margin-bottom: 1px; }
+.dash-action-msg { font-size: 12px; color: var(--text-muted); }
+.dash-action-link { font-size: 11px; color: var(--brand); font-weight: 700; cursor: pointer; margin-top: 3px; display: inline-block; }
+.dash-action-link:hover { text-decoration: underline; }
+
+/* Upcoming dates */
+.dash-date-item { display: flex; align-items: center; gap: 11px; padding: 9px 0; border-bottom: 1px solid #f0f4f8; }
+.dash-date-item:last-child { border-bottom: none; padding-bottom: 0; }
+.dash-date-pill { border-radius: 7px; padding: 4px 9px; font-size: 11px; font-weight: 700; white-space: nowrap; min-width: 54px; text-align: center; }
+.dash-date-pill.pill-today { background: #fed7d7; color: var(--danger); }
+.dash-date-pill.pill-soon { background: #fef3c7; color: #92400e; }
+.dash-date-pill.pill-ok { background: #ebf8ff; color: #2b6cb0; }
+.dash-date-client { font-weight: 600; font-size: 13px; color: var(--navy); }
+.dash-date-label { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.dash-date-arrow { font-size: 13px; color: var(--brand); cursor: pointer; flex-shrink: 0; font-weight: 700; padding: 0 4px; }
+
+/* Remortgage radar */
+.dash-radar-item { padding: 10px 0; border-bottom: 1px solid #f0f4f8; }
+.dash-radar-item:last-child { border-bottom: none; padding-bottom: 0; }
+.dash-radar-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.dash-radar-name { font-weight: 600; font-size: 13px; color: var(--navy); cursor: pointer; }
+.dash-radar-name:hover { color: var(--brand); }
+.dash-radar-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.dash-radar-track { height: 5px; background: #e8ecf0; border-radius: 3px; overflow: hidden; }
+.dash-radar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+
+/* Recent activity */
+.dash-act-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f0f4f8; }
+.dash-act-item:last-child { border-bottom: none; padding-bottom: 0; }
+.dash-act-icon { width: 30px; height: 30px; border-radius: 50%; background: #f0f4f8; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.dash-act-name { font-weight: 600; font-size: 13px; color: var(--navy); cursor: pointer; }
+.dash-act-name:hover { color: var(--brand); }
+.dash-act-desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+.dash-act-time { font-size: 11px; color: #b0b8c4; white-space: nowrap; flex-shrink: 0; margin-left: auto; padding-left: 8px; }
+
+/* Pipeline stages bar */
+.dash-stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.dash-stage-box { text-align: center; padding: 16px 10px 14px; border-radius: 10px; background: #f8fafc; border: 1px solid var(--border); }
+.dash-stage-num { font-size: 32px; font-weight: 900; line-height: 1; }
+.dash-stage-lbl { font-size: 10px; color: var(--text-muted); font-weight: 700; margin-top: 5px; text-transform: uppercase; letter-spacing: .7px; }
+.dash-stage-track { height: 3px; border-radius: 2px; margin-top: 10px; background: #e8ecf0; overflow: hidden; }
+.dash-stage-fill { height: 100%; border-radius: 2px; }
+
 /* ── Modal footer ────────────────────────────────────────────────────────── */
 .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 </style>
@@ -1049,6 +1123,62 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 
     <!-- CONTENT -->
     <div id="content">
+
+      <!-- GLOBAL: Dashboard (Home) -->
+      <div id="global-dashboard" class="global-view" style="display:block">
+        <div class="dash-header">
+          <div>
+            <div class="dash-greeting" id="dash-greeting">Welcome back</div>
+            <div class="dash-date-str" id="dash-date"></div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="loadDashboard()">&#8635; Refresh</button>
+        </div>
+
+        <!-- KPI Strip -->
+        <div class="dash-kpi-row" id="dash-kpis">
+          <div class="dash-kpi"><div class="dash-kpi-label">Total Clients</div><div class="dash-kpi-value" style="color:#b0b8c4">—</div></div>
+          <div class="dash-kpi"><div class="dash-kpi-label">Active Cases</div><div class="dash-kpi-value" style="color:#b0b8c4">—</div></div>
+          <div class="dash-kpi"><div class="dash-kpi-label">Pipeline Value</div><div class="dash-kpi-value" style="color:#b0b8c4">—</div></div>
+          <div class="dash-kpi"><div class="dash-kpi-label">Needs Attention</div><div class="dash-kpi-value" style="color:#b0b8c4">—</div></div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="dash-grid">
+          <!-- Left column -->
+          <div class="dash-col">
+            <!-- Urgent Actions -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title" style="color:var(--danger)">&#9888; Action Required</div>
+              <div id="dash-urgent"><div class="dash-empty">&#8987; Loading…</div></div>
+            </div>
+            <!-- Upcoming Dates -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title">&#128197; Upcoming Dates <span style="font-size:11px;font-weight:400;color:#aab">(next 30 days)</span></div>
+              <div id="dash-upcoming"><div class="dash-empty">&#8987; Loading…</div></div>
+            </div>
+          </div>
+
+          <!-- Right column -->
+          <div class="dash-col">
+            <!-- Remortgage Radar -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title">&#128225; Remortgage Radar <span style="font-size:11px;font-weight:400;color:#aab">(next 12 months)</span></div>
+              <div id="dash-remortgage"><div class="dash-empty">&#8987; Loading…</div></div>
+            </div>
+            <!-- Recent Activity -->
+            <div class="card" style="margin-bottom:0">
+              <div class="card-title">&#128336; Recent Activity</div>
+              <div id="dash-activity"><div class="dash-empty">&#8987; Loading…</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pipeline stages -->
+        <div class="card">
+          <div class="card-title">&#128200; Pipeline Overview</div>
+          <div id="dash-pipeline"><div class="dash-empty">&#8987; Loading…</div></div>
+        </div>
+      </div>
 
       <!-- GLOBAL: Pipeline Dashboard -->
       <div id="global-pipeline" class="global-view" style="display:none">
@@ -3996,17 +4126,20 @@ function renderAuditLog(entries) {
 }
 
 // ── Global views (Pipeline, Revenue, Calculators) ─────────────────────────────
+var GLOBAL_VIEWS = ['dashboard', 'pipeline', 'revenue', 'calculators'];
+
 function showGlobalView(view) {
-  ['pipeline', 'revenue', 'calculators'].forEach(function(v) {
+  GLOBAL_VIEWS.forEach(function(v) {
     var el = document.getElementById('global-' + v);
     if (el) el.style.display = v === view ? 'block' : 'none';
   });
   // Update sidebar nav active state
   ['home', 'pipeline', 'revenue', 'calculators'].forEach(function(v) {
+    var key = v === 'home' ? 'dashboard' : v;
     var btn = document.getElementById('snav-' + v);
-    if (btn) btn.classList.toggle('active', v === view);
+    if (btn) btn.classList.toggle('active', key === view);
   });
-  // Hide client panel and welcome
+  // Hide client panel and welcome screen
   var cp = document.getElementById('client-panel');
   var wl = document.getElementById('welcome');
   if (cp) cp.style.display = 'none';
@@ -4014,10 +4147,11 @@ function showGlobalView(view) {
 
   if (view === 'pipeline') loadPipeline();
   if (view === 'revenue') { loadRevenueDashboard(); var t = localStorage.getItem('mau_monthly_target'); if (t) { var el = document.getElementById('monthly-target-input'); if (el) el.value = t; } }
+  if (view === 'dashboard') loadDashboard();
 }
 
 function hideGlobalViews() {
-  ['pipeline', 'revenue', 'calculators'].forEach(function(v) {
+  GLOBAL_VIEWS.forEach(function(v) {
     var el = document.getElementById('global-' + v);
     if (el) el.style.display = 'none';
   });
@@ -4028,14 +4162,8 @@ function hideGlobalViews() {
 }
 
 function showHome() {
-  hideGlobalViews();
-  var cp = document.getElementById('client-panel');
-  var wl = document.getElementById('welcome');
-  if (cp) cp.style.display = 'none';
-  if (wl) wl.style.display = 'flex';
+  showGlobalView('dashboard');
   document.querySelectorAll('.client-item').forEach(function(i) { i.classList.remove('active'); });
-  var homeBtn = document.getElementById('snav-home');
-  if (homeBtn) homeBtn.classList.add('active');
   selectedClientId = null;
 }
 
@@ -4159,6 +4287,13 @@ var _origSelectClient = typeof selectClient !== 'undefined' ? selectClient : nul
 // Wrap the existing client selection to close global views
 document.addEventListener('DOMContentLoaded', function() {
   if (typeof loadObjectionExamples === 'function') loadObjectionExamples();
+  // Set greeting and date on load
+  var hour = new Date().getHours();
+  var g = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  var gEl = document.getElementById('dash-greeting');
+  if (gEl) gEl.textContent = g;
+  var dEl = document.getElementById('dash-date');
+  if (dEl) dEl.textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 });
 
 // ── Compliance tab wiring ─────────────────────────────────────────────────────
@@ -4172,6 +4307,7 @@ function loadComplianceTab() {
 }
 
 </script>
+<script src="/static/js/dashboard.js"></script>
 <script src="/static/js/calculators.js"></script>
 <script src="/static/js/pipeline.js"></script>
 <script src="/static/js/revenue.js"></script>

@@ -1,6 +1,7 @@
 """MAU — Mortgages Are Us — FastAPI entry point (consultant dashboard rebuild)."""
 import hashlib
 import os
+from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, File, Form
@@ -57,6 +58,7 @@ from memory.client_store import (
     get_credit_report,
     CASE_STAGES,
     CASE_STAGE_LABELS,
+    CLIENTS_DIR,
 )
 from memory.audit_log import log_event
 from tools.bank_statement_analyser import analyse_statement
@@ -81,6 +83,13 @@ from orchestrator import Orchestrator
 app = FastAPI(title="MAU — Mortgages Are Us — Consultant Dashboard", version="2.0.0")
 app.add_middleware(_AuthMiddleware)
 orchestrator = Orchestrator()
+
+
+def _check_auth(request: Request) -> None:
+    """Raise 401 if the request is not authenticated (middleware also enforces this)."""
+    token = request.cookies.get(_COOKIE_NAME)
+    if token != _AUTH_TOKEN:
+        raise HTTPException(status_code=401, detail="Unauthorised")
 
 
 # ── Login / logout ────────────────────────────────────────────────────────────
@@ -1183,6 +1192,211 @@ async def save_tcf_log(client_id: str, request: Request):
     update_client(client_id, {"tcf_log": body})
     log_event(client_id, "tcf_log_saved", {})
     return {"saved": True}
+
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+
+@app.get("/api/dashboard")
+async def get_dashboard(request: Request):
+    _check_auth(request)
+    clients = list_clients()
+    now = datetime.utcnow()
+    today = now.date()
+
+    active_clients = [c for c in clients if c.get('status') != 'archived']
+
+    # Stage counts
+    stage_counts = {'research': 0, 'dip': 0, 'full_application': 0, 'offer': 0, 'completion': 0}
+    for c in active_clients:
+        stage = c.get('case_stage', 'research')
+        if stage in stage_counts:
+            stage_counts[stage] += 1
+
+    # Pipeline value (sum of proc_fee for non-completed cases)
+    pipeline_value = sum(
+        float(c.get('proc_fee') or 0)
+        for c in active_clients
+        if c.get('case_stage') not in ['completion']
+    )
+
+    # Urgent actions
+    urgent = []
+
+    for c in active_clients:
+        cid = c['client_id']
+        cname = c.get('name', 'Unknown')
+
+        # AIP expiry within 14 days
+        for field, label in [('aip_expiry', 'AIP'), ('offer_expiry', 'Mortgage Offer')]:
+            val = c.get(field)
+            if val:
+                try:
+                    exp_date = datetime.fromisoformat(val[:10]).date()
+                    days_left = (exp_date - today).days
+                    if 0 <= days_left <= 14:
+                        urgent.append({
+                            'type': field,
+                            'client_id': cid,
+                            'client_name': cname,
+                            'days': days_left,
+                            'message': f"{label} expires in {days_left} day{'s' if days_left != 1 else ''}",
+                            'severity': 'high' if days_left <= 3 else 'medium'
+                        })
+                    elif days_left < 0:
+                        urgent.append({
+                            'type': field,
+                            'client_id': cid,
+                            'client_name': cname,
+                            'days': days_left,
+                            'message': f"{label} expired {abs(days_left)} days ago",
+                            'severity': 'high'
+                        })
+                except Exception:
+                    pass
+
+        # Missing IDD (required for all active cases)
+        idd_path = os.path.join(CLIENTS_DIR, f"{cid}_doc_idd.html")
+        if not os.path.exists(idd_path):
+            urgent.append({
+                'type': 'missing_doc',
+                'client_id': cid,
+                'client_name': cname,
+                'message': 'IDD not yet issued',
+                'severity': 'high'
+            })
+
+        # Missing suitability letter for cases at full_application or beyond
+        stage = c.get('case_stage', 'research')
+        if stage in ['full_application', 'offer', 'completion']:
+            suit_path = os.path.join(CLIENTS_DIR, f"{cid}_doc_suitability_letter.html")
+            if not os.path.exists(suit_path):
+                urgent.append({
+                    'type': 'missing_suitability',
+                    'client_id': cid,
+                    'client_name': cname,
+                    'message': f'Suitability letter missing ({stage.replace("_", " ").title()})',
+                    'severity': 'high'
+                })
+
+        # Stale cases (no update for 7+ days, not completed)
+        if stage != 'completion':
+            updated = c.get('updated_at', '')
+            if updated:
+                try:
+                    upd_date = datetime.fromisoformat(updated[:10]).date()
+                    days_stale = (today - upd_date).days
+                    if days_stale >= 7:
+                        urgent.append({
+                            'type': 'stale',
+                            'client_id': cid,
+                            'client_name': cname,
+                            'days': days_stale,
+                            'message': f'No activity for {days_stale} days',
+                            'severity': 'high' if days_stale >= 14 else 'medium'
+                        })
+                except Exception:
+                    pass
+
+    # Sort urgent: high first, then by client name
+    urgent.sort(key=lambda x: (0 if x['severity'] == 'high' else 1, x['client_name']))
+
+    # Upcoming dates (next 30 days)
+    upcoming = []
+    for c in clients:
+        cid = c['client_id']
+        cname = c.get('name', 'Unknown')
+        for field, label in [
+            ('completion_date', 'Completion'),
+            ('exchange_date', 'Exchange'),
+            ('aip_expiry', 'AIP Expiry'),
+            ('offer_expiry', 'Offer Expiry'),
+            ('erc_end_date', 'ERC End'),
+        ]:
+            val = c.get(field)
+            if val:
+                try:
+                    d = datetime.fromisoformat(val[:10]).date()
+                    days = (d - today).days
+                    if 0 <= days <= 30:
+                        upcoming.append({
+                            'client_id': cid,
+                            'client_name': cname,
+                            'date': val[:10],
+                            'label': label,
+                            'days': days
+                        })
+                except Exception:
+                    pass
+    upcoming.sort(key=lambda x: x['days'])
+
+    # Remortgage radar (ERC ends within 12 months)
+    remortgage = []
+    for c in clients:
+        for field in ['erc_end_date', 'deal_end_date']:
+            val = c.get(field)
+            if val:
+                try:
+                    end_date = datetime.fromisoformat(val[:10]).date()
+                    days_to_end = (end_date - today).days
+                    if 0 < days_to_end <= 365:
+                        remortgage.append({
+                            'client_id': c['client_id'],
+                            'client_name': c.get('name', 'Unknown'),
+                            'end_date': val[:10],
+                            'days_to_end': days_to_end,
+                            'months_to_end': round(days_to_end / 30.5, 1),
+                            'last_updated': c.get('updated_at', '')[:10],
+                        })
+                        break
+                except Exception:
+                    pass
+    remortgage.sort(key=lambda x: x['days_to_end'])
+
+    # Recent activity (latest 8 entries across all clients)
+    activity = []
+    for c in clients:
+        notes = c.get('case_notes', [])
+        if notes:
+            latest = max(notes, key=lambda n: n.get('timestamp', ''))
+            activity.append({
+                'client_id': c['client_id'],
+                'client_name': c.get('name', 'Unknown'),
+                'timestamp': latest.get('timestamp', c.get('updated_at', '')),
+                'type': 'note',
+                'description': latest.get('note', '')[:80]
+            })
+        else:
+            updated = c.get('updated_at', '')
+            if updated:
+                activity.append({
+                    'client_id': c['client_id'],
+                    'client_name': c.get('name', 'Unknown'),
+                    'timestamp': updated,
+                    'type': 'update',
+                    'description': f"Stage: {c.get('case_stage', 'research').replace('_', ' ').title()}"
+                })
+    activity.sort(key=lambda x: x['timestamp'], reverse=True)
+
+    # Grade distribution
+    grade_dist = {}
+    for c in clients:
+        g = c.get('grade') or 'Ungraded'
+        grade_dist[g] = grade_dist.get(g, 0) + 1
+
+    return {
+        'kpis': {
+            'total_clients': len(clients),
+            'active_cases': len(active_clients),
+            'stage_counts': stage_counts,
+            'pipeline_value': pipeline_value,
+            'urgent_count': len([u for u in urgent if u['severity'] == 'high']),
+        },
+        'urgent_actions': urgent[:12],
+        'upcoming_dates': upcoming[:10],
+        'remortgage_radar': remortgage[:8],
+        'recent_activity': activity[:8],
+        'grade_distribution': grade_dist,
+    }
 
 
 # ── Static files ──────────────────────────────────────────────────────────────
