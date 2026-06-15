@@ -20,8 +20,11 @@ _SESSION_SECRET = os.environ.get("SESSION_SECRET", "mau-secret-xK9p2q")
 _COOKIE_NAME = "mau_auth"
 _AUTH_TOKEN = hashlib.sha256(f"{_DASHBOARD_PASSWORD}:{_SESSION_SECRET}".encode()).hexdigest()
 
+# Website integration key (for public lead/track endpoints)
+_WEBSITE_KEY = os.environ.get("WEBSITE_API_KEY", "")
+
 # Paths that are always public (no auth required)
-_PUBLIC_PREFIXES = ("/login", "/logout", "/health", "/static/")
+_PUBLIC_PREFIXES = ("/login", "/logout", "/health", "/static/", "/api/public/")
 
 
 class _AuthMiddleware(BaseHTTPMiddleware):
@@ -1396,6 +1399,62 @@ async def get_dashboard(request: Request):
         'remortgage_radar': remortgage[:8],
         'recent_activity': activity[:8],
         'grade_distribution': grade_dist,
+    }
+
+
+# ── Public website integration endpoints ──────────────────────────────────────
+# These are open to the customer website (authenticated via X-Website-Key header).
+# The /api/public/ prefix is in _PUBLIC_PREFIXES so the session middleware skips them.
+
+def _check_website_key(request: Request) -> None:
+    if _WEBSITE_KEY and request.headers.get("X-Website-Key") != _WEBSITE_KEY:
+        raise HTTPException(status_code=403, detail="Invalid website key")
+
+
+@app.post("/api/public/lead")
+async def public_create_lead(request: Request):
+    _check_website_key(request)
+    data = await request.json()
+    if not data.get("name") or not data.get("email"):
+        raise HTTPException(status_code=422, detail="Name and email required")
+    adverse = [k for k in ["has_ccjs", "has_defaults", "has_iva", "has_missed_payments", "has_dmp"] if data.get(k)]
+    client_data = {
+        "name": data.get("name", ""),
+        "email": data.get("email", ""),
+        "phone": data.get("phone", ""),
+        "purpose": data.get("purpose", "purchase"),
+        "purchase_price": data.get("property_value"),
+        "deposit": data.get("deposit"),
+        "loan_amount": (data.get("property_value") or 0) - (data.get("deposit") or 0) or None,
+        "adverse_credit_types": ", ".join(adverse) if adverse else "",
+        "source": "website",
+        "gdpr_consent": True,
+        "case_notes": [{"timestamp": datetime.utcnow().isoformat(), "stage": "research", "note": f"Web enquiry. Situation: {data.get('situation', '')}"}] if data.get("situation") else [],
+    }
+    client_id = create_client(client_data)
+    return {"success": True, "client_id": client_id}
+
+
+@app.get("/api/public/track/{client_id}")
+async def public_track_case(client_id: str, request: Request):
+    _check_website_key(request)
+    client = get_client(client_id)
+    if not client:
+        return {"found": False}
+    stage_labels = {
+        "research": "Research — Initial Review",
+        "dip": "Decision in Principle",
+        "full_application": "Full Application",
+        "offer": "Mortgage Offer",
+        "completion": "Completion",
+    }
+    stage = client.get("case_stage", "research")
+    return {
+        "found": True,
+        "name": client.get("name", ""),
+        "stage": stage,
+        "stage_label": stage_labels.get(stage, stage),
+        "updated_at": client.get("updated_at", ""),
     }
 
 

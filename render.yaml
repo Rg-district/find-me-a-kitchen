@@ -8,5 +8,23 @@ services:
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: WEBSITE_API_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+
+  - type: web
+    name: mau-website
+    runtime: python
+    rootDir: mau-website
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: WEBSITE_API_KEY
+        sync: false
+      - key: MAU_AGENT_URL
+        value: https://apex-mortgage-agent.onrender.com
       - key: PYTHON_VERSION
         value: "3.11.0"
