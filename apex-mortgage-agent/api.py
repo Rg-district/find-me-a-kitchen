@@ -5,8 +5,9 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, File, Form
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
@@ -24,7 +25,7 @@ _AUTH_TOKEN = hashlib.sha256(f"{_DASHBOARD_PASSWORD}:{_SESSION_SECRET}".encode()
 _WEBSITE_KEY = os.environ.get("WEBSITE_API_KEY", "")
 
 # Paths that are always public (no auth required)
-_PUBLIC_PREFIXES = ("/login", "/logout", "/health", "/static/", "/api/public/")
+_PUBLIC_PREFIXES = ("/login", "/logout", "/health", "/static/", "/api/public/", "/demo")
 
 
 class _AuthMiddleware(BaseHTTPMiddleware):
@@ -84,6 +85,9 @@ from tools.criteria_engine import search_criteria
 from orchestrator import Orchestrator
 
 app = FastAPI(title="MAU — Mortgages Are Us — Consultant Dashboard", version="2.0.0")
+
+# Demo website Jinja2 templates (served publicly under /demo/*)
+_demo_tpl = Jinja2Templates(directory="templates/demo") if os.path.exists("templates/demo") else None
 app.add_middleware(_AuthMiddleware)
 orchestrator = Orchestrator()
 
@@ -1402,6 +1406,29 @@ async def get_dashboard(request: Request):
     }
 
 
+# ── Demo website pages (public, no auth) ──────────────────────────────────────
+
+def _demo(request: Request, template: str):
+    if not _demo_tpl:
+        raise HTTPException(status_code=404, detail="Demo templates not found")
+    return _demo_tpl.TemplateResponse(template, {"request": request})
+
+@app.get("/demo", response_class=HTMLResponse)
+async def demo_home(request: Request): return _demo(request, "index.html")
+
+@app.get("/demo/adverse-credit", response_class=HTMLResponse)
+async def demo_adverse(request: Request): return _demo(request, "adverse-credit.html")
+
+@app.get("/demo/get-started", response_class=HTMLResponse)
+async def demo_getstarted(request: Request): return _demo(request, "get-started.html")
+
+@app.get("/demo/chat", response_class=HTMLResponse)
+async def demo_chat_page(request: Request): return _demo(request, "chat.html")
+
+@app.get("/demo/track", response_class=HTMLResponse)
+async def demo_track_page(request: Request): return _demo(request, "track.html")
+
+
 # ── Public website integration endpoints ──────────────────────────────────────
 # These are open to the customer website (authenticated via X-Website-Key header).
 # The /api/public/ prefix is in _PUBLIC_PREFIXES so the session middleware skips them.
@@ -1456,6 +1483,60 @@ async def public_track_case(client_id: str, request: Request):
         "stage_label": stage_labels.get(stage, stage),
         "updated_at": client.get("updated_at", ""),
     }
+
+
+_WEBSITE_CHAT_SYSTEM = """You are the MAU Adviser — a friendly, knowledgeable UK mortgage specialist for Mortgages Are Us, a specialist adverse credit broker.
+
+Help website visitors understand their mortgage options, especially those with credit challenges. Be warm, empathetic and reassuring.
+
+Key facts:
+- Specialise in adverse credit: CCJs, defaults, IVAs, bankruptcy, missed payments, debt management plans
+- Specialist lender access: Precise Mortgages, Kensington, Aldermore, Together Money, Pepper Money, Norton Home Loans, MBS Lending, Bluestone, Vida Homeloans
+- FCA regulated
+- Phone: 0203 411 1009 | Email: info@mortgagesareus.co.uk
+
+Rules:
+- Never give specific rate quotes
+- Use UK English throughout
+- Keep answers concise — this is a chat
+- When someone wants to proceed, direct them to the Free Assessment form or to call
+- Be positive: most adverse credit situations CAN be resolved"""
+
+
+@app.post("/api/public/chat")
+async def public_chat(request: Request):
+    import anthropic as _ant_module
+    _ant_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not _ant_key:
+        return JSONResponse({"error": "Chat unavailable — please call 0203 411 1009"}, status_code=503)
+
+    data = await request.json()
+    messages = data.get("messages", [])
+    if not messages:
+        raise HTTPException(status_code=400, detail="No messages")
+
+    _ant = _ant_module.Anthropic(api_key=_ant_key)
+
+    async def stream():
+        import json as _json
+        try:
+            with _ant.messages.stream(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=500,
+                system=_WEBSITE_CHAT_SYSTEM,
+                messages=messages[-20:],
+            ) as s:
+                for text in s.text_stream:
+                    yield f"data: {_json.dumps({'text': text})}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception:
+            yield f"data: {_json.dumps({'error': 'Something went wrong. Please try again.'})}\n\n"
+
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 # ── Static files ──────────────────────────────────────────────────────────────

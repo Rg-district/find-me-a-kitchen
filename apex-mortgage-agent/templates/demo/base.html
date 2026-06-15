@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mortgages Are Us — Specialist adverse credit mortgage brokers. FCA regulated, whole of market access.">
+  <title>{% block title %}Mortgages Are Us — Specialist Mortgage Brokers{% endblock %}</title>
+  <link rel="stylesheet" href="/static/demo/css/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar" id="navbar">
+    <div class="navbar-inner container">
+
+      <!-- Wordmark -->
+      <a href="/" class="navbar-brand" aria-label="Mortgages Are Us home">
+        <span class="brand-mau">mau</span>
+        <span class="brand-divider"></span>
+        <span class="brand-full">MORTGAGES ARE US</span>
+      </a>
+
+      <!-- Centre nav links -->
+      <nav class="navbar-nav" id="navbar-nav" aria-label="Main navigation">
+        <a href="/demo#services" class="nav-link">Services</a>
+        <a href="/demo/adverse-credit" class="nav-link">Adverse Credit</a>
+        <a href="/demo/track" class="nav-link">Track My Case</a>
+      </nav>
+
+      <!-- Right CTA + hamburger -->
+      <div class="navbar-right">
+        <a href="/demo/get-started" class="btn btn-primary navbar-cta">Free Assessment</a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navbar-nav">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile nav -->
+    <div class="mobile-nav" id="mobile-nav" aria-hidden="true">
+      <a href="/demo#services" class="mobile-nav-link">Services</a>
+      <a href="/demo/adverse-credit" class="mobile-nav-link">Adverse Credit</a>
+      <a href="/demo/track" class="mobile-nav-link">Track My Case</a>
+      <a href="/demo/get-started" class="btn btn-primary mobile-nav-cta">Free Assessment</a>
+    </div>
+  </header>
+
+  <!-- PAGE CONTENT -->
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer-inner">
+
+      <div class="footer-col">
+        <div class="footer-brand">
+          <span class="brand-mau brand-mau--footer">mau</span>
+          <span class="brand-divider brand-divider--footer"></span>
+          <span class="brand-full brand-full--footer">MORTGAGES ARE US</span>
+        </div>
+        <p class="footer-about">Specialist mortgage brokers helping clients across the UK secure the right mortgage, whatever their credit history.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Contact</h4>
+        <address class="footer-address">
+          <p>23 Poplars Road<br>Walthamstow<br>London E17 9AT</p>
+          <p><a href="tel:02034111009" class="footer-link">0203 411 1009</a></p>
+          <p><a href="mailto:info@mortgagesareus.co.uk" class="footer-link">info@mortgagesareus.co.uk</a></p>
+        </address>
+      </div>
+
+      <div class="footer-col">
+        <h4 class="footer-heading">Regulatory</h4>
+        <p class="footer-regulatory">Mortgages Are Us is authorised and regulated by the Financial Conduct Authority (FCA). Your home may be repossessed if you do not keep up repayments on a mortgage.</p>
+        <p class="footer-regulatory">Think carefully before securing other debts against your home.</p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container">
+        <p>&copy; {{ now().year if now is defined else "2026" }} Mortgages Are Us. All rights reserved. FCA Regulated.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/demo/js/main.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

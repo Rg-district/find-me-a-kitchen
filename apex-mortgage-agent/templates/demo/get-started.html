@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Free Assessment — Mortgages Are Us{% endblock %}
+
+{% block content %}
+
+<section class="form-page">
+  <div class="container">
+    <div class="form-page-header">
+      <h1 class="form-page-title">Start your free assessment</h1>
+      <p class="form-page-sub">Takes about 5 minutes. No credit check, no obligation. Our specialist advisers will review your enquiry and be in touch within 1 business day.</p>
+    </div>
+
+    <div class="form-card">
+
+      <!-- Progress bar -->
+      <div class="progress-bar-wrap" aria-label="Form progress">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-bar" style="width: 33.33%"></div>
+        </div>
+        <div class="progress-steps">
+          <div class="progress-step progress-step--active" id="ps-1" data-step="1">
+            <div class="progress-step-dot">1</div>
+            <span class="progress-step-label">About You</span>
+          </div>
+          <div class="progress-step" id="ps-2" data-step="2">
+            <div class="progress-step-dot">2</div>
+            <span class="progress-step-label">Your Situation</span>
+          </div>
+          <div class="progress-step" id="ps-3" data-step="3">
+            <div class="progress-step-dot">3</div>
+            <span class="progress-step-label">Credit History</span>
+          </div>
+        </div>
+      </div>
+
+      <form id="enquiry-form" novalidate>
+
+        <!-- ===== STEP 1 ===== -->
+        <fieldset class="form-step" id="step-1">
+          <legend class="form-step-legend">About You</legend>
+          <p class="form-step-sub">Let's start with your contact details.</p>
+
+          <div class="form-group">
+            <label class="form-label" for="full-name">Full name <span class="required" aria-hidden="true">*</span></label>
+            <input class="form-input" type="text" id="full-name" name="full_name" placeholder="e.g. Sarah Johnson" autocomplete="name" required>
+            <div class="field-error" id="err-full-name" role="alert" aria-live="polite"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email address <span class="required" aria-hidden="true">*</span></label>
+            <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+            <div class="field-error" id="err-email" role="alert" aria-live="polite"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="phone">Phone number <span class="required" aria-hidden="true">*</span></label>
+            <input class="form-input" type="tel" id="phone" name="phone" placeholder="07xxx xxxxxx" autocomplete="tel" required>
+            <div class="field-error" id="err-phone" role="alert" aria-live="polite"></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="heard-about">How did you hear about us?</label>
+            <select class="form-select" id="heard-about" name="heard_about">
+              <option value="" disabled selected>Please select…</option>
+              <option value="google">Google</option>
+              <option value="referral">Referral</option>
+              <option value="social">Social Media</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-primary btn-lg step-next" data-target="2">Continue <span aria-hidden="true">→</span></button>
+          </div>
+        </fieldset>
+
+        <!-- ===== STEP 2 ===== -->
+        <fieldset class="form-step form-step--hidden" id="step-2">
+          <legend class="form-step-legend">Your Situation</legend>
+          <p class="form-step-sub">Tell us what you're looking for so we can match you to the right lenders.</p>
+
+          <div class="form-group">
+            <label class="form-label">What are you looking for? <span class="required" aria-hidden="true">*</span></label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="mortgage_type" value="purchase" required>
+                <span class="radio-custom"></span>
+                <span class="radio-text">Purchase</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="mortgage_type" value="remortgage">
+                <span class="radio-custom"></span>
+                <span class="radio-text">Remortgage</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="mortgage_type" value="buy_to_let">
+                <span class="radio-custom"></span>
+                <span class="radio-text">Buy to Let</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="mortgage_type" value="other">
+                <span class="radio-custom"></span>
+                <span class="radio-text">Other</span>
+              </label>
+            </div>
+            <div class="field-error" id="err-mortgage-type" role="alert" aria-live="polite"></div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="property-value">Approximate property value <span class="required" aria-hidden="true">*</span></label>
+              <div class="input-prefix-wrap">
+                <span class="input-prefix" aria-hidden="true">£</span>
+                <input class="form-input input-prefix-input" type="number" id="property-value" name="property_value" placeholder="250,000" min="0" required>
+              </div>
+              <div class="field-error" id="err-property-value" role="alert" aria-live="polite"></div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="deposit">Approximate deposit / equity <span class="required" aria-hidden="true">*</span></label>
+              <div class="input-prefix-wrap">
+                <span class="input-prefix" aria-hidden="true">£</span>
+                <input class="form-input input-prefix-input" type="number" id="deposit" name="deposit" placeholder="25,000" min="0" required>
+              </div>
+              <div class="field-error" id="err-deposit" role="alert" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="timeline">When are you looking to proceed?</label>
+            <select class="form-select" id="timeline" name="timeline">
+              <option value="" disabled selected>Please select…</option>
+              <option value="asap">As soon as possible</option>
+              <option value="1-3m">1–3 months</option>
+              <option value="3-6m">3–6 months</option>
+              <option value="6m+">6+ months</option>
+            </select>
+          </div>
+
+          <div class="form-actions form-actions--split">
+            <button type="button" class="btn btn-outline step-back" data-target="1"><span aria-hidden="true">←</span> Back</button>
+            <button type="button" class="btn btn-primary btn-lg step-next" data-target="3">Continue <span aria-hidden="true">→</span></button>
+          </div>
+        </fieldset>
+
+        <!-- ===== STEP 3 ===== -->
+        <fieldset class="form-step form-step--hidden" id="step-3">
+          <legend class="form-step-legend">Credit History</legend>
+          <div class="form-step-reassurance">
+            <svg class="reassurance-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <p><strong>This is a safe space.</strong> The more accurately you share, the better we can find the right lender for you. We treat all information with strict confidentiality.</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Do any of the following apply to your credit history?</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="credit_issues" value="ccj">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">CCJs (County Court Judgements)</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="credit_issues" value="defaults">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Defaults</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="credit_issues" value="missed_payments">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Missed Payments</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="credit_issues" value="iva_bankruptcy">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">IVA or Bankruptcy</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" name="credit_issues" value="dmp">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">Debt Management Plan</span>
+              </label>
+              <label class="checkbox-label checkbox-label--none">
+                <input type="checkbox" name="credit_issues" value="none" id="credit-none">
+                <span class="checkbox-custom"></span>
+                <span class="checkbox-text">None of the above</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="more-info">Tell us a bit more about your situation <span class="form-optional">(optional)</span></label>
+            <textarea class="form-textarea" id="more-info" name="more_info" rows="4" placeholder="e.g. I had a CCJ in 2022 from an unpaid utility bill which has since been satisfied. My income is now stable and I'm looking to buy a family home…"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label checkbox-label--gdpr">
+              <input type="checkbox" name="gdpr_consent" id="gdpr-consent" required>
+              <span class="checkbox-custom"></span>
+              <span class="checkbox-text">I consent to MAU contacting me about my enquiry. We will never share your data with third parties. Read our <a href="/privacy" class="link">Privacy Policy</a>. <span class="required" aria-hidden="true">*</span></span>
+            </label>
+            <div class="field-error" id="err-gdpr" role="alert" aria-live="polite"></div>
+          </div>
+
+          <div class="form-actions form-actions--split">
+            <button type="button" class="btn btn-outline step-back" data-target="2"><span aria-hidden="true">←</span> Back</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+              <span class="btn-text">Submit Enquiry</span>
+              <span class="btn-loading" aria-hidden="true" hidden>
+                <span class="spinner"></span> Sending…
+              </span>
+            </button>
+          </div>
+
+          <div class="form-error-global" id="form-error" role="alert" aria-live="polite" hidden></div>
+        </fieldset>
+
+      </form>
+
+      <!-- ===== SUCCESS SCREEN ===== -->
+      <div class="success-screen" id="success-screen" hidden aria-live="polite">
+        <div class="success-icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <circle cx="32" cy="32" r="30" fill="#8B1C2A" opacity="0.1"/>
+            <circle cx="32" cy="32" r="30" stroke="#8B1C2A" stroke-width="2"/>
+            <polyline points="18,32 28,42 46,22" stroke="#8B1C2A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="success-title">Thank you, <span id="success-name">there</span>!</h2>
+        <p class="success-sub">Your enquiry has been received.</p>
+        <div class="success-ref-box">
+          <p class="success-ref-label">Your reference number</p>
+          <p class="success-ref" id="success-ref">—</p>
+        </div>
+        <p class="success-detail">Our adviser will be in touch within 1 business day. In the meantime, you can track your case status online.</p>
+        <a href="/demo/track" class="btn btn-primary btn-lg">Track My Case</a>
+      </div>
+
+    </div><!-- /.form-card -->
+  </div><!-- /.container -->
+</section>
+
+{% endblock %}

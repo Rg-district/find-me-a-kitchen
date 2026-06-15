@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}AI Mortgage Adviser — Mortgages Are Us{% endblock %}
+
+{% block content %}
+
+<div class="chat-page">
+
+  <!-- Sidebar / intro panel -->
+  <aside class="chat-sidebar">
+    <div class="chat-sidebar-inner">
+      <div class="chat-sidebar-brand">
+        <div class="adviser-avatar" aria-hidden="true">
+          <span class="adviser-initials">MA</span>
+        </div>
+        <div>
+          <p class="adviser-name">MAU Adviser</p>
+          <p class="adviser-status"><span class="status-dot" aria-hidden="true"></span> Online</p>
+        </div>
+      </div>
+
+      <div class="chat-sidebar-intro">
+        <h2 class="chat-sidebar-title">Chat with our AI mortgage adviser</h2>
+        <p class="chat-sidebar-desc">Ask anything about getting a mortgage — no obligation, completely confidential. Our AI adviser specialises in adverse credit and complex cases.</p>
+      </div>
+
+      <div class="chat-sidebar-features">
+        <div class="chat-feature">
+          <span class="chat-feature-icon" aria-hidden="true">🔒</span>
+          <span>Confidential &amp; secure</span>
+        </div>
+        <div class="chat-feature">
+          <span class="chat-feature-icon" aria-hidden="true">⚡</span>
+          <span>Instant answers</span>
+        </div>
+        <div class="chat-feature">
+          <span class="chat-feature-icon" aria-hidden="true">🎯</span>
+          <span>Adverse credit specialist</span>
+        </div>
+      </div>
+
+      <div class="chat-sidebar-callus">
+        <p>Prefer to talk? Call us on</p>
+        <a href="tel:02034111009" class="chat-phone">0203 411 1009</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main chat area -->
+  <div class="chat-main">
+
+    <!-- Name gate -->
+    <div class="chat-gate" id="chat-gate">
+      <div class="chat-gate-inner">
+        <div class="gate-avatar" aria-hidden="true">
+          <span class="adviser-initials">MA</span>
+        </div>
+        <h3 class="gate-title">Before we start, what's your name?</h3>
+        <p class="gate-sub">This helps us personalise your experience.</p>
+        <div class="gate-form">
+          <label for="visitor-name" class="sr-only">Your first name</label>
+          <input type="text" id="visitor-name" class="form-input gate-input" placeholder="Your first name" autocomplete="given-name" maxlength="60">
+          <button type="button" class="btn btn-primary" id="start-chat-btn">Start Chat</button>
+        </div>
+        <p class="gate-alt">You can also call us on <a href="tel:02034111009" class="link">0203 411 1009</a></p>
+      </div>
+    </div>
+
+    <!-- Chat interface (hidden until name entered) -->
+    <div class="chat-interface" id="chat-interface" hidden>
+
+      <div class="chat-header">
+        <div class="adviser-avatar adviser-avatar--sm" aria-hidden="true">
+          <span class="adviser-initials">MA</span>
+        </div>
+        <div class="chat-header-info">
+          <p class="adviser-name">MAU Adviser</p>
+          <p class="adviser-status"><span class="status-dot" aria-hidden="true"></span> Online — typically replies instantly</p>
+        </div>
+        <a href="/get-started" class="btn btn-primary chat-header-cta">Free Assessment</a>
+      </div>
+
+      <div class="chat-messages" id="chat-messages" role="log" aria-label="Chat messages" aria-live="polite">
+        <!-- Messages injected here by chat.js -->
+      </div>
+
+      <div class="chat-input-area">
+        <div class="chat-disclaimer">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" class="disclaimer-icon"><circle cx="8" cy="8" r="7"/><line x1="8" y1="5" x2="8" y2="8.5"/><circle cx="8" cy="11" r="0.5" fill="currentColor" stroke="none"/></svg>
+          This is AI-powered guidance, not regulated financial advice. For formal mortgage advice, <a href="/get-started" class="link">speak to our qualified advisers</a>.
+        </div>
+        <div class="chat-input-row">
+          <label for="chat-input" class="sr-only">Type your message</label>
+          <textarea
+            id="chat-input"
+            class="chat-textarea"
+            placeholder="Ask about mortgages, adverse credit, rates…"
+            rows="1"
+            maxlength="2000"
+            aria-label="Message input"
+          ></textarea>
+          <button type="button" class="chat-send-btn" id="chat-send-btn" aria-label="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /.chat-interface -->
+
+  </div><!-- /.chat-main -->
+
+</div><!-- /.chat-page -->
+
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/chat.js"></script>
+{% endblock %}

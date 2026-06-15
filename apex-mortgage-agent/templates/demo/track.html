@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Track Your Case — Mortgages Are Us{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="track-hero">
+  <div class="container">
+    <h1 class="track-hero-title">Track Your Case</h1>
+    <p class="track-hero-sub">Enter the reference number you received after submitting your enquiry.</p>
+  </div>
+</section>
+
+<!-- Lookup -->
+<section class="track-section">
+  <div class="container">
+    <div class="track-card">
+
+      <form class="track-form" id="track-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="ref-input">Reference Number</label>
+          <div class="track-input-row">
+            <input
+              type="text"
+              id="ref-input"
+              class="form-input track-ref-input"
+              placeholder="e.g. A3F7K2P9"
+              maxlength="8"
+              minlength="8"
+              pattern="[A-Za-z0-9]{8}"
+              autocomplete="off"
+              spellcheck="false"
+              required
+            >
+            <button type="submit" class="btn btn-primary track-submit-btn" id="track-btn">
+              <span class="btn-text">Track Case</span>
+              <span class="btn-loading" hidden>
+                <span class="spinner"></span>
+              </span>
+            </button>
+          </div>
+          <div class="field-error" id="track-error" role="alert" aria-live="polite"></div>
+        </div>
+      </form>
+
+      <!-- Result area (shown on success) -->
+      <div class="track-result" id="track-result" hidden aria-live="polite">
+
+        <div class="track-result-header">
+          <div class="track-client-info">
+            <p class="track-client-name" id="track-client-name">—</p>
+            <span class="track-stage-pill" id="track-stage-pill">—</span>
+          </div>
+          <p class="track-updated">Last updated: <strong id="track-updated">—</strong></p>
+        </div>
+
+        <!-- Timeline -->
+        <div class="track-timeline" aria-label="Case progress">
+          <div class="timeline-track">
+            <div class="timeline-step" id="ts-1">
+              <div class="timeline-node" aria-hidden="true">
+                <svg class="timeline-check" viewBox="0 0 16 16" fill="none" aria-hidden="true"><polyline points="3,8 6.5,11.5 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="timeline-num">1</span>
+              </div>
+              <div class="timeline-connector" aria-hidden="true"></div>
+              <p class="timeline-label">Research</p>
+            </div>
+            <div class="timeline-step" id="ts-2">
+              <div class="timeline-node" aria-hidden="true">
+                <svg class="timeline-check" viewBox="0 0 16 16" fill="none" aria-hidden="true"><polyline points="3,8 6.5,11.5 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="timeline-num">2</span>
+              </div>
+              <div class="timeline-connector" aria-hidden="true"></div>
+              <p class="timeline-label">Decision in Principle</p>
+            </div>
+            <div class="timeline-step" id="ts-3">
+              <div class="timeline-node" aria-hidden="true">
+                <svg class="timeline-check" viewBox="0 0 16 16" fill="none" aria-hidden="true"><polyline points="3,8 6.5,11.5 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="timeline-num">3</span>
+              </div>
+              <div class="timeline-connector" aria-hidden="true"></div>
+              <p class="timeline-label">Full Application</p>
+            </div>
+            <div class="timeline-step" id="ts-4">
+              <div class="timeline-node" aria-hidden="true">
+                <svg class="timeline-check" viewBox="0 0 16 16" fill="none" aria-hidden="true"><polyline points="3,8 6.5,11.5 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="timeline-num">4</span>
+              </div>
+              <div class="timeline-connector" aria-hidden="true"></div>
+              <p class="timeline-label">Offer</p>
+            </div>
+            <div class="timeline-step" id="ts-5">
+              <div class="timeline-node" aria-hidden="true">
+                <svg class="timeline-check" viewBox="0 0 16 16" fill="none" aria-hidden="true"><polyline points="3,8 6.5,11.5 13,4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="timeline-num">5</span>
+              </div>
+              <p class="timeline-label">Completion</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="track-contact">
+          <p>Questions about your case? Contact your adviser:</p>
+          <div class="track-contact-links">
+            <a href="tel:02034111009" class="track-contact-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.44 2 2 0 0 1 3.59 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.83a16 16 0 0 0 8 8l1.82-1.82a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 24 17.92v-.01z"/></svg>
+              0203 411 1009
+            </a>
+            <a href="mailto:info@mortgagesareus.co.uk" class="track-contact-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              info@mortgagesareus.co.uk
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Not found state -->
+      <div class="track-not-found" id="track-not-found" hidden aria-live="polite">
+        <div class="not-found-icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="#6b7a8e" stroke-width="2" opacity="0.4"/>
+            <line x1="20" y1="20" x2="44" y2="44" stroke="#6b7a8e" stroke-width="3" stroke-linecap="round"/>
+            <line x1="44" y1="20" x2="20" y2="44" stroke="#6b7a8e" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3 class="not-found-title">No case found</h3>
+        <p class="not-found-desc">No case found with that reference number. Please double-check the reference you received in your confirmation email.</p>
+        <p class="not-found-help">If you're still having trouble, contact us:</p>
+        <div class="track-contact-links">
+          <a href="tel:02034111009" class="track-contact-link">0203 411 1009</a>
+          <a href="mailto:info@mortgagesareus.co.uk" class="track-contact-link">info@mortgagesareus.co.uk</a>
+        </div>
+      </div>
+
+    </div><!-- /.track-card -->
+  </div>
+</section>
+
+{% endblock %}
