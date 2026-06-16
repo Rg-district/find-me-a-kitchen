@@ -75,6 +75,7 @@ from tools.discrepancy_engine import compute_discrepancy
 from tools.stress_test import run_stress_test
 from tools.credit_report_analyser import analyse_credit_report, cross_validate as credit_cross_validate
 from tools.payslip_analyser import analyse_payslip
+from tools.cross_validation_engine import cross_validate_documents
 from tools.document_generator import (
     generate_document as gen_document,
     extract_reference_text,
@@ -701,6 +702,35 @@ async def get_client_credit_report(client_id: str):
     if not data:
         raise HTTPException(status_code=404, detail="No credit report uploaded yet")
     return {"client_id": client_id, **data}
+
+
+# ── Cross-document validation ────────────────────────────────────────────────
+
+@app.get("/api/clients/{client_id}/cross-check")
+async def get_cross_check(client_id: str):
+    """Cross-validate payslip, bank statement, and credit report for discrepancies."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    stored_analysis = get_analysis(client_id)
+    bank_analysis = stored_analysis.get("analysis") if stored_analysis else None
+
+    stored_payslip = get_payslip_analysis(client_id)
+    payslip_analysis = stored_payslip.get("analysis") if stored_payslip else None
+
+    stored_credit = get_credit_report(client_id)
+    credit_data = stored_credit.get("credit_data") if stored_credit else None
+    credit_validation = stored_credit.get("validation") if stored_credit else None
+
+    if not bank_analysis and not payslip_analysis and not credit_data:
+        raise HTTPException(
+            status_code=400,
+            detail="No documents uploaded yet. Upload a bank statement, payslip, or credit report first.",
+        )
+
+    report = cross_validate_documents(client, bank_analysis, payslip_analysis, credit_data, credit_validation)
+    return {"client_id": client_id, "cross_check": report}
 
 
 # ── AI Assistant ──────────────────────────────────────────────────────────────

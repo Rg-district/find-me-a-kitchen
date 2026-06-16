@@ -1427,6 +1427,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
             <button class="tab-btn" data-tab="payslip" onclick="switchTab('payslip')">&#128181; Payslip</button>
             <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128202; Credit Report</button>
+            <button class="tab-btn" data-tab="crosscheck" onclick="switchTab('crosscheck')">&#128269; Cross-Check</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
             <button class="tab-btn" data-tab="documents" onclick="switchTab('documents')">&#128196; Documents</button>
@@ -1717,6 +1718,49 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                 </div>
 
               </div>
+            </div>
+          </div>
+
+          <!-- CROSS-CHECK TAB -->
+          <div id="tab-crosscheck" class="tab-pane">
+            <div style="max-width:1000px">
+
+              <div id="cc-placeholder" style="color:#a0aec0;font-size:13px;padding:16px 0">
+                Upload at least one of Bank Statement, Payslip, or Credit Report to run a cross-document discrepancy check. Uploading all three gives the most complete picture.
+              </div>
+
+              <div id="cc-results" style="display:none">
+
+                <div class="card">
+                  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+                    <div class="card-title" style="margin-bottom:0">&#128269; Document Coverage</div>
+                    <span id="cc-risk-badge" class="client-panel-grade" style="display:none"></span>
+                  </div>
+                  <div id="cc-coverage" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#163; Income Comparison</div>
+                  <div id="cc-income-body"></div>
+                </div>
+
+                <div class="card" id="cc-employer-card" style="display:none">
+                  <div class="card-title">&#127970; Employer Consistency</div>
+                  <div id="cc-employer-body"></div>
+                </div>
+
+                <div class="card" id="cc-adverse-card" style="display:none">
+                  <div class="card-title">&#9888;&#65039; Adverse Credit Cross-Check</div>
+                  <div id="cc-adverse-body"></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#128221; Consultant Actions</div>
+                  <div id="cc-actions-body"></div>
+                </div>
+
+              </div>
+
             </div>
           </div>
 
@@ -3406,6 +3450,7 @@ function switchTab(tabId) {
 
   if (tabId === 'lenders') loadLenders();
   if (tabId === 'report') loadCreditReport();
+  if (tabId === 'crosscheck') loadCrossCheck();
   if (tabId === 'documents') loadDocuments();
   if (tabId === 'assistant') setTimeout(scrollChat, 100);
   if (tabId === 'audit') loadAuditLog();
@@ -4057,6 +4102,95 @@ function loadCreditReport() {
       }
     })
     .catch(function() {}); // No report yet — upload zone stays visible
+}
+
+// ── Cross-check tab ─────────────────────────────────────────────────────────
+function loadCrossCheck() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/cross-check')
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(d) {
+      if (d && d.cross_check) renderCrossCheck(d.cross_check);
+    })
+    .catch(function() {
+      document.getElementById('cc-results').style.display = 'none';
+      document.getElementById('cc-placeholder').style.display = 'block';
+    });
+}
+
+function renderCrossCheck(report) {
+  document.getElementById('cc-placeholder').style.display = 'none';
+  document.getElementById('cc-results').style.display = 'block';
+
+  var riskColours = { low: '#1a7a3e', medium: '#b8760a', high: '#d35400', critical: '#c0392b' };
+  var risk = report.overall_risk_rating || 'low';
+  var riskBadge = document.getElementById('cc-risk-badge');
+  riskBadge.style.display = 'inline-flex';
+  riskBadge.textContent = 'Risk: ' + risk.toUpperCase();
+  riskBadge.style.background = riskColours[risk] || '#888';
+
+  var docLabels = { bank_statement: 'Bank Statement', payslip: 'Payslip', credit_report: 'Credit Report' };
+  var docs = report.documents_available || {};
+  document.getElementById('cc-coverage').innerHTML = Object.keys(docLabels).map(function(key) {
+    var ok = !!docs[key];
+    return '<span class="flag-tag" style="background:' + (ok ? '#1a7a3e' : '#c0392b') + ';color:#fff">' +
+      (ok ? '&#10003; ' : '&#10007; ') + esc(docLabels[key]) + '</span>';
+  }).join('');
+
+  var sourceLabels = { declared: 'Declared Income', bank_statement: 'Bank Statement', payslip: 'Payslip' };
+  var income = report.income_comparison || {};
+  var sources = income.sources || {};
+  var pairs = income.pairs || [];
+
+  var sourcesHtml = '<div class="stat-row">' + Object.keys(sources).map(function(key) {
+    return '<div class="stat-box"><div class="stat-label">' + esc(sourceLabels[key] || key) + '</div><div class="stat-value">' + gbp(sources[key]) + '</div></div>';
+  }).join('') + '</div>';
+
+  var pairsHtml = pairs.length
+    ? '<table class="data-table"><thead><tr><th>Comparison</th><th style="text-align:right">Variance</th><th>Status</th></tr></thead><tbody>' +
+      pairs.map(function(p) {
+        var colour = p.severity === 'none' ? 'var(--success)' : (p.severity === 'minor' ? '#b8760a' : 'var(--danger)');
+        var parts = p.pair.split('_vs_');
+        var label = (sourceLabels[parts[0]] || parts[0]) + ' vs ' + (sourceLabels[parts[1]] || parts[1]);
+        var sign = p.delta_pct >= 0 ? '+' : '';
+        return '<tr><td>' + esc(label) + '</td><td style="text-align:right;color:' + colour + '">' + sign + parseFloat(p.delta_pct).toFixed(1) + '%</td><td style="color:' + colour + '">' + esc(p.severity_label) + '</td></tr>';
+      }).join('') + '</tbody></table>'
+    : '<p style="color:#a0aec0;font-size:13px;margin-top:10px">Need at least two income sources (declared, bank statement, payslip) to compare.</p>';
+
+  document.getElementById('cc-income-body').innerHTML = sourcesHtml + pairsHtml;
+
+  var employer = report.employer_consistency || {};
+  if (employer.payslip_employer_name) {
+    document.getElementById('cc-employer-card').style.display = 'block';
+    var matchHtml;
+    if (employer.matched === true) {
+      matchHtml = '<span style="color:var(--success);font-weight:600">&#10003; Employer name found in bank statement salary credits</span>';
+    } else if (employer.matched === false) {
+      matchHtml = '<span style="color:var(--danger);font-weight:600">&#10007; Employer name not found in bank statement salary credit descriptions</span>';
+    } else {
+      matchHtml = '<span style="color:#9aaab8">No salary credits identified on bank statement to compare against</span>';
+    }
+    document.getElementById('cc-employer-body').innerHTML =
+      '<p style="font-size:13px;color:#555;margin-bottom:8px"><strong>Payslip employer:</strong> ' + esc(employer.payslip_employer_name) + '</p>' +
+      '<p style="font-size:13px">' + matchHtml + '</p>';
+  } else {
+    document.getElementById('cc-employer-card').style.display = 'none';
+  }
+
+  var crossNotes = report.adverse_credit_cross_check || [];
+  if (crossNotes.length) {
+    document.getElementById('cc-adverse-card').style.display = 'block';
+    document.getElementById('cc-adverse-body').innerHTML = crossNotes.map(function(n) {
+      return '<div class="flag-card"><div class="flag-card-title">&#9888;&#65039; ' + esc(n.label) + ' &mdash; ' + esc((n.severity || '').toUpperCase()) + '</div><div class="flag-card-body">' + esc(n.detail) + '</div></div>';
+    }).join('');
+  } else {
+    document.getElementById('cc-adverse-card').style.display = 'none';
+  }
+
+  var actions = report.consultant_actions || [];
+  document.getElementById('cc-actions-body').innerHTML = actions.length
+    ? '<ul style="margin:0;padding-left:20px;font-size:13px;color:#555;line-height:1.8">' + actions.map(function(a) { return '<li>' + esc(a) + '</li>'; }).join('') + '</ul>'
+    : '<p style="color:#a0aec0;font-size:13px">No outstanding actions — all available documents are consistent.</p>';
 }
 
 function renderCreditReport(data) {
