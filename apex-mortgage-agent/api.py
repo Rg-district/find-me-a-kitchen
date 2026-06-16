@@ -458,6 +458,10 @@ async def generate_client_report(client_id: str):
         except (TypeError, ZeroDivisionError):
             ltv = 75.0
 
+    verified_monthly_income = float((analysis.get("income_analysis") or {}).get("total_average_monthly_income", 0) or 0)
+    monthly_income = verified_monthly_income if verified_monthly_income > 0 else float(client.get("declared_income", 0) or 0)
+    monthly_debts = float((analysis.get("expenditure_analysis") or {}).get("total_fixed_monthly", 0) or 0)
+
     matched_lenders = match_lenders(
         grade=grade_result.get("grade", "F"),
         ccjs=bool(adverse.get("ccj")),
@@ -466,6 +470,8 @@ async def generate_client_report(client_id: str):
         months_since_adverse=int(adverse.get("months_since_most_recent") or 0),
         ltv=ltv,
         employment_type=client.get("employment_type", "employed"),
+        annual_income=monthly_income * 12,
+        monthly_debts=monthly_debts,
     )
 
     try:
@@ -498,6 +504,12 @@ async def get_matched_lenders(client_id: str):
         except (TypeError, ZeroDivisionError):
             pass
 
+    stored = get_analysis(client_id)
+    analysis = stored.get("analysis", {}) if stored else {}
+    verified_monthly_income = float((analysis.get("income_analysis") or {}).get("total_average_monthly_income", 0) or 0)
+    monthly_income = verified_monthly_income if verified_monthly_income > 0 else float(client.get("declared_income", 0) or 0)
+    monthly_debts = float((analysis.get("expenditure_analysis") or {}).get("total_fixed_monthly", 0) or 0)
+
     matched = match_lenders(
         grade=grade,
         ccjs=bool(adverse.get("ccj")),
@@ -506,6 +518,8 @@ async def get_matched_lenders(client_id: str):
         months_since_adverse=int(adverse.get("months_since_most_recent") or 0),
         ltv=ltv,
         employment_type=client.get("employment_type", "employed"),
+        annual_income=monthly_income * 12,
+        monthly_debts=monthly_debts,
     )
 
     return {"client_id": client_id, "grade": grade, "lenders": matched, "count": len(matched)}

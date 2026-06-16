@@ -344,6 +344,8 @@ def _execute_tool(name: str, inp: dict) -> dict:
     elif name == "lender_strategy":
         # If client_id provided, pull from store
         client_id = inp.get("client_id")
+        annual_income = 0.0
+        monthly_debts = 0.0
         if client_id:
             client = get_client(client_id)
             if client:
@@ -361,6 +363,13 @@ def _execute_tool(name: str, inp: dict) -> dict:
                         ltv = (float(client["loan_amount"]) / float(client["property_value"])) * 100
                     except (TypeError, ZeroDivisionError):
                         pass
+
+                stored = get_analysis(client_id)
+                analysis = stored.get("analysis", {}) if stored else {}
+                verified_monthly_income = float((analysis.get("income_analysis") or {}).get("total_average_monthly_income", 0) or 0)
+                monthly_income = verified_monthly_income if verified_monthly_income > 0 else float(client.get("declared_income", 0) or 0)
+                annual_income = monthly_income * 12
+                monthly_debts = float((analysis.get("expenditure_analysis") or {}).get("total_fixed_monthly", 0) or 0)
             else:
                 return {"error": f"Client {client_id} not found"}
         else:
@@ -381,6 +390,8 @@ def _execute_tool(name: str, inp: dict) -> dict:
             months_since_adverse=months_since,
             ltv=ltv,
             employment_type=employment_type,
+            annual_income=annual_income,
+            monthly_debts=monthly_debts,
         )
 
         grade_info = GRADE_METADATA.get(grade, {})
@@ -398,6 +409,7 @@ def _execute_tool(name: str, inp: dict) -> dict:
                 "match_reasons": primary.get("match_reasons", []) if primary else [],
                 "contact": primary.get("contact") if primary else None,
                 "notes": primary.get("notes") if primary else None,
+                "affordability_estimate": primary.get("affordability_estimate") if primary else None,
             } if primary else None,
             "fallback_lenders": [
                 {
@@ -405,6 +417,7 @@ def _execute_tool(name: str, inp: dict) -> dict:
                     "suitability_score": l.get("suitability_score"),
                     "max_ltv": l.get("max_ltv"),
                     "contact": l.get("contact"),
+                    "affordability_estimate": l.get("affordability_estimate"),
                 }
                 for l in fallbacks
             ],

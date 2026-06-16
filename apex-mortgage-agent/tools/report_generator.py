@@ -555,11 +555,23 @@ def _render_lenders(matched_lenders: list[dict]) -> str:
         return '<p style="color:#888">No lender matches found for this profile. Review client grade and adverse history.</p>'
 
     cards_html = ""
+    has_affordability = False
     for lender in matched_lenders[:6]:
         colour = lender.get("colour", "#333")
         criteria_items = "".join(f"<li>{_esc(c)}</li>" for c in lender.get("headline_criteria", [])[:5])
         reasons = ", ".join(lender.get("match_reasons", []))
         score = lender.get("suitability_score", 0)
+
+        afford = lender.get("affordability_estimate") or {}
+        afford_html = ""
+        if afford.get("max_loan_estimate") is not None:
+            has_affordability = True
+            afford_html = f"""
+            <div style="background:#f0f7ff;border:1px solid #c7ddf5;border-radius:8px;padding:8px 10px;margin-bottom:8px">
+              <div style="font-size:11px;color:#666">Est. max loan @ {afford.get('indicative_rate', 0):.2f}%</div>
+              <div style="font-size:18px;font-weight:700;color:{colour}">£{afford.get('max_loan_estimate', 0):,.0f}</div>
+              <div style="font-size:11px;color:#666">~£{afford.get('monthly_payment_estimate', 0):,.0f}/mo &middot; capped by {_esc(afford.get('capped_by', ''))}</div>
+            </div>"""
 
         cards_html += f"""
         <div class="lender-card">
@@ -571,6 +583,7 @@ def _render_lenders(matched_lenders: list[dict]) -> str:
             </div>
           </div>
           <div class="lender-card-body">
+            {afford_html}
             <ul>{criteria_items}</ul>
             {f'<p style="font-size:12px;color:#555;margin-top:8px;font-style:italic">{_esc(lender.get("notes",""))}</p>' if lender.get("notes") else ''}
             {f'<div class="lender-contact">Match: {_esc(reasons)}</div>' if reasons else ''}
@@ -578,7 +591,18 @@ def _render_lenders(matched_lenders: list[dict]) -> str:
           </div>
         </div>"""
 
-    return f'<div class="lender-grid">{cards_html}</div>'
+    disclaimer_html = ""
+    if has_affordability:
+        disclaimer_html = (
+            '<p style="font-size:11px;color:#7d5a00;background:#fffbeb;border:1px solid #f6d860;'
+            'border-radius:6px;padding:8px 10px;margin-bottom:12px">'
+            "<strong>Indicative estimates only.</strong> \"Est. max loan\" figures are calculated from each "
+            "lender's typical published income multiple and a stress-tested affordability ceiling &mdash; "
+            "they are not live lender calculator results. Always confirm the real figure with the lender's "
+            "own calculator or BDM before submission.</p>"
+        )
+
+    return f'{disclaimer_html}<div class="lender-grid">{cards_html}</div>'
 
 
 def _render_next_steps(client: dict, analysis: dict, grade_result: dict) -> str:

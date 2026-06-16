@@ -424,6 +424,7 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 .lender-card-body ul li { margin-bottom: 3px; }
 .lender-notes { font-size: 11px; color: #888; font-style: italic; margin-top: 8px; }
 .lender-contact { font-size: 12px; color: #666; margin-top: 6px; }
+.afford-estimate { background: #f0f7ff; border: 1px solid #c7ddf5; border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
 .suitability-bar { margin: 8px 0 4px; }
 
 /* ── Chat ─────────────────────────────────────────────────────── */
@@ -1804,7 +1805,10 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                 <!-- Matched Lenders -->
                 <div class="card" style="margin-bottom:20px">
                   <div class="card-title">&#127970; Matched Lenders</div>
-                  <p id="lenders-summary" style="font-size:13px;color:#555;margin-bottom:16px"></p>
+                  <p id="lenders-summary" style="font-size:13px;color:#555;margin-bottom:10px"></p>
+                  <p style="font-size:11px;color:#7d5a00;background:#fffbeb;border:1px solid #f6d860;border-radius:6px;padding:8px 10px;margin-bottom:16px">
+                    <strong>Indicative estimates only.</strong> "Est. max loan" figures are calculated from each lender's typical published income multiple and a stress-tested affordability ceiling — they are not live lender calculator results. Always confirm the real figure with the lender's own calculator or BDM before submission.
+                  </p>
                   <div class="lender-grid" id="lender-grid"></div>
                 </div>
               </div>
@@ -3281,6 +3285,19 @@ function renderLenders(data) {
     }).join('');
     var suitability = l.suitability_score || 0;
     var reasons = (l.match_reasons || []).join(' &middot; ');
+    var afford = l.affordability_estimate || {};
+    var affordBlock = '';
+    if (afford.max_loan_estimate != null) {
+      affordBlock =
+        '<div class="afford-estimate">' +
+          '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
+            '<span style="font-size:11px;color:#666">Est. max loan</span>' +
+            '<span style="font-size:11px;color:#999">@ ' + (afford.indicative_rate != null ? afford.indicative_rate.toFixed(2) + '%' : 'N/A') + '</span>' +
+          '</div>' +
+          '<div style="font-size:20px;font-weight:700;color:' + colour + '">' + gbp(afford.max_loan_estimate) + '</div>' +
+          '<div style="font-size:11px;color:#666">~' + gbp(afford.monthly_payment_estimate) + '/mo &middot; capped by ' + esc(afford.capped_by || '') + '</div>' +
+        '</div>';
+    }
     return '<div class="lender-card">' +
       '<div class="lender-card-hdr" style="background:' + colour + '">' +
         '<div class="lender-initial">' + esc(l.logo_initial || '??') + '</div>' +
@@ -3290,6 +3307,7 @@ function renderLenders(data) {
         '</div>' +
       '</div>' +
       '<div class="lender-card-body">' +
+        affordBlock +
         '<div class="suitability-bar">' +
           '<div style="font-size:11px;color:#666;margin-bottom:3px">Suitability: ' + suitability + '/100</div>' +
           '<div class="prog-bar"><div class="prog-fill" style="width:' + suitability + '%;background:' + colour + '"></div></div>' +
