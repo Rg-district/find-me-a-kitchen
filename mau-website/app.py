@@ -13,8 +13,11 @@ from fastapi.templating import Jinja2Templates
 
 app = FastAPI(title="Mortgages Are Us")
 templates = Jinja2Templates(directory="templates")
-templates.env.globals["now"] = datetime.utcnow
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+def _ctx(request: Request, **kwargs) -> dict:
+    return {"request": request, "now": datetime.utcnow, **kwargs}
 
 # ── Config ─────────────────────────────────────────────────────────────────────
 MAU_AGENT_URL = os.getenv("MAU_AGENT_URL", "https://apex-mortgage-agent.onrender.com")
@@ -42,23 +45,23 @@ def _save_leads(leads: dict) -> None:
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", _ctx(request))
 
 @app.get("/adverse-credit", response_class=HTMLResponse)
 async def adverse_credit(request: Request):
-    return templates.TemplateResponse("adverse-credit.html", {"request": request})
+    return templates.TemplateResponse("adverse-credit.html", _ctx(request))
 
 @app.get("/get-started", response_class=HTMLResponse)
 async def get_started(request: Request):
-    return templates.TemplateResponse("get-started.html", {"request": request})
+    return templates.TemplateResponse("get-started.html", _ctx(request))
 
 @app.get("/chat", response_class=HTMLResponse)
 async def chat_page(request: Request):
-    return templates.TemplateResponse("chat.html", {"request": request})
+    return templates.TemplateResponse("chat.html", _ctx(request))
 
 @app.get("/track", response_class=HTMLResponse)
 async def track_page(request: Request):
-    return templates.TemplateResponse("track.html", {"request": request})
+    return templates.TemplateResponse("track.html", _ctx(request))
 
 @app.get("/health")
 async def health():
