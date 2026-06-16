@@ -10,10 +10,15 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 app = FastAPI(title="Mortgages Are Us")
-templates = Jinja2Templates(directory="templates")
-templates.env.cache = None  # disable LRU cache — avoids unhashable globals key on Python 3.14
+_jinja_env = Environment(
+    loader=FileSystemLoader("templates"),
+    autoescape=select_autoescape(["html", "xml"]),
+    cache_size=0,
+)
+templates = Jinja2Templates(env=_jinja_env)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
