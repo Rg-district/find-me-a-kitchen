@@ -1744,19 +1744,36 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                   <div id="cc-coverage" style="display:flex;gap:10px;flex-wrap:wrap"></div>
                 </div>
 
+                <div class="card" id="cc-summary-card" style="display:none">
+                  <div class="card-title">&#128203; Executive Summary</div>
+                  <div id="cc-summary-body" style="font-size:13px;color:#333;line-height:1.7"></div>
+                </div>
+
                 <div class="card">
                   <div class="card-title">&#163; Income Comparison</div>
                   <div id="cc-income-body"></div>
                 </div>
 
-                <div class="card" id="cc-employer-card" style="display:none">
-                  <div class="card-title">&#127970; Employer Consistency</div>
-                  <div id="cc-employer-body"></div>
+                <div class="card" id="cc-identity-card" style="display:none">
+                  <div class="card-title">&#128100; Identity &amp; Employment Consistency</div>
+                  <div id="cc-identity-body"></div>
+                </div>
+
+                <div class="card" id="cc-debt-card" style="display:none">
+                  <div class="card-title">&#128179; Debt &amp; Commitment Reconciliation</div>
+                  <p style="font-size:12px;color:#9aaab8;margin-bottom:10px">Matches debt repayments seen on the bank statement against accounts listed on the credit report.</p>
+                  <div id="cc-debt-body"></div>
                 </div>
 
                 <div class="card" id="cc-adverse-card" style="display:none">
-                  <div class="card-title">&#9888;&#65039; Adverse Credit Cross-Check</div>
+                  <div class="card-title">&#9888;&#65039; Adverse Credit Signal Matrix</div>
+                  <p style="font-size:12px;color:#9aaab8;margin-bottom:10px">Declared adverse history vs evidence found on the bank statement and credit report.</p>
                   <div id="cc-adverse-body"></div>
+                </div>
+
+                <div class="card" id="cc-affordability-card" style="display:none">
+                  <div class="card-title">&#128202; Affordability Cross-Check</div>
+                  <div id="cc-affordability-body"></div>
                 </div>
 
                 <div class="card">
@@ -4169,32 +4186,135 @@ function renderCrossCheck(report) {
 
   document.getElementById('cc-income-body').innerHTML = sourcesHtml + pairsHtml;
 
-  var employer = report.employer_consistency || {};
-  if (employer.payslip_employer_name) {
-    document.getElementById('cc-employer-card').style.display = 'block';
-    var matchHtml;
-    if (employer.matched === true) {
-      matchHtml = '<span style="color:var(--success);font-weight:600">&#10003; Employer name found in bank statement salary credits</span>';
-    } else if (employer.matched === false) {
-      matchHtml = '<span style="color:var(--danger);font-weight:600">&#10007; Employer name not found in bank statement salary credit descriptions</span>';
-    } else {
-      matchHtml = '<span style="color:#9aaab8">No salary credits identified on bank statement to compare against</span>';
-    }
-    document.getElementById('cc-employer-body').innerHTML =
-      '<p style="font-size:13px;color:#555;margin-bottom:8px"><strong>Payslip employer:</strong> ' + esc(employer.payslip_employer_name) + '</p>' +
-      '<p style="font-size:13px">' + matchHtml + '</p>';
+  // Executive summary
+  if (report.executive_summary) {
+    document.getElementById('cc-summary-card').style.display = 'block';
+    document.getElementById('cc-summary-body').textContent = report.executive_summary;
   } else {
-    document.getElementById('cc-employer-card').style.display = 'none';
+    document.getElementById('cc-summary-card').style.display = 'none';
   }
 
-  var crossNotes = report.adverse_credit_cross_check || [];
-  if (crossNotes.length) {
+  // Identity & employment consistency
+  var personal = report.personal_details_consistency || {};
+  var employer = report.employer_consistency || {};
+  var hasIdentityData = personal.client_record_name || employer.payslip_employer_name;
+  if (hasIdentityData) {
+    document.getElementById('cc-identity-card').style.display = 'block';
+    var identityHtml = '';
+
+    var boolBadge = function(v, yesText, noText, naText) {
+      if (v === true) return '<span style="color:var(--success);font-weight:600">&#10003; ' + esc(yesText) + '</span>';
+      if (v === false) return '<span style="color:var(--danger);font-weight:600">&#10007; ' + esc(noText) + '</span>';
+      return '<span style="color:#9aaab8">' + esc(naText) + '</span>';
+    };
+
+    identityHtml += '<div style="margin-bottom:14px">';
+    identityHtml += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Name Across Documents</div>';
+    identityHtml += '<table class="data-table"><tbody>';
+    identityHtml += '<tr><td>Client Record</td><td>' + esc(personal.client_record_name || 'N/A') + '</td></tr>';
+    identityHtml += '<tr><td>Payslip</td><td>' + esc(personal.payslip_employee_name || 'N/A') + '</td></tr>';
+    identityHtml += '<tr><td>Credit Report</td><td>' + esc(personal.credit_report_name || 'N/A') + '</td></tr>';
+    identityHtml += '</tbody></table>';
+    identityHtml += '<p style="font-size:13px;margin-top:8px">' + (personal.name_mismatch_detected
+      ? boolBadge(false, '', 'Name does not match consistently across documents', '')
+      : boolBadge(true, 'Name is consistent across available documents', '', '')) + '</p>';
+    identityHtml += '</div>';
+
+    if (personal.client_record_address || personal.credit_report_current_address) {
+      identityHtml += '<div style="margin-bottom:14px">';
+      identityHtml += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Address</div>';
+      identityHtml += '<p style="font-size:13px;margin-bottom:4px"><strong>Client Record:</strong> ' + esc(personal.client_record_address || 'N/A') + '</p>';
+      identityHtml += '<p style="font-size:13px;margin-bottom:4px"><strong>Credit Report (current):</strong> ' + esc(personal.credit_report_current_address || 'N/A') + '</p>';
+      identityHtml += '<p style="font-size:13px">' + boolBadge(personal.address_matched, 'Matches client record', 'Does not match client record — confirm recent house move', 'Insufficient data to compare') + '</p>';
+      identityHtml += '</div>';
+    }
+
+    if (employer.payslip_employer_name) {
+      identityHtml += '<div>';
+      identityHtml += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Employer</div>';
+      identityHtml += '<p style="font-size:13px;margin-bottom:4px"><strong>Payslip employer:</strong> ' + esc(employer.payslip_employer_name) + '</p>';
+      identityHtml += '<p style="font-size:13px">' + boolBadge(employer.matched, 'Found in bank statement salary credits', 'Not found in bank statement salary credit descriptions', 'No salary credits identified on bank statement to compare against') + '</p>';
+      if (employer.employment_type_note) {
+        identityHtml += '<p style="font-size:13px;color:#b8760a;margin-top:6px">&#9888; ' + esc(employer.employment_type_note) + '</p>';
+      }
+      identityHtml += '</div>';
+    }
+
+    document.getElementById('cc-identity-body').innerHTML = identityHtml;
+  } else {
+    document.getElementById('cc-identity-card').style.display = 'none';
+  }
+
+  // Debt & commitment reconciliation
+  var debtRecon = report.debt_commitment_reconciliation;
+  if (debtRecon && (debtRecon.matched.length || debtRecon.bank_only.length || debtRecon.credit_only.length)) {
+    document.getElementById('cc-debt-card').style.display = 'block';
+    var debtHtml = '';
+    if (debtRecon.matched.length) {
+      debtHtml += '<table class="data-table" style="margin-bottom:14px"><thead><tr><th>Bank Statement</th><th style="text-align:right">Amount</th><th>Credit Report</th><th style="text-align:right">Monthly Payment</th><th>Confidence</th></tr></thead><tbody>';
+      debtRecon.matched.forEach(function(m) {
+        debtHtml += '<tr><td>' + esc(m.bank_description || '') + '</td><td style="text-align:right">' + gbp(m.bank_monthly_amount) + '</td><td>' + esc(m.credit_creditor || '') + '</td><td style="text-align:right">' + gbp(m.credit_monthly_payment) + '</td><td>' + esc(m.confidence || '') + '</td></tr>';
+      });
+      debtHtml += '</tbody></table>';
+    }
+    if (debtRecon.bank_only.length) {
+      debtHtml += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">On Bank Statement, Not on Credit Report</div>';
+      debtRecon.bank_only.forEach(function(bd) {
+        debtHtml += '<div class="flag-card"><div class="flag-card-title">&#9888;&#65039; ' + esc(bd.description || '') + ' &mdash; ' + gbp(bd.monthly_amount) + '/month</div><div class="flag-card-body">No matching account found on the credit report. Confirm this is genuine and not an undisclosed informal or family loan.</div></div>';
+      });
+    }
+    if (debtRecon.credit_only.length) {
+      debtHtml += '<div style="font-size:12px;font-weight:700;color:#9aaab8;text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">On Credit Report, Not on Bank Statement</div>';
+      debtRecon.credit_only.forEach(function(cd) {
+        debtHtml += '<div class="flag-card"><div class="flag-card-title">&#9888;&#65039; ' + esc(cd.creditor || 'Unknown creditor') + ' (' + esc(cd.account_type || '') + ') &mdash; ' + gbp(cd.monthly_payment) + '/month</div><div class="flag-card-body">Active commitment on the credit report with no matching repayment visible on the supplied bank statement. May be paid from a different account.</div></div>';
+      });
+    }
+    document.getElementById('cc-debt-body').innerHTML = debtHtml;
+  } else {
+    document.getElementById('cc-debt-card').style.display = 'none';
+  }
+
+  // Adverse credit signal matrix
+  var matrix = report.adverse_signal_matrix || [];
+  if (matrix.length) {
     document.getElementById('cc-adverse-card').style.display = 'block';
-    document.getElementById('cc-adverse-body').innerHTML = crossNotes.map(function(n) {
-      return '<div class="flag-card"><div class="flag-card-title">&#9888;&#65039; ' + esc(n.label) + ' &mdash; ' + esc((n.severity || '').toUpperCase()) + '</div><div class="flag-card-body">' + esc(n.detail) + '</div></div>';
-    }).join('');
+    var statusColours = { undisclosed: '#c0392b', confirmed: '#1a7a3e', not_on_report: '#b8760a', bank_only: '#b8760a', credit_only: '#b8760a', clean: '#1a7a3e' };
+    var statusLabels = { undisclosed: 'Undisclosed', confirmed: 'Confirmed', not_on_report: 'Not on Report', bank_only: 'Bank Only', credit_only: 'Credit Only', clean: 'Clean' };
+    var triState = function(v) {
+      if (v === true) return '<span style="color:var(--danger)">&#10003;</span>';
+      if (v === false) return '<span style="color:#9aaab8">&#10007;</span>';
+      return '<span style="color:#9aaab8">&mdash;</span>';
+    };
+    var matrixHtml = '<table class="data-table"><thead><tr><th>Category</th><th>Declared</th><th>Bank Evidence</th><th>Credit Evidence</th><th>Status</th></tr></thead><tbody>';
+    matrix.forEach(function(r) {
+      var colour = statusColours[r.status] || '#9aaab8';
+      matrixHtml += '<tr><td>' + esc(r.label) +
+        (r.detail ? '<div style="font-size:11px;color:#9aaab8">' + esc(r.detail) + '</div>' : '') + '</td>' +
+        '<td>' + triState(r.declared) + '</td>' +
+        '<td>' + triState(r.bank_evidence) + '</td>' +
+        '<td>' + triState(r.credit_evidence) + '</td>' +
+        '<td style="color:' + colour + ';font-weight:600">' + esc(statusLabels[r.status] || r.status) + '</td></tr>';
+    });
+    matrixHtml += '</tbody></table>';
+    document.getElementById('cc-adverse-body').innerHTML = matrixHtml;
   } else {
     document.getElementById('cc-adverse-card').style.display = 'none';
+  }
+
+  // Affordability cross-check
+  var aff = report.affordability_cross_check;
+  if (aff) {
+    document.getElementById('cc-affordability-card').style.display = 'block';
+    var affHtml = '<div class="stat-row">' +
+      '<div class="stat-box"><div class="stat-label">Bank Statement DTI</div><div class="stat-value">' + parseFloat(aff.bank_debt_to_income_ratio).toFixed(1) + '%</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Uncaptured Commitments</div><div class="stat-value">' + gbp(aff.uncaptured_monthly_commitments) + '/mo</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Adjusted DTI</div><div class="stat-value">' + (aff.adjusted_debt_to_income_ratio != null ? parseFloat(aff.adjusted_debt_to_income_ratio).toFixed(1) + '%' : 'N/A') + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Adjusted Disposable Income</div><div class="stat-value">' + gbp(aff.adjusted_net_disposable_income) + '</div></div>' +
+      '</div>';
+    affHtml += '<p style="font-size:13px;color:#555;margin-top:10px">' + esc(aff.note || '') + '</p>';
+    document.getElementById('cc-affordability-body').innerHTML = affHtml;
+  } else {
+    document.getElementById('cc-affordability-card').style.display = 'none';
   }
 
   var actions = report.consultant_actions || [];
