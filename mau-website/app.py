@@ -13,7 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 app = FastAPI(title="Mortgages Are Us")
 templates = Jinja2Templates(directory="templates")
-templates.env.cache_size = 0
+templates.env.cache = None  # disable LRU cache — avoids unhashable globals key on Python 3.14
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
