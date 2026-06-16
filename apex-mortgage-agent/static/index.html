@@ -1425,6 +1425,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
           <div id="tabs">
             <button class="tab-btn active" data-tab="overview" onclick="switchTab('overview')">&#128203; Overview</button>
             <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
+            <button class="tab-btn" data-tab="payslip" onclick="switchTab('payslip')">&#128181; Payslip</button>
             <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128202; Credit Report</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
@@ -1576,6 +1577,71 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                 <div class="card" id="discrepancy-card" style="display:none">
                   <div class="card-title">&#9878;&#65039; Income Discrepancy & Cross-Validation Report</div>
                   <div id="discrepancy-body"></div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- PAYSLIP TAB -->
+          <div id="tab-payslip" class="tab-pane">
+            <div style="max-width:900px">
+
+              <div class="card" id="payslip-upload-card">
+                <div class="card-title">&#128181; Upload Payslip</div>
+                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload the client's most recent payslip. The AI will extract gross pay, net pay, and itemised deductions (tax, National Insurance, pension, etc.) and compare it against their declared income.</p>
+                <div class="upload-zone" id="payslip-upload-zone"
+                     onclick="document.getElementById('payslip-file-input').click()"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handlePayslipDrop(event)">
+                  <div class="upload-zone-icon">&#128181;</div>
+                  <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
+                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; payslip in original format</div>
+                </div>
+                <input type="file" id="payslip-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handlePayslipFileSelect(event)">
+                <div id="payslip-selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
+                  <span id="payslip-selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
+                  <button class="btn btn-primary" onclick="uploadPayslip()" id="btn-payslip-analyse">Analyse Payslip</button>
+                </div>
+              </div>
+
+              <div id="payslip-results" style="display:none">
+
+                <div class="card">
+                  <div class="card-title">&#163; Pay Summary</div>
+                  <div class="stat-row" id="payslip-stats"></div>
+                  <div style="font-size:12px;color:#9aaab8" id="payslip-period-info"></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#10134; Deductions</div>
+                  <table class="data-table" id="payslip-deductions-table">
+                    <thead>
+                      <tr>
+                        <th>Deduction</th>
+                        <th style="text-align:right">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody id="payslip-deductions-tbody"></tbody>
+                    <tfoot id="payslip-deductions-tfoot"></tfoot>
+                  </table>
+                </div>
+
+                <div class="card" id="payslip-comparison-card" style="display:none">
+                  <div class="card-title">&#9878;&#65039; Declared vs Payslip Comparison</div>
+                  <div id="payslip-comparison-body"></div>
+                </div>
+
+                <div class="card" id="payslip-flags-card" style="display:none">
+                  <div class="card-title">&#9888;&#65039; Notes &amp; Flags</div>
+                  <div id="payslip-flags-body"></div>
+                </div>
+
+                <div class="card" id="payslip-underwriter-notes-card" style="display:none">
+                  <div class="card-title">&#128221; Underwriter Notes</div>
+                  <p id="payslip-underwriter-notes-text" style="font-size:13px;color:#555;line-height:1.6"></p>
                 </div>
 
               </div>
@@ -2318,6 +2384,7 @@ var selectedFile = null;
 var currentClient = null;
 var currentChatFile = null;
 var crSelectedFile = null;
+var payslipSelectedFile = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
@@ -2454,6 +2521,14 @@ function renderClientPanel(data) {
   document.getElementById('cr-results').style.display = 'none';
   document.getElementById('cr-upload-card').style.display = 'block';
   clearChatFile();
+
+  // Payslip state
+  document.getElementById('payslip-results').style.display = 'none';
+  payslipSelectedFile = null;
+  document.getElementById('payslip-selected-file').style.display = 'none';
+  if (data.payslip && data.payslip.analysis) {
+    renderPayslipResults(data.payslip.analysis);
+  }
 
   // Reset document state
   currentDocHtml = null;
@@ -2806,6 +2881,152 @@ function uploadAndAnalyse() {
     document.getElementById('btn-analyse').disabled = false;
     toast('Network error during analysis', 'error');
   });
+}
+
+// ── Payslip upload & analysis ──────────────────────────────────────────────────
+function handlePayslipDrop(e) {
+  e.preventDefault();
+  document.getElementById('payslip-upload-zone').classList.remove('drag-over');
+  var file = e.dataTransfer.files[0];
+  if (file) setSelectedPayslipFile(file);
+}
+function handlePayslipFileSelect(e) {
+  var file = e.target.files[0];
+  if (file) setSelectedPayslipFile(file);
+}
+function setSelectedPayslipFile(file) {
+  payslipSelectedFile = file;
+  document.getElementById('payslip-selected-filename').textContent = file.name;
+  document.getElementById('payslip-selected-file').style.display = 'flex';
+}
+
+function uploadPayslip() {
+  if (!payslipSelectedFile || !selectedClientId) return;
+
+  showLoading('Uploading and analysing payslip with AI...\nThis may take 30-60 seconds.');
+  document.getElementById('btn-payslip-analyse').disabled = true;
+
+  var formData = new FormData();
+  formData.append('file', payslipSelectedFile);
+
+  fetch('/api/clients/' + selectedClientId + '/upload-payslip', {
+    method: 'POST',
+    body: formData,
+  })
+  .then(function(res) {
+    return res.json().then(function(data) { return { ok: res.ok, data: data }; });
+  })
+  .then(function(result) {
+    hideLoading();
+    document.getElementById('btn-payslip-analyse').disabled = false;
+
+    if (!result.ok) {
+      toast(result.data.detail || 'Analysis failed', 'error');
+      return;
+    }
+
+    renderPayslipResults(result.data.analysis);
+    toast('Payslip analysis complete', 'success');
+
+    payslipSelectedFile = null;
+    document.getElementById('payslip-selected-file').style.display = 'none';
+    document.getElementById('payslip-file-input').value = '';
+  })
+  .catch(function() {
+    hideLoading();
+    document.getElementById('btn-payslip-analyse').disabled = false;
+    toast('Network error during analysis', 'error');
+  });
+}
+
+function renderPayslipResults(analysis) {
+  if (!analysis) return;
+  document.getElementById('payslip-results').style.display = 'block';
+
+  var earnings = analysis.earnings || {};
+  var deductions = analysis.deductions || {};
+  var netPay = analysis.net_pay || {};
+  var comparison = analysis.declared_income_comparison || {};
+  var period = analysis.payslip_period || {};
+
+  var discrepancy = comparison.discrepancy_pct || 0;
+  var discColour = Math.abs(discrepancy) <= 10 ? 'var(--success)' : 'var(--danger)';
+  var discSign = discrepancy >= 0 ? '+' : '';
+
+  document.getElementById('payslip-stats').innerHTML =
+    '<div class="stat-box"><div class="stat-label">Gross Pay (period)</div><div class="stat-value">' + gbp(earnings.gross_pay_this_period) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Net Pay (period)</div><div class="stat-value">' + gbp(netPay.net_pay_this_period) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Monthly Net Equivalent</div><div class="stat-value">' + gbp(netPay.monthly_net_equivalent) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Declared Monthly</div><div class="stat-value">' + gbp(comparison.declared_monthly_income) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">vs Declaration</div><div class="stat-value" style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</div></div>';
+
+  var freq = (period.frequency || 'unknown').replace('_', ' ');
+  var periodBits = [];
+  if (period.pay_date) periodBits.push('Pay date: ' + esc(period.pay_date));
+  if (period.period_start && period.period_end) periodBits.push('Period: ' + esc(period.period_start) + ' to ' + esc(period.period_end));
+  periodBits.push('Frequency: ' + esc(freq));
+  document.getElementById('payslip-period-info').textContent = periodBits.join(' | ');
+
+  var deductionRows = [];
+  if (deductions.income_tax) deductionRows.push(['Income Tax (PAYE)', deductions.income_tax]);
+  if (deductions.national_insurance) deductionRows.push(['National Insurance', deductions.national_insurance]);
+  if (deductions.pension_employee) deductionRows.push(['Pension (Employee)', deductions.pension_employee]);
+  if (deductions.pension_employer) deductionRows.push(['Pension (Employer)', deductions.pension_employer]);
+  if (deductions.student_loan) deductionRows.push(['Student Loan', deductions.student_loan]);
+  (deductions.other_deductions || []).forEach(function(d) {
+    deductionRows.push([d.description || 'Other', d.amount]);
+  });
+
+  document.getElementById('payslip-deductions-tbody').innerHTML = deductionRows.length
+    ? deductionRows.map(function(row) {
+        return '<tr><td>' + esc(row[0]) + '</td><td style="text-align:right">' + gbp(row[1]) + '</td></tr>';
+      }).join('')
+    : '<tr><td colspan="2" style="color:#888;text-align:center;padding:16px">No deductions identified</td></tr>';
+
+  document.getElementById('payslip-deductions-tfoot').innerHTML =
+    '<tr><td><strong>Total Deductions</strong></td>' +
+    '<td style="text-align:right;font-size:15px"><strong>' + gbp(deductions.total_deductions) + '</strong></td></tr>';
+
+  if (comparison.declared_monthly_income != null) {
+    document.getElementById('payslip-comparison-card').style.display = 'block';
+    document.getElementById('payslip-comparison-body').innerHTML =
+      '<table class="data-table">' +
+        '<tbody>' +
+          '<tr><th>Declared Monthly Income</th><td>' + gbp(comparison.declared_monthly_income) + '</td></tr>' +
+          '<tr><th>Payslip Monthly Net Equivalent</th><td>' + gbp(comparison.payslip_monthly_net_equivalent) + '</td></tr>' +
+          '<tr><th>Discrepancy</th><td style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</td></tr>' +
+        '</tbody>' +
+      '</table>' +
+      (comparison.notes ? '<p style="font-size:13px;color:#555;margin-top:10px;line-height:1.5">' + esc(comparison.notes) + '</p>' : '');
+  } else {
+    document.getElementById('payslip-comparison-card').style.display = 'none';
+  }
+
+  var flags = analysis.red_flags || {};
+  var flagsHtml = '';
+  if (flags.irregular_or_inconsistent_pay) {
+    flagsHtml += '<div class="flag-card"><div class="flag-card-title">&#9888;&#65039; Irregular or Inconsistent Pay</div></div>';
+  }
+  if (flags.recent_salary_change) {
+    flagsHtml += '<div class="flag-card"><div class="flag-card-title">&#9888;&#65039; Recent Salary Change Detected</div></div>';
+  }
+  if (flags.notes) {
+    flagsHtml += '<div class="flag-card"><div class="flag-card-body">' + esc(flags.notes) + '</div></div>';
+  }
+  if (flagsHtml) {
+    document.getElementById('payslip-flags-card').style.display = 'block';
+    document.getElementById('payslip-flags-body').innerHTML = flagsHtml;
+  } else {
+    document.getElementById('payslip-flags-card').style.display = 'none';
+  }
+
+  var notes = analysis.underwriter_notes;
+  if (notes) {
+    document.getElementById('payslip-underwriter-notes-card').style.display = 'block';
+    document.getElementById('payslip-underwriter-notes-text').textContent = notes;
+  } else {
+    document.getElementById('payslip-underwriter-notes-card').style.display = 'none';
+  }
 }
 
 // ── Report ────────────────────────────────────────────────────────────────────

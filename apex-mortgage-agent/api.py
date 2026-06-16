@@ -60,6 +60,8 @@ from memory.client_store import (
     get_audit_log,
     save_credit_report,
     get_credit_report,
+    save_payslip_analysis,
+    get_payslip_analysis,
     CASE_STAGES,
     CASE_STAGE_LABELS,
     CLIENTS_DIR,
@@ -72,6 +74,7 @@ from tools.report_generator import generate_report
 from tools.discrepancy_engine import compute_discrepancy
 from tools.stress_test import run_stress_test
 from tools.credit_report_analyser import analyse_credit_report, cross_validate as credit_cross_validate
+from tools.payslip_analyser import analyse_payslip
 from tools.document_generator import (
     generate_document as gen_document,
     extract_reference_text,
@@ -248,10 +251,13 @@ async def get_client_detail(client_id: str):
         raise HTTPException(status_code=404, detail="Client not found")
 
     analysis = get_analysis(client_id)
+    payslip = get_payslip_analysis(client_id)
     return {
         "client": client,
         "analysis": analysis,
         "has_analysis": analysis is not None,
+        "payslip": payslip,
+        "has_payslip": payslip is not None,
     }
 
 
@@ -349,6 +355,80 @@ async def upload_statement(client_id: str, file: UploadFile = File(...)):
         "analysis": analysis,
         "grade_result": grade_result,
     }
+
+
+@app.post("/api/clients/{client_id}/upload-payslip")
+async def upload_payslip(client_id: str, file: UploadFile = File(...)):
+    """
+    Upload a payslip PDF or image. Triggers AI analysis of gross/net pay
+    and itemised deductions (tax, National Insurance, pension, etc.).
+    """
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    allowed_types = {
+        "application/pdf",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+    }
+    content_type = file.content_type or "application/octet-stream"
+    if content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {content_type}. Please upload a PDF or image.",
+        )
+
+    try:
+        file_bytes = await file.read()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not read file: {exc}")
+
+    if len(file_bytes) == 0:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    declared_income = float(client.get("declared_income", 0))
+
+    try:
+        payslip_analysis = analyse_payslip(
+            file_bytes=file_bytes,
+            file_type=content_type,
+            declared_monthly_income=declared_income,
+            client_id=client_id,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {exc}")
+
+    combined = {
+        "analysis": payslip_analysis,
+        "payslip_filename": file.filename,
+        "uploaded_at": payslip_analysis["_meta"]["analysed_at"],
+    }
+    save_payslip_analysis(client_id, combined)
+
+    update_client(client_id, {"payslip_uploaded": True})
+    log_event(client_id, "payslip_uploaded", {"filename": file.filename})
+
+    return {
+        "success": True,
+        "client_id": client_id,
+        "analysis": payslip_analysis,
+    }
+
+
+@app.get("/api/clients/{client_id}/payslip")
+async def get_client_payslip(client_id: str):
+    """Return the stored payslip analysis for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    data = get_payslip_analysis(client_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="No payslip uploaded yet")
+    return {"client_id": client_id, **data}
 
 
 @app.post("/api/clients/{client_id}/generate-report")
