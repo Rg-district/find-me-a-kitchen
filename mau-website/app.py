@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 app = FastAPI(title="Mortgages Are Us")
 templates = Jinja2Templates(directory="templates")
+templates.env.cache_size = 0
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
