@@ -1,0 +1,28 @@
+{
+  "regions": {
+    "UK": {
+      "label": "United Kingdom",
+      "country_codes": ["GB"],
+      "timezone": "Europe/London",
+      "locale": "en-GB"
+    },
+    "USA": {
+      "label": "United States",
+      "country_codes": ["US"],
+      "timezone": "America/New_York",
+      "locale": "en-US"
+    },
+    "CA": {
+      "label": "Canada",
+      "country_codes": ["CA"],
+      "timezone": "America/Toronto",
+      "locale": "en-CA"
+    },
+    "AE": {
+      "label": "Dubai / United Arab Emirates",
+      "country_codes": ["AE"],
+      "timezone": "Asia/Dubai",
+      "locale": "en-AE"
+    }
+  }
+}
