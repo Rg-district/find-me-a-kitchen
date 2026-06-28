@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: find-me-a-kitchen
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node .next/standalone/server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 3000
+    autoDeploy: true
