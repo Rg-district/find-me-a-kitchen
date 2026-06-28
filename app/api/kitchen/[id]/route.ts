@@ -3,10 +3,12 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function GET(
   request: Request,
@@ -15,7 +17,7 @@ export async function GET(
   try {
     const { id } = params
 
-    const { data: kitchen, error } = await supabase
+    const { data: kitchen, error } = await getSupabase()
       .from('kitchen_listings')
       .select('*')
       .eq('id', id)
