@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 // Provider knowledge base for accurate answers
 const PROVIDER_KNOWLEDGE: Record<string, {
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
     messages.push({ role: 'user', content: message })
     
     // Generate response
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: 'gpt-4-turbo-preview',
       messages,
       temperature: 0.7,

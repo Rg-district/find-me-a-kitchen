@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vmuprcheuqnawtlzdyds.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vmuprcheuqnawtlzdyds.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
+  )
+}
 
 // Lazy init to avoid build-time errors
 let resend: Resend | null = null
@@ -26,14 +28,14 @@ export async function POST(req: NextRequest) {
     
     // Save email to match record
     if (matchId && !matchId.startsWith('temp_')) {
-      await supabase
+      await getSupabase()
         .from('fmak_matches')
         .update({ user_email: email })
         .eq('id', matchId)
     }
     
     // Save to email list for follow-ups
-    await supabase
+    await getSupabase()
       .from('fmak_email_signups')
       .insert({
         email,

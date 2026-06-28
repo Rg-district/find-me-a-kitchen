@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vmuprcheuqnawtlzdyds.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-)
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://vmuprcheuqnawtlzdyds.supabase.co',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder'
+  )
+}
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+function getOpenAI() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+  })
+}
 
 // Provider type for matching logic (maps from DB snake_case to camelCase used in scoring)
 type ProviderRecord = {
@@ -2080,7 +2084,7 @@ IMPORTANT RULES:
 2. Do NOT say the provider is "located in" a specific city unless they actually have a location there - check "Provider locations" field
 3. If provider is "Nationwide", say they "operate nationwide" or "can serve your area" - do NOT claim they have a facility in the user's specific location`
 
-        const completion = await openai.chat.completions.create({
+        const completion = await getOpenAI().chat.completions.create({
           model: 'gpt-4',
           messages: [{ role: 'user', content: prompt }],
           max_tokens: 200,
