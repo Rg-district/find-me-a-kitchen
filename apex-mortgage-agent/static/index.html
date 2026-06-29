@@ -1603,12 +1603,17 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                      ondrop="handlePayslipDrop(event)">
                   <div class="upload-zone-icon">&#128181;</div>
                   <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
-                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; select multiple payslips at once</div>
+                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; add payslips one at a time or select multiple</div>
                 </div>
                 <input type="file" id="payslip-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" multiple onchange="handlePayslipFileSelect(event)">
-                <div id="payslip-selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
-                  <span id="payslip-selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
-                  <button class="btn btn-primary" onclick="uploadPayslip()" id="btn-payslip-analyse">Analyse Payslip(s)</button>
+                <!-- Queued payslips list -->
+                <div id="payslip-queue" style="display:none;margin-top:14px">
+                  <div id="payslip-queue-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                    <span id="payslip-queue-count" style="font-size:13px;color:#555;font-weight:600"></span>
+                    <button class="btn btn-primary" onclick="uploadPayslip()" id="btn-payslip-analyse">Analyse Payslip(s)</button>
+                    <button class="btn btn-outline btn-sm" onclick="clearPayslipQueue()" style="font-size:12px;padding:5px 10px">Clear all</button>
+                  </div>
                 </div>
                 <div id="payslip-multi-progress" style="display:none;margin-top:10px;font-size:13px;color:#555"></div>
               </div>
@@ -2523,7 +2528,6 @@ var selectedFile = null;
 var currentClient = null;
 var currentChatFile = null;
 var crSelectedFile = null;
-var payslipSelectedFile = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
@@ -2668,8 +2672,8 @@ function renderClientPanel(data) {
 
   // Payslip state
   document.getElementById('payslip-results').style.display = 'none';
-  payslipSelectedFile = null;
-  document.getElementById('payslip-selected-file').style.display = 'none';
+  payslipSelectedFiles = [];
+  renderPayslipQueue();
   if (data.payslip && data.payslip.analysis) {
     renderPayslipResults(data.payslip.analysis);
   }
@@ -3028,26 +3032,49 @@ function uploadAndAnalyse() {
 }
 
 // ── Payslip upload & analysis ──────────────────────────────────────────────────
+var payslipSelectedFiles = [];
+
 function handlePayslipDrop(e) {
   e.preventDefault();
   document.getElementById('payslip-upload-zone').classList.remove('drag-over');
-  var file = e.dataTransfer.files[0];
-  if (file) setSelectedPayslipFile(file);
+  var files = Array.from((e.dataTransfer && e.dataTransfer.files) || []);
+  if (files.length) { payslipSelectedFiles = payslipSelectedFiles.concat(files); renderPayslipQueue(); }
 }
-var payslipSelectedFiles = [];
 function handlePayslipFileSelect(e) {
   var files = Array.from(e.target.files || []);
   if (!files.length) return;
-  payslipSelectedFiles = files;
-  var label = files.length === 1 ? files[0].name : files.length + ' payslips selected';
-  document.getElementById('payslip-selected-filename').textContent = label;
-  document.getElementById('payslip-selected-file').style.display = 'flex';
+  payslipSelectedFiles = payslipSelectedFiles.concat(files);
+  document.getElementById('payslip-file-input').value = ''; // reset so same file can be picked again
   document.getElementById('payslip-multi-progress').style.display = 'none';
+  renderPayslipQueue();
 }
 function setSelectedPayslipFile(file) {
-  payslipSelectedFiles = [file];
-  document.getElementById('payslip-selected-filename').textContent = file.name;
-  document.getElementById('payslip-selected-file').style.display = 'flex';
+  payslipSelectedFiles = payslipSelectedFiles.concat([file]);
+  renderPayslipQueue();
+}
+function renderPayslipQueue() {
+  var queueEl = document.getElementById('payslip-queue');
+  var listEl = document.getElementById('payslip-queue-list');
+  var countEl = document.getElementById('payslip-queue-count');
+  if (!payslipSelectedFiles.length) { queueEl.style.display = 'none'; return; }
+  queueEl.style.display = 'block';
+  var n = payslipSelectedFiles.length;
+  countEl.textContent = n + ' payslip' + (n !== 1 ? 's' : '') + ' queued';
+  listEl.innerHTML = payslipSelectedFiles.map(function(f, i) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border-radius:6px;font-size:13px">' +
+      '<span style="color:var(--navy);font-weight:600">&#128196; ' + esc(f.name) + '</span>' +
+      '<button onclick="removePayslipFile(' + i + ')" style="background:none;border:none;cursor:pointer;font-size:18px;color:#c0392b;line-height:1;padding:0 4px" title="Remove">&#215;</button>' +
+      '</div>';
+  }).join('');
+}
+function removePayslipFile(idx) {
+  payslipSelectedFiles.splice(idx, 1);
+  renderPayslipQueue();
+}
+function clearPayslipQueue() {
+  payslipSelectedFiles = [];
+  document.getElementById('payslip-file-input').value = '';
+  renderPayslipQueue();
 }
 
 function uploadPayslip() {
@@ -3069,8 +3096,8 @@ function uploadPayslip() {
         if (total > 1) triggerCrossCheck();
       }
       payslipSelectedFiles = [];
-      document.getElementById('payslip-selected-file').style.display = 'none';
       document.getElementById('payslip-file-input').value = '';
+      renderPayslipQueue();
       return;
     }
     idx++;
