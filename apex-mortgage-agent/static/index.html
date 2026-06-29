@@ -1661,6 +1661,9 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
 
               <!-- Upload zone -->
               <div class="card" id="cr-upload-card">
+                <div id="cr-replace-hint" style="display:none;background:#fff8e1;border:1px solid #f0c040;border-radius:7px;padding:9px 13px;margin-bottom:14px;font-size:13px;color:#7a5800">
+                  &#8635; <strong>Replace credit report</strong> — upload a corrected or updated report below. The previous analysis will be overwritten.
+                </div>
                 <div class="card-title">&#128196; Upload Credit Bureau Report</div>
                 <p style="font-size:13px;color:#555;margin-bottom:14px">Upload a credit report from <strong>Equifax, Experian, or TransUnion</strong>. You can upload multiple bureau reports at once. The AI will extract all accounts, defaults, CCJs, and adverse markers — then cross-validate against what your client declared.</p>
                 <div class="upload-zone" id="cr-upload-zone"
@@ -4224,6 +4227,7 @@ function uploadCreditReport() {
       crSelectedFiles = [];
       document.getElementById('cr-selected-file').style.display = 'none';
       document.getElementById('cr-selected-filename').textContent = '';
+      document.getElementById('cr-file-input').value = '';
       return;
     }
     idx++;
@@ -4582,9 +4586,10 @@ function renderCreditReport(data) {
   var cr = data.credit_data || data;
   var validation = data.validation || cr.validation;
 
-  // Show results section, hide upload card
-  document.getElementById('cr-upload-card').style.display = 'none';
+  // Show results, keep upload card visible so user can re-upload at any time
   document.getElementById('cr-results').style.display = 'block';
+  document.getElementById('cr-upload-card').style.display = 'block';
+  document.getElementById('cr-replace-hint').style.display = 'block';
 
   // Bureau info
   var bureau = cr.bureau || 'Unknown';
