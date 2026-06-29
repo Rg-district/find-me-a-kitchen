@@ -62,6 +62,8 @@ from memory.client_store import (
     get_credit_report,
     save_payslip_analysis,
     get_payslip_analysis,
+    save_passport_data,
+    get_passport_data,
     CASE_STAGES,
     CASE_STAGE_LABELS,
     CLIENTS_DIR,
@@ -75,6 +77,8 @@ from tools.discrepancy_engine import compute_discrepancy
 from tools.stress_test import run_stress_test
 from tools.credit_report_analyser import analyse_credit_report, cross_validate as credit_cross_validate
 from tools.payslip_analyser import analyse_payslip
+from tools.passport_analyser import analyse_passport
+from tools.live_lender_api import is_live_api_configured, get_provider_name, get_live_affordability
 from tools.cross_validation_engine import cross_validate_documents
 from tools.document_generator import (
     generate_document as gen_document,
@@ -487,6 +491,19 @@ async def generate_client_report(client_id: str):
     return HTMLResponse(content=html, media_type="text/html")
 
 
+@app.get("/api/lender-api-status")
+async def lender_api_status():
+    """Return whether a live sourcing-platform API is configured."""
+    return {
+        "live_api_configured": is_live_api_configured(),
+        "provider": get_provider_name(),
+        "note": (
+            "Live affordability data active." if is_live_api_configured()
+            else "Using indicative estimates. Add TWENTY7TEC_API_KEY or MORTGAGE_BRAIN_API_KEY to enable live data."
+        ),
+    }
+
+
 @app.get("/api/clients/{client_id}/match-lenders")
 async def get_matched_lenders(client_id: str):
     """Return matched lenders for a client based on their grade and adverse history."""
@@ -522,7 +539,30 @@ async def get_matched_lenders(client_id: str):
         monthly_debts=monthly_debts,
     )
 
-    return {"client_id": client_id, "grade": grade, "lenders": matched, "count": len(matched)}
+    # Enrich with live API data when a sourcing-platform key is configured.
+    if is_live_api_configured():
+        for lender in matched:
+            live = get_live_affordability(
+                lender_name=lender["name"],
+                annual_income=monthly_income * 12,
+                partner_income=0.0,
+                employment_type=client.get("employment_type", "employed"),
+                monthly_debts=monthly_debts,
+                loan_amount=float(client.get("loan_amount", 0) or 0),
+                property_value=float(client.get("property_value", 0) or 0),
+                adverse_history=adverse,
+            )
+            if live:
+                lender["affordability_estimate"] = live
+
+    return {
+        "client_id": client_id,
+        "grade": grade,
+        "lenders": matched,
+        "count": len(matched),
+        "live_api_active": is_live_api_configured(),
+        "live_api_provider": get_provider_name(),
+    }
 
 
 # ── Case progress ─────────────────────────────────────────────────────────────
@@ -715,6 +755,82 @@ async def get_client_credit_report(client_id: str):
     data = get_credit_report(client_id)
     if not data:
         raise HTTPException(status_code=404, detail="No credit report uploaded yet")
+    return {"client_id": client_id, **data}
+
+
+# ── Passport / ID document ────────────────────────────────────────────────────
+
+_ALLOWED_ID_TYPES = {
+    "application/pdf",
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+}
+
+
+@app.post("/api/clients/{client_id}/upload-passport")
+async def upload_passport(client_id: str, file: UploadFile = File(...)):
+    """Upload a passport or photo ID for AML/KYC identity verification."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+
+    ct = file.content_type or "application/octet-stream"
+    if ct not in _ALLOWED_ID_TYPES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type: {ct}. Upload a PDF or image.",
+        )
+
+    try:
+        file_bytes = await file.read()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Could not read file: {exc}")
+
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+    try:
+        passport_data = analyse_passport(
+            file_bytes=file_bytes,
+            file_type=ct,
+            client_id=client_id,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Passport analysis failed: {exc}")
+
+    payload = {
+        "passport_data": passport_data,
+        "filename": file.filename,
+        "uploaded_at": passport_data["_meta"]["analysed_at"],
+    }
+    save_passport_data(client_id, payload)
+
+    log_event(client_id, "passport_uploaded", {
+        "document_type": passport_data.get("document_type"),
+        "issuing_country": passport_data.get("issuing_country"),
+        "is_expired": passport_data.get("is_expired"),
+        "filename": file.filename,
+    })
+    update_client(client_id, {"passport_uploaded": True})
+
+    return {
+        "success": True,
+        "client_id": client_id,
+        "passport_data": passport_data,
+    }
+
+
+@app.get("/api/clients/{client_id}/passport")
+async def get_client_passport(client_id: str):
+    """Return the stored passport analysis for a client."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    data = get_passport_data(client_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="No passport uploaded yet")
     return {"client_id": client_id, **data}
 
 

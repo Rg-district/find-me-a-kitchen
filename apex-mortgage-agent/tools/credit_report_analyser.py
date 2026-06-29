@@ -45,16 +45,18 @@ Extract ALL information visible and return ONLY a JSON object with this exact st
 
   "summary": {
     "total_accounts": <number>,
-    "open_accounts": <number>,
+    "total_open_accounts": <number>,
     "closed_accounts": <number>,
     "defaulted_accounts": <number>,
-    "total_outstanding_balance": <number or null>,
+    "total_balance": <number or null — sum of ALL open account balances visible>,
     "total_credit_limit": <number or null>,
     "overall_utilisation_pct": <number or null>,
     "oldest_account_years": <number or null>,
     "total_missed_payments": <number>,
-    "defaults_count": <number>,
-    "ccjs_count": <number>
+    "missed_payments_12m": <number — missed payments in last 12 months only>,
+    "default_count": <number>,
+    "ccj_count": <number>,
+    "hard_searches_6m": <number — hard credit searches in last 6 months>
   },
 
   "accounts": [
@@ -65,7 +67,7 @@ Extract ALL information visible and return ONLY a JSON object with this exact st
       "opened_date": "<YYYY-MM or null>",
       "closed_date": "<YYYY-MM or null>",
       "status": "<open | closed | defaulted | settled | satisfied | transferred | dormant>",
-      "balance": <number or null>,
+      "balance": <number — REQUIRED for open accounts: extract the exact balance shown. If shown as £0 return 0. NEVER return null if a balance figure is visible on the report>,
       "credit_limit": <number or null>,
       "monthly_payment": <number or null>,
       "payment_history_months_recorded": <number>,
@@ -126,13 +128,17 @@ Extract ALL information visible and return ONLY a JSON object with this exact st
   "underwriter_summary": "<3-5 sentences: overall credit profile assessment, key concerns, notable positives, and overall suitability impression for a UK adverse mortgage lender>"
 }
 
-IMPORTANT EXTRACTION RULES:
+CRITICAL EXTRACTION RULES:
+- BALANCE FOR OPEN ACCOUNTS: For every account with status "open", you MUST extract the current balance as a number. If the report shows a balance (e.g. £1,234 or £0), return that exact number. NEVER return null for an open account balance if a figure is visible — return 0 if the balance shows as zero.
 - Flag ALL payday lenders by name (QuickQuid, Wonga, SafetyNet Credit, Drafty, Sunny, Peachy, Cashfloat, Ferratum, Moneyboat, Wageday Advance, QuidMarket, Lending Stream, 247Moneybox, etc.) with is_payday_lender: true
-- List EVERY account visible, both open and closed
+- List EVERY account visible, both open and closed — do not truncate the list
 - Record EVERY default, CCJ, and public record
 - Include ALL addresses shown in address history
 - List ALL credit searches visible
-- Use null for any value you cannot determine — never guess"""
+- For summary.total_balance: add up ALL open account balances and return the total
+- For summary.missed_payments_12m: count only missed payments in the last 12 months
+- For summary.hard_searches_6m: count hard searches in the last 6 months only
+- Use null only when a value is genuinely absent from the report — never guess, but never use null when data is visible"""
 
 
 def analyse_credit_report(
@@ -166,7 +172,7 @@ def analyse_credit_report(
 
     response = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=4096,
+        max_tokens=16000,
         messages=[
             {
                 "role": "user",
@@ -193,11 +199,26 @@ def analyse_credit_report(
         else:
             data = _fallback(raw)
 
+    # Normalise legacy field names so existing and new field names both work.
+    summary = data.get("summary", {}) or {}
+    if "total_outstanding_balance" in summary and "total_balance" not in summary:
+        summary["total_balance"] = summary["total_outstanding_balance"]
+    if "open_accounts" in summary and "total_open_accounts" not in summary:
+        summary["total_open_accounts"] = summary["open_accounts"]
+    if "ccjs_count" in summary and "ccj_count" not in summary:
+        summary["ccj_count"] = summary["ccjs_count"]
+    if "defaults_count" in summary and "default_count" not in summary:
+        summary["default_count"] = summary["defaults_count"]
+    if "total_missed_payments" in summary and "missed_payments_12m" not in summary:
+        summary["missed_payments_12m"] = summary["total_missed_payments"]
+    data["summary"] = summary
+
     data["_meta"] = {
         "client_id": client_id,
         "analysed_at": datetime.utcnow().isoformat(),
         "file_type": file_type,
         "model": "claude-sonnet-4-6",
+        "raw_length": len(raw),
     }
     return data
 

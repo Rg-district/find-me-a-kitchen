@@ -1428,6 +1428,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <button class="tab-btn" data-tab="statements" onclick="switchTab('statements')">&#128196; Bank Statements</button>
             <button class="tab-btn" data-tab="payslip" onclick="switchTab('payslip')">&#128181; Payslip</button>
             <button class="tab-btn" data-tab="report" onclick="switchTab('report')">&#128202; Credit Report</button>
+            <button class="tab-btn" data-tab="passport" onclick="switchTab('passport')">&#128111; Passport</button>
             <button class="tab-btn" data-tab="crosscheck" onclick="switchTab('crosscheck')">&#128269; Cross-Check</button>
             <button class="tab-btn" data-tab="lenders" onclick="switchTab('lenders')">&#127970; Lenders</button>
             <button class="tab-btn" data-tab="market" onclick="switchTab('market')">&#128200; Market</button>
@@ -1522,7 +1523,8 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <div style="max-width:900px">
 
               <div class="card">
-                <div class="card-title">&#128196; Upload Bank Statement</div>
+                <div class="card-title">&#128196; Upload Bank Statements</div>
+                <p style="font-size:12px;color:#7b8fa4;margin-bottom:10px">You can select multiple months at once — they'll be analysed in sequence.</p>
                 <div class="upload-zone" id="upload-zone"
                      onclick="document.getElementById('file-input').click()"
                      ondragover="handleDragOver(event)"
@@ -1530,13 +1532,14 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                      ondrop="handleDrop(event)">
                   <div class="upload-zone-icon">&#128196;</div>
                   <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
-                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; bank statement in original format</div>
+                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; select multiple months at once</div>
                 </div>
-                <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handleFileSelect(event)">
+                <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" multiple onchange="handleFileSelect(event)">
                 <div id="selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
                   <span id="selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
-                  <button class="btn btn-primary" onclick="uploadAndAnalyse()" id="btn-analyse">Analyse Statement</button>
+                  <button class="btn btn-primary" onclick="uploadAndAnalyse()" id="btn-analyse">Analyse Statement(s)</button>
                 </div>
+                <div id="multi-upload-progress" style="display:none;margin-top:10px;font-size:13px;color:#555"></div>
               </div>
 
               <div id="analysis-results" style="display:none">
@@ -1591,8 +1594,8 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
             <div style="max-width:900px">
 
               <div class="card" id="payslip-upload-card">
-                <div class="card-title">&#128181; Upload Payslip</div>
-                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload the client's most recent payslip. The AI will extract gross pay, net pay, and itemised deductions (tax, National Insurance, pension, etc.) and compare it against their declared income.</p>
+                <div class="card-title">&#128181; Upload Payslips</div>
+                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload the client's most recent payslips. Select multiple at once to upload 3 months together. The AI will extract gross pay, net pay, and itemised deductions and compare against their declared income.</p>
                 <div class="upload-zone" id="payslip-upload-zone"
                      onclick="document.getElementById('payslip-file-input').click()"
                      ondragover="handleDragOver(event)"
@@ -1600,13 +1603,14 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                      ondrop="handlePayslipDrop(event)">
                   <div class="upload-zone-icon">&#128181;</div>
                   <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
-                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; payslip in original format</div>
+                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; select multiple payslips at once</div>
                 </div>
-                <input type="file" id="payslip-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" onchange="handlePayslipFileSelect(event)">
+                <input type="file" id="payslip-file-input" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" style="display:none" multiple onchange="handlePayslipFileSelect(event)">
                 <div id="payslip-selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
                   <span id="payslip-selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
-                  <button class="btn btn-primary" onclick="uploadPayslip()" id="btn-payslip-analyse">Analyse Payslip</button>
+                  <button class="btn btn-primary" onclick="uploadPayslip()" id="btn-payslip-analyse">Analyse Payslip(s)</button>
                 </div>
+                <div id="payslip-multi-progress" style="display:none;margin-top:10px;font-size:13px;color:#555"></div>
               </div>
 
               <div id="payslip-results" style="display:none">
@@ -1658,7 +1662,7 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
               <!-- Upload zone -->
               <div class="card" id="cr-upload-card">
                 <div class="card-title">&#128196; Upload Credit Bureau Report</div>
-                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload a credit report from <strong>Equifax, Experian, or TransUnion</strong>. The AI will extract all accounts, defaults, CCJs, and adverse markers — then cross-validate against what your client declared.</p>
+                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload a credit report from <strong>Equifax, Experian, or TransUnion</strong>. You can upload multiple bureau reports at once. The AI will extract all accounts, defaults, CCJs, and adverse markers — then cross-validate against what your client declared.</p>
                 <div class="upload-zone" id="cr-upload-zone"
                      onclick="document.getElementById('cr-file-input').click()"
                      ondragover="handleDragOver(event)"
@@ -1668,11 +1672,12 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                   <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
                   <div class="upload-zone-hint">PDF or image — Equifax, Experian, TransUnion, CheckMyFile</div>
                 </div>
-                <input type="file" id="cr-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handleCrFileSelect(event)">
+                <input type="file" id="cr-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" multiple onchange="handleCrFileSelect(event)">
                 <div id="cr-selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;align-items:center;justify-content:space-between;gap:12px">
                   <span id="cr-selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
-                  <button class="btn btn-primary" onclick="uploadCreditReport()" id="btn-cr-analyse">Analyse Credit Report</button>
+                  <button class="btn btn-primary" onclick="uploadCreditReport()" id="btn-cr-analyse">Analyse Report(s)</button>
                 </div>
+                <div id="cr-multi-progress" style="display:none;margin-top:10px;font-size:13px;color:#555"></div>
               </div>
 
               <!-- Results (hidden until upload) -->
@@ -1719,6 +1724,59 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                 </div>
 
               </div>
+            </div>
+          </div>
+
+          <!-- PASSPORT TAB -->
+          <div id="tab-passport" class="tab-pane">
+            <div style="max-width:760px">
+
+              <!-- Upload card -->
+              <div class="card" id="passport-upload-card">
+                <div class="card-title">&#128111; Passport / Photo ID</div>
+                <p style="font-size:13px;color:#555;margin-bottom:14px">Upload the client's passport or photo ID for AML / KYC identity verification. PDF or image accepted.</p>
+                <div class="upload-zone" id="passport-upload-zone"
+                     onclick="document.getElementById('passport-file-input').click()"
+                     ondragover="event.preventDefault();this.classList.add('drag-over')"
+                     ondragleave="this.classList.remove('drag-over')"
+                     ondrop="handlePassportDrop(event)">
+                  <div class="upload-zone-icon">&#128111;</div>
+                  <div class="upload-zone-text"><strong>Click to upload</strong> or drag and drop</div>
+                  <div class="upload-zone-hint">PDF, JPG, PNG, WebP &#8212; passport bio-data page preferred</div>
+                </div>
+                <input type="file" id="passport-file-input" accept=".pdf,.jpg,.jpeg,.png,.webp" style="display:none" onchange="handlePassportFileSelect(event)">
+                <div id="passport-selected-file" style="display:none;margin-top:12px;padding:10px 14px;background:#f8fafc;border-radius:7px;display:none;align-items:center;justify-content:space-between;gap:12px">
+                  <span id="passport-selected-filename" style="font-size:13px;font-weight:600;color:var(--navy)"></span>
+                  <button class="btn btn-primary" onclick="uploadPassport()" id="btn-passport-analyse">Analyse Document</button>
+                </div>
+              </div>
+
+              <!-- Results -->
+              <div id="passport-results" style="display:none">
+
+                <div class="card">
+                  <div class="card-title">&#9989; Document Verified</div>
+                  <div id="passport-status-bar" style="display:flex;gap:8px;align-items:center;margin-bottom:14px"></div>
+                  <table class="data-table">
+                    <tbody id="passport-details-tbody"></tbody>
+                  </table>
+                </div>
+
+                <div class="card" id="passport-flags-card" style="display:none">
+                  <div class="card-title" style="color:var(--danger)">&#9888; Verification Flags</div>
+                  <div id="passport-flags-body"></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-title">&#128203; AML / KYC Notes</div>
+                  <p id="passport-aml-notes" style="font-size:13px;color:#555;line-height:1.6"></p>
+                </div>
+
+                <div style="margin-top:10px">
+                  <button class="btn btn-outline btn-sm" onclick="document.getElementById('passport-results').style.display='none';document.getElementById('passport-upload-card').style.display='block'">&#8593; Upload another document</button>
+                </div>
+              </div>
+
             </div>
           </div>
 
@@ -1806,8 +1864,10 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                 <div class="card" style="margin-bottom:20px">
                   <div class="card-title">&#127970; Matched Lenders</div>
                   <p id="lenders-summary" style="font-size:13px;color:#555;margin-bottom:10px"></p>
+                  <!-- Live API status banner (updated dynamically by renderLenders) -->
+                  <div id="lenders-live-banner" style="display:none;align-items:center;gap:8px;font-size:12px;padding:8px 10px;border-radius:6px;margin-bottom:10px;border:1px solid #d1fae5;background:#ecfdf5;color:#065f46"></div>
                   <p style="font-size:11px;color:#7d5a00;background:#fffbeb;border:1px solid #f6d860;border-radius:6px;padding:8px 10px;margin-bottom:16px">
-                    <strong>Indicative estimates only.</strong> "Est. max loan" figures are calculated from each lender's typical published income multiple and a stress-tested affordability ceiling — they are not live lender calculator results. Always confirm the real figure with the lender's own calculator or BDM before submission.
+                    <strong>Affordability figures:</strong> <span id="lenders-afford-note">EST badges = indicative estimates from published income multiples. Add a sourcing-platform API key to replace with LIVE lender calculator results.</span>
                   </p>
                   <div class="lender-grid" id="lender-grid"></div>
                 </div>
@@ -2888,74 +2948,74 @@ function handleDrop(e) {
   var file = e.dataTransfer.files[0];
   if (file) setSelectedFile(file);
 }
+var selectedFiles = [];
 function handleFileSelect(e) {
-  var file = e.target.files[0];
-  if (file) setSelectedFile(file);
+  var files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  selectedFiles = files;
+  var label = files.length === 1 ? files[0].name : files.length + ' statements selected';
+  document.getElementById('selected-filename').textContent = label;
+  document.getElementById('selected-file').style.display = 'flex';
+  document.getElementById('multi-upload-progress').style.display = 'none';
 }
 function setSelectedFile(file) {
-  selectedFile = file;
+  selectedFiles = [file];
   document.getElementById('selected-filename').textContent = file.name;
-  var sf = document.getElementById('selected-file');
-  sf.style.display = 'flex';
+  document.getElementById('selected-file').style.display = 'flex';
 }
 
 function uploadAndAnalyse() {
-  if (!selectedFile || !selectedClientId) return;
+  if (!selectedFiles.length || !selectedClientId) return;
+  var files = selectedFiles.slice();
+  var total = files.length;
+  var idx = 0;
+  var lastData = null;
+  var progressEl = document.getElementById('multi-upload-progress');
 
-  showLoading('Uploading and analysing statement with AI...\nThis may take 30-60 seconds.');
-  document.getElementById('btn-analyse').disabled = true;
-
-  var formData = new FormData();
-  formData.append('file', selectedFile);
-
-  fetch('/api/clients/' + selectedClientId + '/upload-statement', {
-    method: 'POST',
-    body: formData,
-  })
-  .then(function(res) {
-    return res.json().then(function(data) { return { ok: res.ok, data: data }; });
-  })
-  .then(function(result) {
-    hideLoading();
-    document.getElementById('btn-analyse').disabled = false;
-
-    if (!result.ok) {
-      toast(result.data.detail || 'Analysis failed', 'error');
+  function uploadNext() {
+    if (idx >= total) {
+      hideLoading();
+      document.getElementById('btn-analyse').disabled = false;
+      progressEl.style.display = 'none';
+      if (lastData) {
+        currentAnalysis = lastData.analysis;
+        currentGrade = lastData.grade_result;
+        renderGradeSummary(lastData.grade_result);
+        renderAnalysisResults(lastData.analysis, lastData.grade_result);
+        loadDiscrepancyReport();
+        allClients.forEach(function(c) {
+          if (c.client_id === selectedClientId) { c.grade = lastData.grade; c.grade_label = lastData.grade_label; }
+        });
+        renderClientList(allClients);
+        var badge = document.getElementById('panel-grade-badge');
+        badge.style.display = 'inline-flex';
+        badge.textContent = 'Grade ' + lastData.grade + ' — ' + (lastData.grade_label || '');
+        badge.className = 'client-panel-grade grade-' + lastData.grade;
+        toast('Analysis complete — Grade ' + lastData.grade + ' (' + lastData.score + '/100)', 'success');
+      }
+      selectedFiles = [];
+      document.getElementById('selected-file').style.display = 'none';
+      document.getElementById('file-input').value = '';
       return;
     }
-
-    var data = result.data;
-    currentAnalysis = data.analysis;
-    currentGrade = data.grade_result;
-
-    renderGradeSummary(data.grade_result);
-    renderAnalysisResults(data.analysis, data.grade_result);
-    loadDiscrepancyReport();
-
-    allClients.forEach(function(c) {
-      if (c.client_id === selectedClientId) {
-        c.grade = data.grade;
-        c.grade_label = data.grade_label;
-      }
-    });
-    renderClientList(allClients);
-
-    var badge = document.getElementById('panel-grade-badge');
-    badge.style.display = 'inline-flex';
-    badge.textContent = 'Grade ' + data.grade + ' — ' + (data.grade_label || '');
-    badge.className = 'client-panel-grade grade-' + data.grade;
-
-    toast('Analysis complete — Grade ' + data.grade + ' (' + data.score + '/100)', 'success');
-
-    selectedFile = null;
-    document.getElementById('selected-file').style.display = 'none';
-    document.getElementById('file-input').value = '';
-  })
-  .catch(function() {
-    hideLoading();
-    document.getElementById('btn-analyse').disabled = false;
-    toast('Network error during analysis', 'error');
-  });
+    idx++;
+    var file = files[idx - 1];
+    progressEl.style.display = 'block';
+    progressEl.textContent = 'Analysing ' + idx + ' of ' + total + ': ' + file.name + '...';
+    showLoading('Analysing statement ' + idx + ' of ' + total + ' with AI...');
+    document.getElementById('btn-analyse').disabled = true;
+    var formData = new FormData();
+    formData.append('file', file);
+    fetch('/api/clients/' + selectedClientId + '/upload-statement', { method: 'POST', body: formData })
+      .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+      .then(function(result) {
+        if (!result.ok) { toast((result.data.detail || 'Analysis failed') + ' (' + file.name + ')', 'error'); uploadNext(); return; }
+        lastData = result.data;
+        uploadNext();
+      })
+      .catch(function() { toast('Network error uploading ' + file.name, 'error'); uploadNext(); });
+  }
+  uploadNext();
 }
 
 // ── Payslip upload & analysis ──────────────────────────────────────────────────
@@ -2965,53 +3025,68 @@ function handlePayslipDrop(e) {
   var file = e.dataTransfer.files[0];
   if (file) setSelectedPayslipFile(file);
 }
+var payslipSelectedFiles = [];
 function handlePayslipFileSelect(e) {
-  var file = e.target.files[0];
-  if (file) setSelectedPayslipFile(file);
+  var files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  payslipSelectedFiles = files;
+  var label = files.length === 1 ? files[0].name : files.length + ' payslips selected';
+  document.getElementById('payslip-selected-filename').textContent = label;
+  document.getElementById('payslip-selected-file').style.display = 'flex';
+  document.getElementById('payslip-multi-progress').style.display = 'none';
 }
 function setSelectedPayslipFile(file) {
-  payslipSelectedFile = file;
+  payslipSelectedFiles = [file];
   document.getElementById('payslip-selected-filename').textContent = file.name;
   document.getElementById('payslip-selected-file').style.display = 'flex';
 }
 
 function uploadPayslip() {
-  if (!payslipSelectedFile || !selectedClientId) return;
+  if (!payslipSelectedFiles.length || !selectedClientId) return;
+  var files = payslipSelectedFiles.slice();
+  var total = files.length;
+  var idx = 0;
+  var lastAnalysis = null;
+  var progressEl = document.getElementById('payslip-multi-progress');
 
-  showLoading('Uploading and analysing payslip with AI...\nThis may take 30-60 seconds.');
-  document.getElementById('btn-payslip-analyse').disabled = true;
-
-  var formData = new FormData();
-  formData.append('file', payslipSelectedFile);
-
-  fetch('/api/clients/' + selectedClientId + '/upload-payslip', {
-    method: 'POST',
-    body: formData,
-  })
-  .then(function(res) {
-    return res.json().then(function(data) { return { ok: res.ok, data: data }; });
-  })
-  .then(function(result) {
-    hideLoading();
-    document.getElementById('btn-payslip-analyse').disabled = false;
-
-    if (!result.ok) {
-      toast(result.data.detail || 'Analysis failed', 'error');
+  function uploadNext() {
+    if (idx >= total) {
+      hideLoading();
+      document.getElementById('btn-payslip-analyse').disabled = false;
+      progressEl.style.display = 'none';
+      if (lastAnalysis) {
+        renderPayslipResults(lastAnalysis);
+        toast('Payslip analysis complete (' + total + ' processed)', 'success');
+        if (total > 1) triggerCrossCheck();
+      }
+      payslipSelectedFiles = [];
+      document.getElementById('payslip-selected-file').style.display = 'none';
+      document.getElementById('payslip-file-input').value = '';
       return;
     }
+    idx++;
+    var file = files[idx - 1];
+    progressEl.style.display = 'block';
+    progressEl.textContent = 'Analysing payslip ' + idx + ' of ' + total + ': ' + file.name + '...';
+    showLoading('Analysing payslip ' + idx + ' of ' + total + ' with AI...');
+    document.getElementById('btn-payslip-analyse').disabled = true;
+    var formData = new FormData();
+    formData.append('file', file);
+    fetch('/api/clients/' + selectedClientId + '/upload-payslip', { method: 'POST', body: formData })
+      .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
+      .then(function(result) {
+        if (!result.ok) { toast((result.data.detail || 'Analysis failed') + ' (' + file.name + ')', 'error'); uploadNext(); return; }
+        lastAnalysis = result.data.analysis;
+        uploadNext();
+      })
+      .catch(function() { toast('Network error uploading ' + file.name, 'error'); uploadNext(); });
+  }
+  uploadNext();
+}
 
-    renderPayslipResults(result.data.analysis);
-    toast('Payslip analysis complete', 'success');
-
-    payslipSelectedFile = null;
-    document.getElementById('payslip-selected-file').style.display = 'none';
-    document.getElementById('payslip-file-input').value = '';
-  })
-  .catch(function() {
-    hideLoading();
-    document.getElementById('btn-payslip-analyse').disabled = false;
-    toast('Network error during analysis', 'error');
-  });
+function triggerCrossCheck() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/cross-check').catch(function() {});
 }
 
 function renderPayslipResults(analysis) {
@@ -3276,6 +3351,16 @@ function renderLenders(data) {
   document.getElementById('lenders-summary').textContent =
     'Grade ' + data.grade + ' — ' + lenders.length + ' lender' + (lenders.length !== 1 ? 's' : '') + ' matched for this profile.';
 
+  // Live API status banner
+  var liveEl = document.getElementById('lenders-live-banner');
+  if (data.live_api_active) {
+    liveEl.innerHTML = '<span style="font-size:15px">&#128994;</span> <strong>Live data active</strong> — affordability figures sourced from ' + esc(data.live_api_provider || 'sourcing platform') + ' in real time.';
+    liveEl.style.display = 'flex';
+  } else {
+    liveEl.innerHTML = '<span style="font-size:15px">&#128308;</span> Using <strong>indicative estimates</strong> — add a sourcing-platform API key (Twenty7Tec T360 or Mortgage Brain) to enable live lender data.';
+    liveEl.style.display = 'flex';
+  }
+
   renderRiskAssessment(currentClient || {});
 
   document.getElementById('lender-grid').innerHTML = lenders.slice(0, 8).map(function(l) {
@@ -3288,10 +3373,14 @@ function renderLenders(data) {
     var afford = l.affordability_estimate || {};
     var affordBlock = '';
     if (afford.max_loan_estimate != null) {
+      var isLive = afford.source && afford.source.indexOf('live') !== -1;
+      var badge = isLive
+        ? '<span style="font-size:10px;font-weight:700;background:#1a7a3e;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px">LIVE</span>'
+        : '<span style="font-size:10px;font-weight:700;background:#a0aec0;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px">EST</span>';
       affordBlock =
         '<div class="afford-estimate">' +
-          '<div style="display:flex;justify-content:space-between;align-items:baseline">' +
-            '<span style="font-size:11px;color:#666">Est. max loan</span>' +
+          '<div style="display:flex;justify-content:space-between;align-items:center">' +
+            '<span style="font-size:11px;color:#666">' + (isLive ? 'Max loan' : 'Est. max loan') + badge + '</span>' +
             '<span style="font-size:11px;color:#999">@ ' + (afford.indicative_rate != null ? afford.indicative_rate.toFixed(2) + '%' : 'N/A') + '</span>' +
           '</div>' +
           '<div style="font-size:20px;font-weight:700;color:' + colour + '">' + gbp(afford.max_loan_estimate) + '</div>' +
@@ -3495,6 +3584,7 @@ function switchTab(tabId) {
 
   if (tabId === 'lenders') loadLenders();
   if (tabId === 'report') loadCreditReport();
+  if (tabId === 'passport') loadPassportTab();
   if (tabId === 'crosscheck') loadCrossCheck();
   if (tabId === 'documents') loadDocuments();
   if (tabId === 'assistant') setTimeout(scrollChat, 100);
@@ -4083,58 +4173,72 @@ function clearChatFile() {
 }
 
 // ── Credit Report tab ──────────────────────────────────────────────────────────
+var crSelectedFiles = [];
 function handleCrFileSelect(event) {
-  var file = event.target.files && event.target.files[0];
-  if (!file) return;
-  crSelectedFile = file;
-  document.getElementById('cr-selected-filename').textContent = file.name;
+  var files = Array.from(event.target.files || []);
+  if (!files.length) return;
+  crSelectedFiles = files;
+  var label = files.length === 1 ? files[0].name : files.length + ' reports selected';
+  document.getElementById('cr-selected-filename').textContent = label;
   document.getElementById('cr-selected-file').style.display = 'flex';
+  document.getElementById('cr-multi-progress').style.display = 'none';
 }
 
 function handleCrDrop(event) {
   event.preventDefault();
-  var zone = document.getElementById('cr-upload-zone');
-  zone.classList.remove('dragover');
-  var file = event.dataTransfer.files && event.dataTransfer.files[0];
-  if (!file) return;
-  crSelectedFile = file;
-  document.getElementById('cr-selected-filename').textContent = file.name;
+  document.getElementById('cr-upload-zone').classList.remove('dragover');
+  var files = Array.from((event.dataTransfer && event.dataTransfer.files) || []);
+  if (!files.length) return;
+  crSelectedFiles = files;
+  document.getElementById('cr-selected-filename').textContent = files.length === 1 ? files[0].name : files.length + ' reports selected';
   document.getElementById('cr-selected-file').style.display = 'flex';
 }
 
 function uploadCreditReport() {
   if (!selectedClientId) { toast('Select a client first', 'error'); return; }
-  if (!crSelectedFile) { toast('Please select a credit report file', 'error'); return; }
+  if (!crSelectedFiles.length) { toast('Please select a credit report file', 'error'); return; }
 
+  var files = crSelectedFiles.slice();
+  var total = files.length;
+  var idx = 0;
+  var lastResult = null;
   var btn = document.getElementById('btn-cr-analyse');
-  btn.disabled = true;
-  btn.textContent = 'Analysing…';
-  showLoading('Analysing credit report with AI…');
+  var progressEl = document.getElementById('cr-multi-progress');
 
-  var fd = new FormData();
-  fd.append('file', crSelectedFile);
-
-  fetch('/api/clients/' + selectedClientId + '/upload-credit-report', { method: 'POST', body: fd })
-    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
-    .then(function(result) {
+  function uploadNext() {
+    if (idx >= total) {
       hideLoading();
       btn.disabled = false;
-      btn.textContent = 'Analyse Credit Report';
-      if (!result.ok) {
-        toast(result.data.detail || 'Analysis failed', 'error');
-        return;
+      btn.textContent = 'Analyse Report(s)';
+      progressEl.style.display = 'none';
+      if (lastResult) {
+        renderCreditReport(lastResult);
+        if (total > 1) triggerCrossCheck();
       }
-      crSelectedFile = null;
+      crSelectedFiles = [];
       document.getElementById('cr-selected-file').style.display = 'none';
       document.getElementById('cr-selected-filename').textContent = '';
-      renderCreditReport(result.data);
-    })
-    .catch(function() {
-      hideLoading();
-      btn.disabled = false;
-      btn.textContent = 'Analyse Credit Report';
-      toast('Network error during analysis', 'error');
-    });
+      return;
+    }
+    idx++;
+    var file = files[idx - 1];
+    progressEl.style.display = 'block';
+    progressEl.textContent = 'Analysing report ' + idx + ' of ' + total + ': ' + file.name + '...';
+    btn.disabled = true;
+    btn.textContent = 'Analysing…';
+    showLoading('Analysing credit report ' + idx + ' of ' + total + ' with AI…');
+    var fd = new FormData();
+    fd.append('file', file);
+    fetch('/api/clients/' + selectedClientId + '/upload-credit-report', { method: 'POST', body: fd })
+      .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+      .then(function(result) {
+        if (!result.ok) { toast((result.data.detail || 'Analysis failed') + ' (' + file.name + ')', 'error'); uploadNext(); return; }
+        lastResult = result.data;
+        uploadNext();
+      })
+      .catch(function() { toast('Network error uploading ' + file.name, 'error'); uploadNext(); });
+  }
+  uploadNext();
 }
 
 function loadCreditReport() {
@@ -4147,6 +4251,99 @@ function loadCreditReport() {
       }
     })
     .catch(function() {}); // No report yet — upload zone stays visible
+}
+
+// ── Passport tab ─────────────────────────────────────────────────────────────
+var passportSelectedFile = null;
+function handlePassportDrop(event) {
+  event.preventDefault();
+  document.getElementById('passport-upload-zone').classList.remove('drag-over');
+  var file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+  if (file) handlePassportFileSet(file);
+}
+function handlePassportFileSelect(event) {
+  var file = event.target.files && event.target.files[0];
+  if (file) handlePassportFileSet(file);
+}
+function handlePassportFileSet(file) {
+  passportSelectedFile = file;
+  document.getElementById('passport-selected-filename').textContent = file.name;
+  document.getElementById('passport-selected-file').style.display = 'flex';
+}
+function uploadPassport() {
+  if (!passportSelectedFile || !selectedClientId) return;
+  showLoading('Analysing identity document with AI...\nThis may take 15-30 seconds.');
+  document.getElementById('btn-passport-analyse').disabled = true;
+  var fd = new FormData();
+  fd.append('file', passportSelectedFile);
+  fetch('/api/clients/' + selectedClientId + '/upload-passport', { method: 'POST', body: fd })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(result) {
+      hideLoading();
+      document.getElementById('btn-passport-analyse').disabled = false;
+      if (!result.ok) { toast(result.data.detail || 'Analysis failed', 'error'); return; }
+      renderPassportResults(result.data.passport_data);
+      toast('Passport analysis complete', 'success');
+      passportSelectedFile = null;
+      document.getElementById('passport-selected-file').style.display = 'none';
+      document.getElementById('passport-file-input').value = '';
+    })
+    .catch(function() {
+      hideLoading();
+      document.getElementById('btn-passport-analyse').disabled = false;
+      toast('Network error during passport analysis', 'error');
+    });
+}
+function loadPassportTab() {
+  if (!selectedClientId) return;
+  fetch('/api/clients/' + selectedClientId + '/passport')
+    .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+    .then(function(d) { if (d && d.passport_data) renderPassportResults(d.passport_data); })
+    .catch(function() {});
+}
+function renderPassportResults(p) {
+  if (!p) return;
+  document.getElementById('passport-upload-card').style.display = 'none';
+  document.getElementById('passport-results').style.display = 'block';
+  var isExpired = p.is_expired;
+  var expireSoon = p.expires_within_6_months;
+  var statusColour = isExpired ? '#c0392b' : expireSoon ? '#b8760a' : '#1a7a3e';
+  var statusIcon = isExpired ? '&#9940;' : expireSoon ? '&#9888;' : '&#10003;';
+  var statusText = isExpired ? 'EXPIRED' : expireSoon ? 'Expires within 6 months — may be rejected by lenders' : 'Valid';
+  document.getElementById('passport-status-bar').innerHTML =
+    '<span style="font-size:20px">' + statusIcon + '</span>' +
+    '<span style="font-weight:700;color:' + statusColour + '">' + statusText + '</span>' +
+    (p.expiry_date ? '<span style="font-size:12px;color:#666">Expiry: ' + esc(p.expiry_date) + '</span>' : '');
+  var rows = [
+    ['Document Type', p.document_type],
+    ['Issuing Country', p.issuing_country],
+    ['Full Name', p.full_name],
+    ['Surname', p.surname],
+    ['Given Names', p.given_names],
+    ['Date of Birth', p.date_of_birth],
+    ['Nationality', p.nationality],
+    ['Gender', p.gender],
+    ['Document Number', p.document_number],
+    ['Issue Date', p.issue_date],
+    ['Expiry Date', p.expiry_date],
+    ['Place of Birth', p.place_of_birth],
+    ['MRZ Line 1', p.mrz_line_1],
+    ['MRZ Line 2', p.mrz_line_2],
+  ];
+  document.getElementById('passport-details-tbody').innerHTML = rows.map(function(r) {
+    return '<tr><td style="font-weight:600;width:40%">' + esc(r[0]) + '</td><td>' + esc(r[1] || '—') + '</td></tr>';
+  }).join('');
+  var flags = p.verification_flags || [];
+  var flagsCard = document.getElementById('passport-flags-card');
+  if (flags.length) {
+    flagsCard.style.display = 'block';
+    document.getElementById('passport-flags-body').innerHTML = flags.map(function(f) {
+      return '<div style="padding:6px 0;border-bottom:1px solid #f0f4f8;font-size:13px;color:#c0392b">&#9888; ' + esc(f) + '</div>';
+    }).join('');
+  } else {
+    flagsCard.style.display = 'none';
+  }
+  document.getElementById('passport-aml-notes').textContent = p.aml_notes || '';
 }
 
 // ── Cross-check tab ─────────────────────────────────────────────────────────
