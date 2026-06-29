@@ -1772,6 +1772,12 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                   <p id="passport-aml-notes" style="font-size:13px;color:#555;line-height:1.6"></p>
                 </div>
 
+                <div class="card" id="passport-crosscheck-card" style="display:none">
+                  <div class="card-title">&#128270; Document Checks</div>
+                  <div id="passport-crosscheck-banner" style="padding:10px 14px;border-radius:7px;margin-bottom:14px;font-weight:700;font-size:14px"></div>
+                  <div id="passport-crosscheck-rows"></div>
+                </div>
+
                 <div style="margin-top:10px">
                   <button class="btn btn-outline btn-sm" onclick="document.getElementById('passport-results').style.display='none';document.getElementById('passport-upload-card').style.display='block'">&#8593; Upload another document</button>
                 </div>
@@ -4282,7 +4288,7 @@ function uploadPassport() {
       hideLoading();
       document.getElementById('btn-passport-analyse').disabled = false;
       if (!result.ok) { toast(result.data.detail || 'Analysis failed', 'error'); return; }
-      renderPassportResults(result.data.passport_data);
+      renderPassportResults(result.data.passport_data, result.data.cross_check);
       toast('Passport analysis complete', 'success');
       passportSelectedFile = null;
       document.getElementById('passport-selected-file').style.display = 'none';
@@ -4298,10 +4304,10 @@ function loadPassportTab() {
   if (!selectedClientId) return;
   fetch('/api/clients/' + selectedClientId + '/passport')
     .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
-    .then(function(d) { if (d && d.passport_data) renderPassportResults(d.passport_data); })
+    .then(function(d) { if (d && d.passport_data) renderPassportResults(d.passport_data, d.cross_check); })
     .catch(function() {});
 }
-function renderPassportResults(p) {
+function renderPassportResults(p, crossCheck) {
   if (!p) return;
   document.getElementById('passport-upload-card').style.display = 'none';
   document.getElementById('passport-results').style.display = 'block';
@@ -4344,6 +4350,40 @@ function renderPassportResults(p) {
     flagsCard.style.display = 'none';
   }
   document.getElementById('passport-aml-notes').textContent = p.aml_notes || '';
+
+  // ── Cross-check section ─────────────────────────────────────────────────────
+  var ccCard = document.getElementById('passport-crosscheck-card');
+  if (crossCheck && crossCheck.checks && crossCheck.checks.length) {
+    ccCard.style.display = 'block';
+    var overall = crossCheck.overall || 'warning';
+    var bannerBg = overall === 'pass' ? '#e6f9ed' : overall === 'fail' ? '#fde8e8' : '#fff8e1';
+    var bannerColor = overall === 'pass' ? '#1a7a3e' : overall === 'fail' ? '#c0392b' : '#b8760a';
+    var bannerIcon = overall === 'pass' ? '&#10003;' : overall === 'fail' ? '&#10007;' : '&#9888;';
+    document.getElementById('passport-crosscheck-banner').style.background = bannerBg;
+    document.getElementById('passport-crosscheck-banner').style.color = bannerColor;
+    document.getElementById('passport-crosscheck-banner').innerHTML =
+      bannerIcon + ' ' + esc(crossCheck.overall_text || '') +
+      ' <span style="font-weight:400;font-size:12px;margin-left:8px">(' +
+      crossCheck.pass_count + ' passed, ' + crossCheck.warn_count + ' warnings, ' + crossCheck.fail_count + ' failed)</span>';
+
+    var sourceLabels = { document: 'Document', client_record: 'Client Record', payslip: 'Payslip', credit_report: 'Credit Report' };
+    document.getElementById('passport-crosscheck-rows').innerHTML = crossCheck.checks.map(function(c) {
+      var st = c.status;
+      var rowBg = st === 'pass' ? '#f0faf4' : st === 'fail' ? '#fdf2f2' : '#fffbf0';
+      var dotColor = st === 'pass' ? '#1a7a3e' : st === 'fail' ? '#c0392b' : '#b8760a';
+      var icon = st === 'pass' ? '&#10003;' : st === 'fail' ? '&#10007;' : '&#9888;';
+      var srcLabel = sourceLabels[c.source] || c.source || '';
+      return '<div style="padding:10px 12px;margin-bottom:6px;border-radius:6px;background:' + rowBg + ';border-left:3px solid ' + dotColor + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
+        '<span style="font-weight:700;font-size:13px;color:' + dotColor + '">' + icon + ' ' + esc(c.check) + '</span>' +
+        '<span style="font-size:11px;color:#888;background:#f0f4f8;padding:2px 7px;border-radius:10px">' + esc(srcLabel) + '</span>' +
+        '</div>' +
+        '<div style="font-size:12px;color:#444;line-height:1.5">' + esc(c.detail) + '</div>' +
+        '</div>';
+    }).join('');
+  } else {
+    ccCard.style.display = 'none';
+  }
 }
 
 // ── Cross-check tab ─────────────────────────────────────────────────────────

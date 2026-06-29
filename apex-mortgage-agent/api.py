@@ -77,7 +77,7 @@ from tools.discrepancy_engine import compute_discrepancy
 from tools.stress_test import run_stress_test
 from tools.credit_report_analyser import analyse_credit_report, cross_validate as credit_cross_validate
 from tools.payslip_analyser import analyse_payslip
-from tools.passport_analyser import analyse_passport
+from tools.passport_analyser import analyse_passport, cross_check_passport
 from tools.live_lender_api import is_live_api_configured, get_provider_name, get_live_affordability
 from tools.cross_validation_engine import cross_validate_documents
 from tools.document_generator import (
@@ -800,8 +800,18 @@ async def upload_passport(client_id: str, file: UploadFile = File(...)):
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Passport analysis failed: {exc}")
 
+    payslip_stored = get_payslip_analysis(client_id)
+    credit_stored = get_credit_report(client_id)
+    cross_check = cross_check_passport(
+        passport_data=passport_data,
+        client=client,
+        payslip_data=payslip_stored,
+        credit_data=credit_stored,
+    )
+
     payload = {
         "passport_data": passport_data,
+        "cross_check": cross_check,
         "filename": file.filename,
         "uploaded_at": passport_data["_meta"]["analysed_at"],
     }
@@ -812,6 +822,7 @@ async def upload_passport(client_id: str, file: UploadFile = File(...)):
         "issuing_country": passport_data.get("issuing_country"),
         "is_expired": passport_data.get("is_expired"),
         "filename": file.filename,
+        "cross_check_overall": cross_check["overall"],
     })
     update_client(client_id, {"passport_uploaded": True})
 
@@ -819,6 +830,7 @@ async def upload_passport(client_id: str, file: UploadFile = File(...)):
         "success": True,
         "client_id": client_id,
         "passport_data": passport_data,
+        "cross_check": cross_check,
     }
 
 
