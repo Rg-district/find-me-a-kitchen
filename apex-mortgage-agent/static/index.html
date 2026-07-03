@@ -3138,11 +3138,13 @@ function renderPayslipResults(analysis) {
   var discrepancy = comparison.discrepancy_pct || 0;
   var discColour = Math.abs(discrepancy) <= 10 ? 'var(--success)' : 'var(--danger)';
   var discSign = discrepancy >= 0 ? '+' : '';
+  var monthlyGross = earnings.annualised_gross_salary ? earnings.annualised_gross_salary / 12 : null;
 
   document.getElementById('payslip-stats').innerHTML =
-    '<div class="stat-box"><div class="stat-label">Gross Pay (period)</div><div class="stat-value">' + gbp(earnings.gross_pay_this_period) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">Net Pay (period)</div><div class="stat-value">' + gbp(netPay.net_pay_this_period) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">Monthly Net Equivalent</div><div class="stat-value">' + gbp(netPay.monthly_net_equivalent) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Gross (this period)</div><div class="stat-value">' + gbp(earnings.gross_pay_this_period) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Avg Monthly Gross</div><div class="stat-value" style="font-weight:700">' + gbp(monthlyGross) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Net (this period)</div><div class="stat-value">' + gbp(netPay.net_pay_this_period) + '</div></div>' +
+    '<div class="stat-box"><div class="stat-label">Avg Monthly Net</div><div class="stat-value" style="font-weight:700">' + gbp(netPay.monthly_net_equivalent) + '</div></div>' +
     '<div class="stat-box"><div class="stat-label">Declared Monthly</div><div class="stat-value">' + gbp(comparison.declared_monthly_income) + '</div></div>' +
     '<div class="stat-box"><div class="stat-label">vs Declaration</div><div class="stat-value" style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</div></div>';
 
@@ -3179,8 +3181,9 @@ function renderPayslipResults(analysis) {
       '<table class="data-table">' +
         '<tbody>' +
           '<tr><th>Declared Monthly Income</th><td>' + gbp(comparison.declared_monthly_income) + '</td></tr>' +
-          '<tr><th>Payslip Monthly Net Equivalent</th><td>' + gbp(comparison.payslip_monthly_net_equivalent) + '</td></tr>' +
-          '<tr><th>Discrepancy</th><td style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</td></tr>' +
+          (monthlyGross ? '<tr><th>Avg Monthly Gross</th><td>' + gbp(monthlyGross) + '</td></tr>' : '') +
+          '<tr><th>Avg Monthly Net</th><td>' + gbp(comparison.payslip_monthly_net_equivalent) + '</td></tr>' +
+          '<tr><th>Discrepancy (net vs declared)</th><td style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</td></tr>' +
         '</tbody>' +
       '</table>' +
       (comparison.notes ? '<p style="font-size:13px;color:#555;margin-top:10px;line-height:1.5">' + esc(comparison.notes) + '</p>' : '');

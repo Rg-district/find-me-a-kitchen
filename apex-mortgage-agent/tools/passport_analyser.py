@@ -234,15 +234,28 @@ def cross_check_passport(
 
     # ── 7. DOB vs client record ───────────────────────────────────────────────
     client_dob = (client.get("date_of_birth") or "").strip()
+    passport_age = _calculate_age(passport_dob)
+    age_suffix = f" (age {passport_age})" if passport_age is not None else ""
     if client_dob and passport_dob:
         if passport_dob == client_dob:
-            checks.append({"check": "Date of Birth — Client Record", "status": "pass", "detail": f"Date of birth matches: {passport_dob}.", "source": "client_record"})
+            checks.append({"check": "Date of Birth — Client Record", "status": "pass", "detail": f"Date of birth matches: {passport_dob}{age_suffix}.", "source": "client_record"})
         else:
-            checks.append({"check": "Date of Birth — Client Record", "status": "fail", "detail": f"DOB mismatch: passport shows {passport_dob}, client record shows {client_dob}. This must be resolved before submission — possible data entry error or wrong client record.", "source": "client_record"})
+            client_age = _calculate_age(client_dob)
+            client_age_suffix = f" (age {client_age})" if client_age is not None else ""
+            checks.append({"check": "Date of Birth — Client Record", "status": "fail", "detail": f"DOB mismatch: passport shows {passport_dob}{age_suffix}, client record shows {client_dob}{client_age_suffix}. This must be resolved before submission — possible data entry error or wrong client record.", "source": "client_record"})
     elif passport_dob:
-        checks.append({"check": "Date of Birth — Client Record", "status": "warning", "detail": "No date of birth in client record — cannot verify. Add client DOB to the fact find.", "source": "client_record"})
+        checks.append({"check": "Date of Birth — Client Record", "status": "warning", "detail": f"No date of birth in client record — cannot verify. Passport shows {passport_dob}{age_suffix}. Add client DOB to the fact find.", "source": "client_record"})
 
-    # ── 8. Name vs payslip ───────────────────────────────────────────────────
+    # ── 8. Age eligibility check ──────────────────────────────────────────────
+    if passport_age is not None:
+        if passport_age < 18:
+            checks.append({"check": "Age Eligibility", "status": "fail", "detail": f"Client is {passport_age} years old. Applicants must be at least 18 to obtain a mortgage in the UK.", "source": "document"})
+        elif passport_age >= 75:
+            checks.append({"check": "Age Eligibility", "status": "warning", "detail": f"Client is {passport_age} years old. Many lenders cap the maximum age at end of mortgage term — check criteria carefully.", "source": "document"})
+        else:
+            checks.append({"check": "Age Eligibility", "status": "pass", "detail": f"Client is {passport_age} years old — within standard mortgage age eligibility.", "source": "document"})
+
+    # ── 9. Name vs payslip ───────────────────────────────────────────────────
     if payslip_data:
         ps_analysis = payslip_data.get("analysis") or payslip_data
         employer = ps_analysis.get("employer") or {}
@@ -258,7 +271,7 @@ def cross_check_passport(
         elif passport_name and not ps_name:
             checks.append({"check": "Name — Payslip", "status": "warning", "detail": "Employee name not found on payslip — cross-check not possible.", "source": "payslip"})
 
-    # ── 9. Name vs credit report ──────────────────────────────────────────────
+    # ── 10. Name vs credit report ─────────────────────────────────────────────
     if credit_data:
         cr = credit_data.get("credit_data") or credit_data
         cr_personal = cr.get("personal_details") or {}
@@ -307,6 +320,16 @@ def cross_check_passport(
         "fail_count": fail_count,
         "checks": checks,
     }
+
+
+def _calculate_age(dob_str: str) -> Optional[int]:
+    """Return integer age from a YYYY-MM-DD string, or None if unparseable."""
+    try:
+        dob = datetime.strptime(dob_str, "%Y-%m-%d")
+        today = datetime.utcnow()
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    except (ValueError, TypeError):
+        return None
 
 
 def _name_match(name_a: str, name_b: str) -> tuple[str, int]:
