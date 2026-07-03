@@ -436,6 +436,25 @@ async def get_client_payslip(client_id: str):
     return {"client_id": client_id, **data}
 
 
+@app.post("/api/clients/{client_id}/save-payslip-aggregate")
+async def save_payslip_aggregate(client_id: str, request: Request):
+    """Persist a client-side aggregated payslip result (averaged from multiple payslips)."""
+    client = get_client(client_id)
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    body = await request.json()
+    payload = {
+        "analysis": body.get("analysis"),
+        "payslip_filename": body.get("payslip_filename", "Multiple payslips"),
+        "uploaded_at": datetime.utcnow().isoformat(),
+        "payslip_count": body.get("payslip_count", 1),
+    }
+    save_payslip_analysis(client_id, payload)
+    update_client(client_id, {"payslip_uploaded": True})
+    log_event(client_id, "payslip_aggregate_saved", {"count": payload["payslip_count"]})
+    return {"saved": True, "payslip_count": payload["payslip_count"]}
+
+
 @app.post("/api/clients/{client_id}/generate-report")
 async def generate_client_report(client_id: str):
     """Generate and return an HTML report for the client."""

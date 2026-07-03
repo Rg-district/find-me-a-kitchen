@@ -1621,7 +1621,8 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
               <div id="payslip-results" style="display:none">
 
                 <div class="card">
-                  <div class="card-title">&#163; Pay Summary</div>
+                  <div class="card-title" id="payslip-summary-title">&#163; Pay Summary</div>
+                  <div id="payslip-aggregate-note" style="display:none;background:#ebf8ff;border:1px solid #bee3f8;border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#2b6cb0"></div>
                   <div class="stat-row" id="payslip-stats"></div>
                   <div style="font-size:12px;color:#9aaab8" id="payslip-period-info"></div>
                 </div>
@@ -3077,12 +3078,50 @@ function clearPayslipQueue() {
   renderPayslipQueue();
 }
 
+function aggregatePayslipAnalyses(analyses) {
+  if (!analyses || !analyses.length) return null;
+  if (analyses.length === 1) return analyses[0];
+  var count = analyses.length;
+  // Normalise every payslip to monthly before averaging (handles weekly/fortnightly/monthly mix)
+  var monthlyGrossVals = analyses.map(function(a) {
+    var ann = ((a.earnings || {}).annualised_gross_salary) || 0;
+    return ann > 0 ? ann / 12 : (((a.earnings || {}).gross_pay_this_period) || 0);
+  });
+  var monthlyNetVals = analyses.map(function(a) {
+    return ((a.net_pay || {}).monthly_net_equivalent) || ((a.net_pay || {}).net_pay_this_period) || 0;
+  });
+  var avgMonthlyGross = monthlyGrossVals.reduce(function(s, v) { return s + v; }, 0) / count;
+  var avgMonthlyNet   = monthlyNetVals.reduce(function(s, v) { return s + v; }, 0) / count;
+  // Deep-copy the most recent analysis as the base
+  var agg = JSON.parse(JSON.stringify(analyses[analyses.length - 1]));
+  agg.earnings = agg.earnings || {};
+  agg.earnings.gross_pay_this_period   = avgMonthlyGross;
+  agg.earnings.annualised_gross_salary = avgMonthlyGross * 12;
+  agg.net_pay = agg.net_pay || {};
+  agg.net_pay.net_pay_this_period  = avgMonthlyNet;
+  agg.net_pay.monthly_net_equivalent = avgMonthlyNet;
+  agg.net_pay.annualised_net_salary  = avgMonthlyNet * 12;
+  if (agg.declared_income_comparison) {
+    var declared = agg.declared_income_comparison.declared_monthly_income || 0;
+    agg.declared_income_comparison.payslip_monthly_net_equivalent = avgMonthlyNet;
+    agg.declared_income_comparison.discrepancy_pct = declared > 0
+      ? Math.round(((avgMonthlyNet - declared) / declared) * 1000) / 10
+      : 0;
+    agg.declared_income_comparison.notes =
+      'Average of ' + count + ' payslips. Monthly gross average: £' + avgMonthlyGross.toFixed(2) +
+      ' | Monthly net average: £' + avgMonthlyNet.toFixed(2) + '.';
+  }
+  agg._aggregated = true;
+  agg._payslip_count = count;
+  return agg;
+}
+
 function uploadPayslip() {
   if (!payslipSelectedFiles.length || !selectedClientId) return;
   var files = payslipSelectedFiles.slice();
   var total = files.length;
   var idx = 0;
-  var lastAnalysis = null;
+  var allAnalyses = [];
   var progressEl = document.getElementById('payslip-multi-progress');
 
   function uploadNext() {
@@ -3090,10 +3129,23 @@ function uploadPayslip() {
       hideLoading();
       document.getElementById('btn-payslip-analyse').disabled = false;
       progressEl.style.display = 'none';
-      if (lastAnalysis) {
-        renderPayslipResults(lastAnalysis);
-        toast('Payslip analysis complete (' + total + ' processed)', 'success');
-        if (total > 1) triggerCrossCheck();
+      if (allAnalyses.length) {
+        var aggregated = aggregatePayslipAnalyses(allAnalyses);
+        renderPayslipResults(aggregated);
+        toast('Payslip analysis complete (' + total + ' payslip' + (total > 1 ? 's' : '') + ' processed)', 'success');
+        if (total > 1) {
+          // Persist the aggregate so reloading the tab shows the same figures
+          fetch('/api/clients/' + selectedClientId + '/save-payslip-aggregate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              analysis: aggregated,
+              payslip_filename: total + ' payslips',
+              payslip_count: total,
+            }),
+          }).catch(function() {});
+          triggerCrossCheck();
+        }
       }
       payslipSelectedFiles = [];
       document.getElementById('payslip-file-input').value = '';
@@ -3104,7 +3156,7 @@ function uploadPayslip() {
     var file = files[idx - 1];
     progressEl.style.display = 'block';
     progressEl.textContent = 'Analysing payslip ' + idx + ' of ' + total + ': ' + file.name + '...';
-    showLoading('Analysing payslip ' + idx + ' of ' + total + ' with AI...');
+    showLoading('Analysing payslip ' + idx + ' of ' + total + ' with AI…');
     document.getElementById('btn-payslip-analyse').disabled = true;
     var formData = new FormData();
     formData.append('file', file);
@@ -3112,7 +3164,7 @@ function uploadPayslip() {
       .then(function(res) { return res.json().then(function(d) { return { ok: res.ok, data: d }; }); })
       .then(function(result) {
         if (!result.ok) { toast((result.data.detail || 'Analysis failed') + ' (' + file.name + ')', 'error'); uploadNext(); return; }
-        lastAnalysis = result.data.analysis;
+        allAnalyses.push(result.data.analysis);
         uploadNext();
       })
       .catch(function() { toast('Network error uploading ' + file.name, 'error'); uploadNext(); });
@@ -3139,14 +3191,45 @@ function renderPayslipResults(analysis) {
   var discColour = Math.abs(discrepancy) <= 10 ? 'var(--success)' : 'var(--danger)';
   var discSign = discrepancy >= 0 ? '+' : '';
   var monthlyGross = earnings.annualised_gross_salary ? earnings.annualised_gross_salary / 12 : null;
+  var isAgg = !!(analysis._aggregated && analysis._payslip_count > 1);
+  var payslipCount = analysis._payslip_count || 1;
 
-  document.getElementById('payslip-stats').innerHTML =
-    '<div class="stat-box"><div class="stat-label">Gross (this period)</div><div class="stat-value">' + gbp(earnings.gross_pay_this_period) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">Avg Monthly Gross</div><div class="stat-value" style="font-weight:700">' + gbp(monthlyGross) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">Net (this period)</div><div class="stat-value">' + gbp(netPay.net_pay_this_period) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">Avg Monthly Net</div><div class="stat-value" style="font-weight:700">' + gbp(netPay.monthly_net_equivalent) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">Declared Monthly</div><div class="stat-value">' + gbp(comparison.declared_monthly_income) + '</div></div>' +
-    '<div class="stat-box"><div class="stat-label">vs Declaration</div><div class="stat-value" style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</div></div>';
+  // Aggregate banner
+  var noteEl = document.getElementById('payslip-aggregate-note');
+  var titleEl = document.getElementById('payslip-summary-title');
+  if (isAgg) {
+    noteEl.style.display = 'block';
+    noteEl.innerHTML = '&#128200; <strong>Averaged from ' + payslipCount + ' payslips</strong> &mdash; all gross and net figures below are monthly averages calculated across all ' + payslipCount + ' uploaded payslips.';
+    titleEl.innerHTML = '&#163; Pay Summary <span style="font-size:12px;font-weight:400;color:#2b6cb0;margin-left:6px">(' + payslipCount + ' payslips averaged)</span>';
+  } else {
+    noteEl.style.display = 'none';
+    titleEl.innerHTML = '&#163; Pay Summary';
+  }
+
+  if (isAgg) {
+    // Aggregated view: only show monthly averages (per-period figures are redundant / misleading)
+    document.getElementById('payslip-stats').innerHTML =
+      '<div class="stat-box" style="border:2px solid #3182ce">' +
+        '<div class="stat-label" style="color:#2b6cb0">Avg Monthly Gross</div>' +
+        '<div class="stat-value" style="font-weight:800;color:#2b6cb0">' + gbp(monthlyGross) + '</div>' +
+        '<div style="font-size:10px;color:#4a90d9;margin-top:2px">across ' + payslipCount + ' payslips</div>' +
+      '</div>' +
+      '<div class="stat-box" style="border:2px solid #3182ce">' +
+        '<div class="stat-label" style="color:#2b6cb0">Avg Monthly Net</div>' +
+        '<div class="stat-value" style="font-weight:800;color:#2b6cb0">' + gbp(netPay.monthly_net_equivalent) + '</div>' +
+        '<div style="font-size:10px;color:#4a90d9;margin-top:2px">across ' + payslipCount + ' payslips</div>' +
+      '</div>' +
+      '<div class="stat-box"><div class="stat-label">Declared Monthly</div><div class="stat-value">' + gbp(comparison.declared_monthly_income) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">vs Declaration</div><div class="stat-value" style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</div></div>';
+  } else {
+    document.getElementById('payslip-stats').innerHTML =
+      '<div class="stat-box"><div class="stat-label">Gross (this period)</div><div class="stat-value">' + gbp(earnings.gross_pay_this_period) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Avg Monthly Gross</div><div class="stat-value" style="font-weight:700">' + gbp(monthlyGross) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Net (this period)</div><div class="stat-value">' + gbp(netPay.net_pay_this_period) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Avg Monthly Net</div><div class="stat-value" style="font-weight:700">' + gbp(netPay.monthly_net_equivalent) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">Declared Monthly</div><div class="stat-value">' + gbp(comparison.declared_monthly_income) + '</div></div>' +
+      '<div class="stat-box"><div class="stat-label">vs Declaration</div><div class="stat-value" style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</div></div>';
+  }
 
   var freq = (period.frequency || 'unknown').replace('_', ' ');
   var periodBits = [];
@@ -3181,8 +3264,8 @@ function renderPayslipResults(analysis) {
       '<table class="data-table">' +
         '<tbody>' +
           '<tr><th>Declared Monthly Income</th><td>' + gbp(comparison.declared_monthly_income) + '</td></tr>' +
-          (monthlyGross ? '<tr><th>Avg Monthly Gross</th><td>' + gbp(monthlyGross) + '</td></tr>' : '') +
-          '<tr><th>Avg Monthly Net</th><td>' + gbp(comparison.payslip_monthly_net_equivalent) + '</td></tr>' +
+          (monthlyGross ? '<tr><th>' + (isAgg ? 'Avg Monthly Gross (' + payslipCount + ' payslips)' : 'Avg Monthly Gross') + '</th><td><strong>' + gbp(monthlyGross) + '</strong></td></tr>' : '') +
+          '<tr><th>' + (isAgg ? 'Avg Monthly Net (' + payslipCount + ' payslips)' : 'Avg Monthly Net') + '</th><td><strong>' + gbp(comparison.payslip_monthly_net_equivalent) + '</strong></td></tr>' +
           '<tr><th>Discrepancy (net vs declared)</th><td style="color:' + discColour + '">' + discSign + parseFloat(discrepancy).toFixed(1) + '%</td></tr>' +
         '</tbody>' +
       '</table>' +
