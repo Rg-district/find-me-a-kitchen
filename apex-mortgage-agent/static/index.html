@@ -1781,8 +1781,8 @@ To analyse a bank statement, generate a grade, match lenders, or produce client 
                 </div>
 
                 <div class="card" id="passport-crosscheck-card" style="display:none">
-                  <div class="card-title">&#128270; Document Checks</div>
-                  <div id="passport-crosscheck-banner" style="padding:10px 14px;border-radius:7px;margin-bottom:14px;font-weight:700;font-size:14px"></div>
+                  <div class="card-title" id="passport-crosscheck-title">&#128270; Document Checks</div>
+                  <div id="passport-crosscheck-banner" style="padding:12px 16px;border-radius:8px;margin-bottom:16px;font-weight:700;font-size:15px;display:flex;align-items:center;gap:10px;border:1px solid transparent"></div>
                   <div id="passport-crosscheck-rows"></div>
                 </div>
 
@@ -4390,29 +4390,73 @@ function renderPassportResults(p, crossCheck) {
   if (crossCheck && crossCheck.checks && crossCheck.checks.length) {
     ccCard.style.display = 'block';
     var overall = crossCheck.overall || 'warning';
-    var bannerBg = overall === 'pass' ? '#e6f9ed' : overall === 'fail' ? '#fde8e8' : '#fff8e1';
-    var bannerColor = overall === 'pass' ? '#1a7a3e' : overall === 'fail' ? '#c0392b' : '#b8760a';
-    var bannerIcon = overall === 'pass' ? '&#10003;' : overall === 'fail' ? '&#10007;' : '&#9888;';
-    document.getElementById('passport-crosscheck-banner').style.background = bannerBg;
-    document.getElementById('passport-crosscheck-banner').style.color = bannerColor;
-    document.getElementById('passport-crosscheck-banner').innerHTML =
-      bannerIcon + ' ' + esc(crossCheck.overall_text || '') +
-      ' <span style="font-weight:400;font-size:12px;margin-left:8px">(' +
-      crossCheck.pass_count + ' passed, ' + crossCheck.warn_count + ' warnings, ' + crossCheck.fail_count + ' failed)</span>';
 
+    // ── Card title ──────────────────────────────────────────────────────────
+    var titleEl = document.getElementById('passport-crosscheck-title');
+    if (overall === 'pass') {
+      titleEl.style.color = '#1a7a3e';
+      titleEl.innerHTML = '&#10003; Document Checks &#8212; All Correct';
+    } else if (overall === 'fail') {
+      titleEl.style.color = '#c0392b';
+      titleEl.innerHTML = '&#128270; Document Checks &#8212; Issues Found';
+    } else {
+      titleEl.style.color = '#b8760a';
+      titleEl.innerHTML = '&#128270; Document Checks &#8212; Review Required';
+    }
+
+    // ── Overall banner ──────────────────────────────────────────────────────
+    var banner = document.getElementById('passport-crosscheck-banner');
+    if (overall === 'pass') {
+      banner.style.background = '#d4edda';
+      banner.style.color = '#155724';
+      banner.style.borderColor = '#c3e6cb';
+      banner.innerHTML =
+        '<span style="font-size:28px;line-height:1;flex-shrink:0">&#10003;</span>' +
+        '<span>' +
+          '<div style="font-size:16px;font-weight:800">' + esc(crossCheck.overall_text || 'All checks passed') + '</div>' +
+          '<div style="font-weight:400;font-size:12px;margin-top:2px;color:#1e7e34">' + crossCheck.pass_count + ' of ' + crossCheck.checks.length + ' checks passed &#8212; document is clear for use</div>' +
+        '</span>';
+    } else if (overall === 'fail') {
+      banner.style.background = '#fde8e8';
+      banner.style.color = '#c0392b';
+      banner.style.borderColor = '#f5c6cb';
+      banner.innerHTML =
+        '<span style="font-size:24px;line-height:1;flex-shrink:0">&#10007;</span>' +
+        '<span>' +
+          '<div>' + esc(crossCheck.overall_text || '') + '</div>' +
+          '<div style="font-weight:400;font-size:12px;margin-top:2px">' + crossCheck.pass_count + ' passed &bull; ' + crossCheck.warn_count + ' warnings &bull; ' + crossCheck.fail_count + ' failed</div>' +
+        '</span>';
+    } else {
+      banner.style.background = '#fff8e1';
+      banner.style.color = '#b8760a';
+      banner.style.borderColor = '#f0c040';
+      banner.innerHTML =
+        '<span style="font-size:24px;line-height:1;flex-shrink:0">&#9888;</span>' +
+        '<span>' +
+          '<div>' + esc(crossCheck.overall_text || '') + '</div>' +
+          '<div style="font-weight:400;font-size:12px;margin-top:2px">' + crossCheck.pass_count + ' passed &bull; ' + crossCheck.warn_count + ' warnings &bull; ' + crossCheck.fail_count + ' failed</div>' +
+        '</span>';
+    }
+
+    // ── Individual check rows ───────────────────────────────────────────────
     var sourceLabels = { document: 'Document', client_record: 'Client Record', payslip: 'Payslip', credit_report: 'Credit Report' };
     document.getElementById('passport-crosscheck-rows').innerHTML = crossCheck.checks.map(function(c) {
       var st = c.status;
-      var rowBg = st === 'pass' ? '#f0faf4' : st === 'fail' ? '#fdf2f2' : '#fffbf0';
-      var dotColor = st === 'pass' ? '#1a7a3e' : st === 'fail' ? '#c0392b' : '#b8760a';
-      var icon = st === 'pass' ? '&#10003;' : st === 'fail' ? '&#10007;' : '&#9888;';
-      var srcLabel = sourceLabels[c.source] || c.source || '';
-      return '<div style="padding:10px 12px;margin-bottom:6px;border-radius:6px;background:' + rowBg + ';border-left:3px solid ' + dotColor + '">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">' +
-        '<span style="font-weight:700;font-size:13px;color:' + dotColor + '">' + icon + ' ' + esc(c.check) + '</span>' +
-        '<span style="font-size:11px;color:#888;background:#f0f4f8;padding:2px 7px;border-radius:10px">' + esc(srcLabel) + '</span>' +
+      var rowBg      = st === 'pass' ? '#f0faf4'  : st === 'fail' ? '#fdf2f2'  : '#fffbf0';
+      var borderCol  = st === 'pass' ? '#1a7a3e'  : st === 'fail' ? '#c0392b'  : '#b8760a';
+      var badgeBg    = st === 'pass' ? '#d4edda'  : st === 'fail' ? '#fde8e8'  : '#fff3cd';
+      var badgeColor = st === 'pass' ? '#155724'  : st === 'fail' ? '#c0392b'  : '#856404';
+      var badgeText  = st === 'pass' ? '&#10003; Correct' : st === 'fail' ? '&#10007; Failed' : '&#9888; Review';
+      var srcLabel   = sourceLabels[c.source] || c.source || '';
+      return '<div style="padding:11px 13px;margin-bottom:7px;border-radius:7px;background:' + rowBg + ';border-left:4px solid ' + borderCol + '">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:8px">' +
+          '<span style="font-weight:700;font-size:13px;color:#1a2a3a">' + esc(c.check) + '</span>' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-shrink:0">' +
+            '<span style="font-size:12px;font-weight:700;color:' + badgeColor + ';background:' + badgeBg + ';padding:3px 9px;border-radius:12px;white-space:nowrap">' + badgeText + '</span>' +
+            '<span style="font-size:11px;color:#888;background:#f0f4f8;padding:2px 7px;border-radius:10px;white-space:nowrap">' + esc(srcLabel) + '</span>' +
+          '</div>' +
         '</div>' +
-        '<div style="font-size:12px;color:#444;line-height:1.5">' + esc(c.detail) + '</div>' +
+        '<div style="font-size:12px;color:#444;line-height:1.55">' + esc(c.detail) + '</div>' +
         '</div>';
     }).join('');
   } else {
