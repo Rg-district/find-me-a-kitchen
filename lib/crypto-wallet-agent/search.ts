@@ -1,0 +1,190 @@
+/**
+ * Search-engine layer.
+ *
+ * The agent "sifts through search engines" via a swappable SearchProvider. If
+ * an API key is configured for SerpAPI, Brave, or Bing we use that (better
+ * quality, ToS-friendly). Otherwise we fall back to DuckDuckGo's keyless HTML
+ * endpoint so the agent works out of the box with no credentials.
+ */
+
+import type {
+  SearchProvider,
+  SearchProviderName,
+  SearchResult,
+} from './types'
+
+const UA =
+  'Mozilla/5.0 (compatible; CryptoWalletSearchAgent/1.0; +https://findmeakitchen.com)'
+
+async function getJson(url: string, headers: Record<string, string> = {}) {
+  const res = await fetch(url, { headers: { 'User-Agent': UA, ...headers } })
+  if (!res.ok) throw new Error(`Search request failed: ${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+// ── SerpAPI (Google results) ──────────────────────────────────────────────
+class SerpApiProvider implements SearchProvider {
+  readonly name = 'serpapi' as const
+  constructor(private key: string) {}
+  async search(query: string, limit: number): Promise<SearchResult[]> {
+    const url =
+      `https://serpapi.com/search.json?engine=google` +
+      `&q=${encodeURIComponent(query)}&num=${limit}&api_key=${this.key}`
+    const data = await getJson(url)
+    const organic: any[] = data.organic_results ?? []
+    return organic.slice(0, limit).map((r, i) => ({
+      title: r.title ?? '',
+      url: r.link,
+      snippet: r.snippet,
+      rank: i + 1,
+    }))
+  }
+}
+
+// ── Brave Search API ──────────────────────────────────────────────────────
+class BraveProvider implements SearchProvider {
+  readonly name = 'brave' as const
+  constructor(private key: string) {}
+  async search(query: string, limit: number): Promise<SearchResult[]> {
+    const url =
+      `https://api.search.brave.com/res/v1/web/search` +
+      `?q=${encodeURIComponent(query)}&count=${Math.min(limit, 20)}`
+    const data = await getJson(url, {
+      Accept: 'application/json',
+      'X-Subscription-Token': this.key,
+    })
+    const web: any[] = data.web?.results ?? []
+    return web.slice(0, limit).map((r, i) => ({
+      title: r.title ?? '',
+      url: r.url,
+      snippet: r.description,
+      rank: i + 1,
+    }))
+  }
+}
+
+// ── Bing Web Search API ───────────────────────────────────────────────────
+class BingProvider implements SearchProvider {
+  readonly name = 'bing' as const
+  constructor(private key: string) {}
+  async search(query: string, limit: number): Promise<SearchResult[]> {
+    const url =
+      `https://api.bing.microsoft.com/v7.0/search` +
+      `?q=${encodeURIComponent(query)}&count=${Math.min(limit, 50)}`
+    const data = await getJson(url, { 'Ocp-Apim-Subscription-Key': this.key })
+    const web: any[] = data.webPages?.value ?? []
+    return web.slice(0, limit).map((r, i) => ({
+      title: r.name ?? '',
+      url: r.url,
+      snippet: r.snippet,
+      rank: i + 1,
+    }))
+  }
+}
+
+// ── DuckDuckGo HTML (keyless fallback) ────────────────────────────────────
+class DuckDuckGoProvider implements SearchProvider {
+  readonly name = 'duckduckgo' as const
+  async search(query: string, limit: number): Promise<SearchResult[]> {
+    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`
+    const res = await fetch(url, { headers: { 'User-Agent': UA } })
+    if (!res.ok) throw new Error(`DuckDuckGo request failed: ${res.status}`)
+    const html = await res.text()
+    return parseDuckDuckGo(html, limit)
+  }
+}
+
+/**
+ * Parse the DuckDuckGo HTML results page. DDG wraps each result link in
+ * `a.result__a` and its snippet in `a.result__snippet`, and points the href
+ * through a `/l/?uddg=<encoded-target>` redirect we unwrap.
+ */
+export function parseDuckDuckGo(html: string, limit: number): SearchResult[] {
+  const results: SearchResult[] = []
+  const linkRe =
+    /<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi
+  const snippetRe =
+    /<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>([\s\S]*?)<\/a>/gi
+
+  const snippets: string[] = []
+  let sm: RegExpExecArray | null
+  while ((sm = snippetRe.exec(html)) !== null) snippets.push(stripTags(sm[1]))
+
+  let m: RegExpExecArray | null
+  let i = 0
+  while ((m = linkRe.exec(html)) !== null && results.length < limit) {
+    const href = decodeDdgHref(m[1])
+    if (!href) {
+      i++
+      continue
+    }
+    results.push({
+      title: stripTags(m[2]),
+      url: href,
+      snippet: snippets[i],
+      rank: results.length + 1,
+    })
+    i++
+  }
+  return results
+}
+
+function decodeDdgHref(href: string): string | null {
+  let h = href
+  if (h.startsWith('//')) h = 'https:' + h
+  try {
+    const u = new URL(h, 'https://duckduckgo.com')
+    const target = u.searchParams.get('uddg')
+    if (target) return decodeURIComponent(target)
+    // Some results are already absolute; skip DDG-internal ad/redirect links.
+    if (u.hostname.includes('duckduckgo.com')) return null
+    return u.toString()
+  } catch {
+    return null
+  }
+}
+
+function stripTags(s: string): string {
+  return s
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Pick a provider. If `force` is given, use it (throwing if its key is
+ * missing). Otherwise use the first provider that has credentials, falling
+ * back to keyless DuckDuckGo.
+ */
+export function getSearchProvider(force?: SearchProviderName): SearchProvider {
+  const serp = process.env.SERPAPI_KEY
+  const brave = process.env.BRAVE_SEARCH_API_KEY
+  const bing = process.env.BING_SEARCH_API_KEY
+
+  if (force) {
+    switch (force) {
+      case 'serpapi':
+        if (!serp) throw new Error('SERPAPI_KEY is not set')
+        return new SerpApiProvider(serp)
+      case 'brave':
+        if (!brave) throw new Error('BRAVE_SEARCH_API_KEY is not set')
+        return new BraveProvider(brave)
+      case 'bing':
+        if (!bing) throw new Error('BING_SEARCH_API_KEY is not set')
+        return new BingProvider(bing)
+      case 'duckduckgo':
+        return new DuckDuckGoProvider()
+    }
+  }
+
+  if (serp) return new SerpApiProvider(serp)
+  if (brave) return new BraveProvider(brave)
+  if (bing) return new BingProvider(bing)
+  return new DuckDuckGoProvider()
+}
