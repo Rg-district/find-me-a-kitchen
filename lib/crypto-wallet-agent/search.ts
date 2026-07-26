@@ -13,11 +13,13 @@ import type {
   SearchResult,
 } from './types'
 
-const UA =
-  'Mozilla/5.0 (compatible; CryptoWalletSearchAgent/1.0; +https://findmeakitchen.com)'
+// A realistic desktop-browser UA. Keyless DuckDuckGo (and many target sites)
+// reject obvious bot user-agents with a 403, so we present as a browser.
+const BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 
 async function getJson(url: string, headers: Record<string, string> = {}) {
-  const res = await fetch(url, { headers: { 'User-Agent': UA, ...headers } })
+  const res = await fetch(url, { headers: { 'User-Agent': BROWSER_UA, ...headers } })
   if (!res.ok) throw new Error(`Search request failed: ${res.status} ${res.statusText}`)
   return res.json()
 }
@@ -82,15 +84,45 @@ class BingProvider implements SearchProvider {
   }
 }
 
-// ── DuckDuckGo HTML (keyless fallback) ────────────────────────────────────
+// ── DuckDuckGo (keyless fallback) ─────────────────────────────────────────
 class DuckDuckGoProvider implements SearchProvider {
   readonly name = 'duckduckgo' as const
   async search(query: string, limit: number): Promise<SearchResult[]> {
-    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`
-    const res = await fetch(url, { headers: { 'User-Agent': UA } })
-    if (!res.ok) throw new Error(`DuckDuckGo request failed: ${res.status}`)
-    const html = await res.text()
-    return parseDuckDuckGo(html, limit)
+    // DuckDuckGo's no-JS endpoints. We POST the query as a browser form (the
+    // most reliable path) and try the `lite` endpoint if `html` is blocked or
+    // returns nothing.
+    const attempts: { url: string; parse: (html: string, limit: number) => SearchResult[] }[] = [
+      { url: 'https://html.duckduckgo.com/html/', parse: parseDuckDuckGo },
+      { url: 'https://lite.duckduckgo.com/lite/', parse: parseDuckDuckGoLite },
+    ]
+    let lastErr: unknown = new Error('no attempts made')
+    for (const attempt of attempts) {
+      try {
+        const res = await fetch(attempt.url, {
+          method: 'POST',
+          headers: {
+            'User-Agent': BROWSER_UA,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            Origin: new URL(attempt.url).origin,
+            Referer: attempt.url,
+          },
+          body: new URLSearchParams({ q: query, kl: 'us-en' }).toString(),
+        })
+        if (!res.ok) throw new Error(`${attempt.url} responded ${res.status}`)
+        const html = await res.text()
+        const results = attempt.parse(html, limit)
+        if (results.length > 0) return results
+        lastErr = new Error(`${attempt.url} returned no parseable results`)
+      } catch (err) {
+        lastErr = err
+      }
+    }
+    throw new Error(
+      `DuckDuckGo request failed: ${lastErr instanceof Error ? lastErr.message : String(lastErr)}. ` +
+        `Set SERPAPI_KEY, BRAVE_SEARCH_API_KEY, or BING_SEARCH_API_KEY for reliable search.`
+    )
   }
 }
 
@@ -125,6 +157,25 @@ export function parseDuckDuckGo(html: string, limit: number): SearchResult[] {
       rank: results.length + 1,
     })
     i++
+  }
+  return results
+}
+
+/**
+ * Parse the DuckDuckGo `lite` results page — a simple table where each result
+ * is an `<a class="result-link" href="…">`. Snippets are not reliably present,
+ * so this returns titles + URLs only.
+ */
+export function parseDuckDuckGoLite(html: string, limit: number): SearchResult[] {
+  const results: SearchResult[] = []
+  const tagRe = /<a([^>]*class=['"][^'"]*result-link[^'"]*['"][^>]*)>([\s\S]*?)<\/a>/gi
+  let m: RegExpExecArray | null
+  while ((m = tagRe.exec(html)) !== null && results.length < limit) {
+    const hrefMatch = /href=['"]([^'"]+)['"]/i.exec(m[1])
+    if (!hrefMatch) continue
+    const href = decodeDdgHref(hrefMatch[1])
+    if (!href) continue
+    results.push({ title: stripTags(m[2]), url: href, rank: results.length + 1 })
   }
   return results
 }
