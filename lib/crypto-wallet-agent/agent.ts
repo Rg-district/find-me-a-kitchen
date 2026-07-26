@@ -20,6 +20,7 @@ import type {
   MentionCategory,
   PageAnalysis,
   SearchResult,
+  StreamEvent,
 } from './types'
 
 const EMPTY_COUNTS = (): Record<MentionCategory, number> => ({
@@ -67,6 +68,75 @@ export async function runCryptoWalletSearch(
     totalResults: results.length,
     matchedCount: matched.length,
     pages,
+  }
+}
+
+/**
+ * Streaming variant of {@link runCryptoWalletSearch}.
+ *
+ * Yields a `search` event with the links found, then a `page` event for each
+ * result as its analysis completes (in completion order, so a dashboard can
+ * render progress live), then a final `done` summary. Fetch/analysis errors for
+ * an individual page are reported on that page's analysis, not thrown; only a
+ * failure of the search step itself surfaces as an `error` event.
+ */
+export async function* streamCryptoWalletSearch(
+  opts: AgentOptions
+): AsyncGenerator<StreamEvent> {
+  const {
+    query,
+    maxResults = 10,
+    minConfidence = 0.5,
+    useLLM = false,
+    concurrency = 5,
+    fetchTimeoutMs = 15000,
+    provider,
+  } = opts
+
+  if (!query || !query.trim()) {
+    yield { type: 'error', error: 'A search query is required' }
+    return
+  }
+
+  let engine
+  let results: SearchResult[]
+  try {
+    engine = getSearchProvider(provider)
+    results = await engine.search(query.trim(), maxResults)
+  } catch (err) {
+    yield { type: 'error', error: `search failed: ${errMsg(err)}` }
+    return
+  }
+
+  yield { type: 'search', provider: engine.name, query: query.trim(), results }
+
+  const analyses: PageAnalysis[] = []
+  let completed = 0
+  const stream = mapWithConcurrencyStream(results, concurrency, async (r) => ({
+    result: r,
+    analysis: await analysePage(r, { minConfidence, useLLM, fetchTimeoutMs }),
+  }))
+  for await (const { result, analysis } of stream) {
+    completed++
+    analyses.push(analysis)
+    yield {
+      type: 'page',
+      analysis,
+      sourceUrl: result.url,
+      rank: result.rank,
+      completed,
+      total: results.length,
+    }
+  }
+
+  const matchedCount = analyses.filter((a) => a.discussesCryptoWallets).length
+  yield {
+    type: 'done',
+    query: query.trim(),
+    provider: engine.name,
+    searchedAt: new Date().toISOString(),
+    totalResults: results.length,
+    matchedCount,
   }
 }
 
@@ -143,6 +213,34 @@ async function mapWithConcurrency<T, R>(
   const workers = Array.from({ length: Math.min(limit, items.length) }, worker)
   await Promise.all(workers)
   return out
+}
+
+/**
+ * Like {@link mapWithConcurrency} but yields each result the moment it
+ * completes (completion order, not input order), keeping at most `limit`
+ * tasks in flight. Used by the streaming agent to report live progress.
+ */
+async function* mapWithConcurrencyStream<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): AsyncGenerator<R> {
+  const pool = new Map<number, Promise<{ id: number; value: R }>>()
+  let next = 0
+  const startOne = () => {
+    const id = next++
+    pool.set(
+      id,
+      fn(items[id]).then((value) => ({ id, value }))
+    )
+  }
+  while (next < items.length && pool.size < limit) startOne()
+  while (pool.size > 0) {
+    const { id, value } = await Promise.race(pool.values())
+    pool.delete(id)
+    yield value
+    if (next < items.length) startOne()
+  }
 }
 
 function round(n: number): number {

@@ -104,3 +104,34 @@ export interface SearchProvider {
   readonly name: SearchProviderName
   search(query: string, limit: number): Promise<SearchResult[]>
 }
+
+/**
+ * Events emitted by the streaming agent so a dashboard can show progress as the
+ * agent works through each link, rather than waiting for the whole run.
+ */
+export type StreamEvent =
+  | {
+      type: 'search'
+      provider: SearchProviderName
+      query: string
+      results: SearchResult[]
+    }
+  | {
+      type: 'page'
+      analysis: PageAnalysis
+      /** The original search-result URL (before redirects) — a stable row key. */
+      sourceUrl: string
+      /** 1-based position in the search results. */
+      rank: number
+      completed: number
+      total: number
+    }
+  | {
+      type: 'done'
+      query: string
+      provider: SearchProviderName
+      searchedAt: string
+      totalResults: number
+      matchedCount: number
+    }
+  | { type: 'error'; error: string }

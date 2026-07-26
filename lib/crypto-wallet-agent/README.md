@@ -80,9 +80,34 @@ POST /api/crypto-wallet-search   { "query": "...", "maxResults": 10, "useLLM": t
 
 ### Web UI
 
-Visit `/crypto-wallet-search` for a search box that renders each matching page
-with its confidence score and the highlighted snippets where crypto wallets are
-mentioned.
+- **`/crypto-wallet-dashboard`** — the full dashboard. Enter any keyword in the
+  search bar; the agent searches the web, then works through each result link
+  **live**: you see the links appear, a progress bar and stats (links found,
+  pages scanned, pages that discuss wallets, hit rate), and each row flip from
+  "scanning" to match/no-match with its confidence and the highlighted snippets.
+  Includes an AI-verification toggle, an "only matches" filter, sorting, and a
+  Stop button.
+- **`/crypto-wallet-search`** — a simpler one-shot search box (waits for the
+  whole run, then renders results).
+
+### Streaming endpoint (powers the dashboard)
+
+```
+POST /api/crypto-wallet-search/stream   { "query": "...", "maxResults": 10, "useLLM": false }
+```
+
+Responds with newline-delimited JSON (NDJSON), one `StreamEvent` per line,
+flushed as the agent progresses:
+
+```
+{"type":"search","provider":"duckduckgo","query":"...","results":[...]}
+{"type":"page","analysis":{...},"sourceUrl":"...","rank":3,"completed":1,"total":10}
+...
+{"type":"done","totalResults":10,"matchedCount":4,...}
+```
+
+Consume it with `streamCryptoWalletSearch(opts)` (an async generator) in code,
+or read the NDJSON stream directly on the client.
 
 ## Search providers
 

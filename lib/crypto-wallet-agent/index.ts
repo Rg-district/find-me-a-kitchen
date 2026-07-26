@@ -10,7 +10,7 @@
  *   const result = await runCryptoWalletSearch({ query: 'best hardware wallet 2026' })
  */
 
-export { runCryptoWalletSearch } from './agent'
+export { runCryptoWalletSearch, streamCryptoWalletSearch } from './agent'
 export { detectCryptoWallets } from './detect'
 export { getSearchProvider, parseDuckDuckGo } from './search'
 export { fetchPage, htmlToText } from './fetch'
@@ -23,4 +23,5 @@ export type {
   SearchResult,
   SearchProvider,
   SearchProviderName,
+  StreamEvent,
 } from './types'
