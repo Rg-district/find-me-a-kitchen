@@ -213,10 +213,27 @@ function stripTags(s: string): string {
  * missing). Otherwise use the first provider that has credentials, falling
  * back to keyless DuckDuckGo.
  */
+/** First non-empty (trimmed) value among the given env var names. */
+function envAny(...names: string[]): string | undefined {
+  for (const n of names) {
+    const v = process.env[n]
+    if (v && v.trim()) return v.trim()
+  }
+  return undefined
+}
+
 export function getSearchProvider(force?: SearchProviderName): SearchProvider {
-  const serp = process.env.SERPAPI_KEY
-  const brave = process.env.BRAVE_SEARCH_API_KEY
-  const bing = process.env.BING_SEARCH_API_KEY
+  // Accept common naming variants so a differently-named env var still works.
+  const serp = envAny('SERPAPI_KEY', 'SERP_API_KEY', 'SERPAPI')
+  const brave = envAny(
+    'BRAVE_SEARCH_API_KEY',
+    'BRAVESEARCH',
+    'BRAVE_SEARCH',
+    'BRAVE_API_KEY',
+    'BRAVE_KEY',
+    'BRAVE'
+  )
+  const bing = envAny('BING_SEARCH_API_KEY', 'BING_API_KEY', 'BING_KEY')
 
   if (force) {
     switch (force) {

@@ -6,17 +6,24 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
-  const known = [
-    'SERPAPI_KEY',
-    'BRAVE_SEARCH_API_KEY',
-    'BING_SEARCH_API_KEY',
-    'OPENAI_API_KEY',
-  ] as const
+  // Each key maps to the env var names that are accepted for it (aliases).
+  const keyAliases: Record<string, string[]> = {
+    SERPAPI_KEY: ['SERPAPI_KEY', 'SERP_API_KEY', 'SERPAPI'],
+    BRAVE_SEARCH_API_KEY: [
+      'BRAVE_SEARCH_API_KEY',
+      'BRAVESEARCH',
+      'BRAVE_SEARCH',
+      'BRAVE_API_KEY',
+      'BRAVE_KEY',
+      'BRAVE',
+    ],
+    BING_SEARCH_API_KEY: ['BING_SEARCH_API_KEY', 'BING_API_KEY', 'BING_KEY'],
+    OPENAI_API_KEY: ['OPENAI_API_KEY'],
+  }
 
   const present: Record<string, boolean> = {}
-  for (const name of known) {
-    const v = process.env[name]
-    present[name] = Boolean(v && v.trim())
+  for (const [key, aliases] of Object.entries(keyAliases)) {
+    present[key] = aliases.some((n) => Boolean(process.env[n] && process.env[n]!.trim()))
   }
 
   // Names (not values) of env vars that resemble a search key — reveals typos
